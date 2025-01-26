@@ -1,0 +1,30 @@
+project/
+│
+├── index.php          # Main page with role selection
+├── patient_register.php  # Patient registration form
+├── doctor_register.php   # Doctor registration form
+├── register.php       # Common registration processing script
+├── login.html        # Login page
+├── login.php         # Login processing script
+├── dashboard.php     # User dashboard
+├── logout.php        # Logout script
+│
+├── verify.php        # Email verification processing
+├── resend_verification.php  # Resend verification email
+│
+├── forgot_password.html  # Forgot password page
+├── forgot_password.php   # Forgot password processing
+├── reset_password.html   # Reset password page
+├── reset_password.php    # Reset password processing
+│
+├── styles/
+│   └── styles.css    # CSS styles
+│
+├── uploads/
+│   ├── profile_images/    # For profile pictures
+│   └── documents/         # For professional documents (e.g., certifications)
+│
+├── vendor/
+│   └── autoload.php    # PHPMailer autoload (if using PHPMailer)
+│
+└── database.sql       # SQL script for database setup

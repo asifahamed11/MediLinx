@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify Email</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Verify Email</h2>
+      <form action="verify_pin.php" method="post">
+        <label for="pin">Enter Verification PIN:</label>
+        <input
+          type="text"
+          id="pin"
+          name="pin"
+          placeholder="6-digit PIN"
+          required
+        />
+
+        <button type="submit" class="btn">Verify</button>
+      </form>
+      <p>
+        Didn't receive the PIN?
+        <a href="resend_verification.php">Resend PIN</a>.
+      </p>
+    </div>
+  </body>
+</html>
