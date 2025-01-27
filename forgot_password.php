@@ -1,9 +1,9 @@
 <?php
+session_start();
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
-// or require 'PHPMailer/src/PHPMailer.php';
 
 // Database configuration
 $servername = "localhost";
@@ -39,8 +39,9 @@ if ($stmt->num_rows === 1) {
     $stmt->fetch();
     // Generate a 6-digit reset PIN
     $reset_pin = rand(100000, 999999);
-    // Set PIN expiry time (e.g., 1 hour from now)
-    $reset_pin_expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
+// Replace the reset_pin_expiry line with these lines
+    $reset_pin_expiry = date("Y-m-d H:i:s", strtotime("+30 minutes"));
+
 
     // Insert or update the reset PIN in the database
     $stmt->close();
@@ -73,16 +74,24 @@ if ($stmt->num_rows === 1) {
 
             $mail->send();
         } catch (Exception $e) {
-            echo "Failed to send reset PIN: " . $mail->ErrorInfo;
+            // Log the error message
+            error_log("Failed to send reset PIN: " . $e->getMessage());
+
+            // Inform the user without displaying the actual error
+            echo "Failed to send reset PIN. Please try again later.";
             exit;
         }
 
-        echo "A password reset PIN has been sent to your email address.";
+        // Redirect to reset_password.html with email as a GET parameter
+        header("Location: reset_password.html?email=" . urlencode($email));
+        exit;
     } else {
         echo "Error updating reset PIN.";
+        exit;
     }
 } else {
     echo "Email does not exist.";
+    exit;
 }
 $stmt->close();
 $conn->close();

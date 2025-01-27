@@ -1,9 +1,10 @@
 <?php
+session_start();
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
 require 'vendor/autoload.php';
 
-session_start();
 
 // Database configuration
 $servername = "localhost";
@@ -20,7 +21,7 @@ if ($conn->connect_error) {
 }
 
 // Get form data
-$email = trim($_POST['email']);
+$email = trim($_GET['email']);
 
 // Basic validation
 if (empty($email)) {
