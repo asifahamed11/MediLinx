@@ -1,60 +1,59 @@
 <?php
 session_start();
+
+// Include PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
 require 'vendor/autoload.php';
 
-// Database configuration
-$servername = "localhost";
-$username = "root"; // Replace with your MySQL username
-$password = "";     // Replace with your MySQL password
-$dbname = "user_authentication";
+try {
+    // Database configuration
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "user_authentication";
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+    // Create connection
+    $conn = new mysqli($servername, $username, $password, $dbname);
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed");
+    }
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+    // Get and validate email
+    $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+    if (!$email) {
+        throw new Exception("Invalid email format");
+    }
 
-// Get form data
-$email = trim($_POST['email']);
+    // Check if email exists
+    $stmt = $conn->prepare("SELECT id, username FROM users WHERE email = ?");
+    if (!$stmt) {
+        throw new Exception("Database error");
+    }
 
-// Basic validation
-if (empty($email)) {
-    echo "Email is required.";
-    exit;
-}
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-// Check if email exists
-$stmt = $conn->prepare("SELECT id, username FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$stmt->store_result();
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        
+        // Generate 6-digit PIN
+        $reset_pin = sprintf("%06d", mt_rand(100000, 999999));
 
-if ($stmt->num_rows === 1) {
-    $stmt->bind_result($user_id, $username);
-    $stmt->fetch();
-    // Generate a 6-digit reset PIN
-    $reset_pin = rand(100000, 999999);
-// Replace the reset_pin_expiry line with these lines
-    $reset_pin_expiry = date("Y-m-d H:i:s", strtotime("+30 minutes"));
+        // Store PIN in password_resets table
+        $insert_stmt = $conn->prepare("INSERT INTO password_resets (user_id, reset_pin, created_at) 
+                                     VALUES (?, ?, NOW()) 
+                                     ON DUPLICATE KEY UPDATE reset_pin = ?, created_at = NOW()");
+        if (!$insert_stmt) {
+            throw new Exception("Database error");
+        }
 
-
-    // Insert or update the reset PIN in the database
-    $stmt->close();
-    $stmt = $conn->prepare("INSERT INTO password_resets (user_id, reset_pin, reset_pin_expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE reset_pin = ?, reset_pin_expires_at = ?");
-    $stmt->bind_param("issss", $user_id, $reset_pin, $reset_pin_expiry, $reset_pin, $reset_pin_expiry);
-    if ($stmt->execute()) {
-        // Send reset PIN via email using PHPMailer
-        $reset_message = "Hello " . htmlspecialchars($username) . ",\n\nYou have requested to reset your password. Your reset PIN is: " . $reset_pin . "\n\nPlease enter this PIN in the reset password page to set a new password.\n\nIf you did not request this, please ignore this email.";
-        $reset_subject = "MediLinx Password Reset PIN";
-
-        $mail = new PHPMailer(true);
-        try {
-            // Server settings
+        $insert_stmt->bind_param("iss", $user['id'], $reset_pin, $reset_pin);
+        
+        if ($insert_stmt->execute()) {
+            // Send PIN via email
+            $mail = new PHPMailer(true);
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com'; // Your SMTP server
             $mail->SMTPAuth   = true;
@@ -65,34 +64,35 @@ if ($stmt->num_rows === 1) {
 
             // Recipients
             $mail->setFrom('no-reply@medilinx.com', 'MediLinx');
-            $mail->addAddress($email, $username);
+            $mail->addAddress($email, $user['username']);
 
             // Content
             $mail->isHTML(false);
-            $mail->Subject = $reset_subject;
-            $mail->Body    = $reset_message;
+            $mail->Subject = "MediLinx Password Reset PIN";
+            $mail->Body = "Hello " . htmlspecialchars($user['username']) . ",\n\n"
+                       . "You have requested to reset your password.\n\n"
+                       . "Your password reset PIN is: " . $reset_pin . "\n\n"
+                       . "This PIN will expire in 15 minutes.\n\n"
+                       . "If you did not request this reset, please ignore this email.";
 
             $mail->send();
-        } catch (Exception $e) {
-            // Log the error message
-            error_log("Failed to send reset PIN: " . $e->getMessage());
-
-            // Inform the user without displaying the actual error
-            echo "Failed to send reset PIN. Please try again later.";
+            
+            $_SESSION['success'] = "A password reset PIN has been sent to your email";
+            // Pass email in URL for the reset form
+            header("Location: reset_password.html?email=" . urlencode($email));
             exit;
         }
-
-        // Redirect to reset_password.html with email as a GET parameter
-        header("Location: reset_password.html?email=" . urlencode($email));
-        exit;
     } else {
-        echo "Error updating reset PIN.";
-        exit;
+        throw new Exception("Email address not found");
     }
-} else {
-    echo "Email does not exist.";
+
+} catch (Exception $e) {
+    $_SESSION['error'] = $e->getMessage();
+    header("Location: forgot_password.html");
     exit;
+} finally {
+    if (isset($stmt)) $stmt->close();
+    if (isset($insert_stmt)) $insert_stmt->close();
+    if (isset($conn)) $conn->close();
 }
-$stmt->close();
-$conn->close();
 ?>

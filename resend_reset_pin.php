@@ -1,10 +1,12 @@
 <?php
 session_start();
+
+// Include PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Include the Composer autoloader
 require 'vendor/autoload.php';
-
 
 // Database configuration
 $servername = "localhost";
@@ -21,7 +23,7 @@ if ($conn->connect_error) {
 }
 
 // Get form data
-$email = trim($_GET['email']);
+$email = trim($_POST['email']);
 
 // Basic validation
 if (empty($email)) {
@@ -38,18 +40,16 @@ $stmt->store_result();
 if ($stmt->num_rows === 1) {
     $stmt->bind_result($user_id, $username);
     $stmt->fetch();
-    // Generate a new 6-digit reset PIN
+    // Generate new 6-digit reset PIN
     $reset_pin = rand(100000, 999999);
-    // Set PIN expiry time (e.g., 1 hour from now)
-    $reset_pin_expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
     // Insert or update the reset PIN in the database
     $stmt->close();
-    $stmt = $conn->prepare("INSERT INTO password_resets (user_id, reset_pin, reset_pin_expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE reset_pin = ?, reset_pin_expires_at = ?");
-    $stmt->bind_param("issss", $user_id, $reset_pin, $reset_pin_expiry, $reset_pin, $reset_pin_expiry);
-    if ($pin_expiry > date("Y-m-d H:i:s")) {
+    $stmt = $conn->prepare("INSERT INTO password_resets (user_id, reset_pin) VALUES (?, ?) ON DUPLICATE KEY UPDATE reset_pin = ?");
+    $stmt->bind_param("iss", $user_id, $reset_pin, $reset_pin);
+    if ($stmt->execute()) {
         // Send new reset PIN via email using PHPMailer
-        $reset_message = "Hello " . htmlspecialchars($username) . ",\n\nYou have requested a new password reset PIN. Your new PIN is: " . $reset_pin . "\n\nPlease enter this PIN in the reset password page to set a new password.\n\nIf you did not request this, please ignore this email.";
+        $reset_message = "Hello " . htmlspecialchars($username) . ",\n\nYou have requested to reset your password. Your reset PIN is: " . $reset_pin . "\n\nPlease enter this PIN in the reset password page to set a new password.\n\nIf you did not request this, please ignore this email.";
         $reset_subject = "MediLinx Password Reset PIN";
 
         $mail = new PHPMailer(true);
@@ -77,8 +77,6 @@ if ($stmt->num_rows === 1) {
             echo "Failed to send reset PIN: " . $mail->ErrorInfo;
             exit;
         }
-    }
-    if ($stmt->execute()) {
         echo "A new password reset PIN has been sent to your email address.";
     } else {
         echo "Error updating reset PIN.";

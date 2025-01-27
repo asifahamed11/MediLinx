@@ -1,89 +1,89 @@
 <?php
-require 'vendor/autoload.php';
+session_start();
+require_once 'config.php';
+
+// Include PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+require 'vendor/autoload.php';
 
-session_start();
+try {
+    // Database configuration
+    $conn = new mysqli($servername, $username, $password, $dbname);
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed");
+    }
 
-// Database configuration
-$servername = "localhost";
-$username = "root"; // Replace with your MySQL username
-$password = "";     // Replace with your MySQL password
-$dbname = "user_authentication";
+    // Get and validate email
+    $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+    if (!$email) {
+        throw new Exception("Invalid email format");
+    }
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+    // Check if email exists and is not verified
+    $stmt = $conn->prepare("SELECT id, username FROM users WHERE email = ? AND email_verified_at IS NULL");
+    if (!$stmt) {
+        throw new Exception("Database error");
+    }
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-// Get form data
-$email = trim($_POST['email']);
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        
+        // Generate new 6-digit PIN
+        $pin = sprintf("%06d", mt_rand(100000, 999999));
 
-// Basic validation
-if (empty($email)) {
-    echo "Email is required.";
-    exit;
-}
+        // Update PIN in database
+        $update_stmt = $conn->prepare("UPDATE users SET email_verification_pin = ? WHERE id = ?");
+        if (!$update_stmt) {
+            throw new Exception("Database error");
+        }
 
-// Check if email exists and is not verified
-$stmt = $conn->prepare("SELECT id, username FROM users WHERE email = ? AND email_verified_at IS NULL");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$stmt->store_result();
-
-if ($stmt->num_rows === 1) {
-    $stmt->bind_result($id, $username);
-    $stmt->fetch();
-    // Generate new PIN
-    $pin = rand(100000, 999999);
-    $pin_expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
-
-    // Update the PIN and expiry in the database
-    $stmt->close();
-    $stmt = $conn->prepare("UPDATE users SET email_verification_pin = ?, email_verification_pin_expires_at = ? WHERE id = ?");
-    $stmt->bind_param("ssi", $pin, $pin_expiry, $id);
-    if ($pin_expiry > date("Y-m-d H:i:s")) {
-        // Send new PIN via email using PHPMailer
-        $pin_message = "Hello " . htmlspecialchars($username) . ",\n\nYou have requested a new verification PIN. Your new PIN is: " . $pin . "\n\nPlease enter this PIN in the verification page to verify your email address.\n\nIf you did not request this, please ignore this email.";
-        $pin_subject = "MediLinx Email Verification PIN";
-
-        $mail = new PHPMailer(true);
-        try {
-            // Server settings
+        $update_stmt->bind_param("si", $pin, $user['id']);
+        
+        if ($update_stmt->execute()) {
+            // Configure PHPMailer
+            $mail = new PHPMailer(true);
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com'; // Your SMTP server
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'asifahamedstudent@gmail.com'; // SMTP username
-            $mail->Password   = 'nsxj nitr rumm xrei'; // SMTP password
-            $mail->SMTPSecure = 'ssl'; // or 'tls'
-            $mail->Port       = 465; // or 587 for TLS
+            $mail->Host = SMTP_HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = SMTP_USERNAME;
+            $mail->Password = SMTP_PASSWORD;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = SMTP_PORT;
 
             // Recipients
             $mail->setFrom('no-reply@medilinx.com', 'MediLinx');
-            $mail->addAddress($email, $username);
+            $mail->addAddress($email, $user['username']);
 
             // Content
             $mail->isHTML(false);
-            $mail->Subject = $pin_subject;
-            $mail->Body    = $pin_message;
+            $mail->Subject = "MediLinx Email Verification PIN";
+            $mail->Body = "Hello " . htmlspecialchars($user['username']) . ",\n\n"
+                       . "Your new verification PIN is: " . $pin . "\n\n"
+                       . "This PIN will expire in 15 minutes.\n\n"
+                       . "If you did not request this, please ignore this email.";
 
             $mail->send();
-        } catch (Exception $e) {
-            echo "Failed to send verification PIN: " . $mail->ErrorInfo;
+            
+            $_SESSION['success'] = "New verification PIN has been sent to your email";
+            header("Location: pin_verification.html");
             exit;
         }
-    }
-    if ($stmt->execute()) {
-        echo "A new verification PIN has been sent to your email address.";
     } else {
-        echo "Error updating verification PIN.";
+        throw new Exception("Email not found or already verified");
     }
-} else {
-    echo "Email is already verified or does not exist.";
+
+} catch (Exception $e) {
+    $_SESSION['error'] = $e->getMessage();
+    header("Location: resend_pin.html");
+    exit;
+} finally {
+    if (isset($stmt)) $stmt->close();
+    if (isset($update_stmt)) $update_stmt->close();
+    if (isset($conn)) $conn->close();
 }
-$stmt->close();
-$conn->close();
 ?>

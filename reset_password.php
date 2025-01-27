@@ -1,70 +1,87 @@
 <?php
 session_start();
+require_once 'config.php';
 
-// Database configuration
-$servername = "localhost";
-$username_db = "root"; // Replace with your MySQL username
-$password_db = "";     // Replace with your MySQL password
-$dbname = "user_authentication";
-
-// Create connection
-$conn = new mysqli($servername, $username_db, $password_db, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// Get form data
-$email = trim($_POST['email']);
-$reset_pin = trim($_POST['reset_pin']);
-$new_password = $_POST['new_password'];
-$confirm_new_password = $_POST['confirm_new_password'];
-
-// Basic validation
-if (empty($email) || empty($reset_pin) || empty($new_password) || empty($confirm_new_password)) {
-    echo "All fields are required.";
-    exit;
-}
-
-if ($new_password !== $confirm_new_password) {
-    echo "Passwords do not match.";
-    exit;
-}
-
-// Retrieve user with matching reset PIN and email
-$stmt = $conn->prepare("SELECT pr.user_id, pr.reset_pin_expires_at FROM password_resets pr JOIN users u ON pr.user_id = u.id WHERE pr.reset_pin = ? AND u.email = ?");
-$stmt->bind_param("ss", $reset_pin, $email);
-$stmt->execute();
-$stmt->store_result();
-
-if ($stmt->num_rows === 1) {
-    $stmt->bind_result($user_id, $pin_expiry);
-    $stmt->fetch();
-    // Check if PIN has expired
-    if (strtotime($pin_expiry) < time()) {
-        echo "Reset PIN has expired. Please initiate a new password reset.";
-        exit;
+try {
+    // Database configuration
+    $conn = new mysqli($servername, $username_db, $password_db, $dbname);
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed");
     }
-    // Hash the new password
-    $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-    // Update the user's password
-    $stmt->close();
-    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-    $stmt->bind_param("si", $hashed_password, $user_id);
-    if ($stmt->execute()) {
-        // Delete the reset PIN
-        $stmt->close();
-        $stmt = $conn->prepare("DELETE FROM password_resets WHERE reset_pin = ?");
-        $stmt->bind_param("s", $reset_pin);
-        $stmt->execute();
-        echo "Password updated successfully. <a href='login.html'>Login here</a>.";
+
+    // Get and validate input
+    $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+    $reset_pin = trim($_POST['reset_pin']);
+    $new_password = $_POST['new_password'];
+    $confirm_new_password = $_POST['confirm_new_password'];
+
+    // Validate inputs
+    if (!$email || !preg_match('/^[0-9]{6}$/', $reset_pin)) {
+        throw new Exception("Invalid input format");
+    }
+
+    if (strlen($new_password) < 8) {
+        throw new Exception("Password must be at least 8 characters long");
+    }
+
+    if ($new_password !== $confirm_new_password) {
+        throw new Exception("Passwords do not match");
+    }
+
+    // Check reset PIN validity
+    $stmt = $conn->prepare("SELECT pr.user_id, pr.created_at 
+                           FROM password_resets pr 
+                           JOIN users u ON pr.user_id = u.id 
+                           WHERE pr.reset_pin = ? AND u.email = ?");
+    if (!$stmt) {
+        throw new Exception("Database error");
+    }
+
+    $stmt->bind_param("ss", $reset_pin, $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        // Check if PIN is expired (15 minutes)
+        $pin_time = new DateTime($row['created_at']);
+        $current_time = new DateTime();
+        $diff = $current_time->diff($pin_time);
+        
+        if ($diff->i >= 15) {
+            throw new Exception("Reset PIN has expired. Please request a new one.");
+        }
+
+        // Update password
+        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+        $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+        if (!$update_stmt) {
+            throw new Exception("Database error");
+        }
+
+        $update_stmt->bind_param("si", $hashed_password, $row['user_id']);
+        
+        if ($update_stmt->execute()) {
+            // Delete the used reset PIN
+            $delete_stmt = $conn->prepare("DELETE FROM password_resets WHERE user_id = ?");
+            $delete_stmt->bind_param("i", $row['user_id']);
+            $delete_stmt->execute();
+
+            $_SESSION['success'] = "Password updated successfully";
+            header("Location: login.html");
+            exit;
+        }
     } else {
-        echo "Error updating password.";
+        throw new Exception("Invalid reset PIN");
     }
-} else {
-    echo "Invalid or expired PIN.";
+
+} catch (Exception $e) {
+    $_SESSION['error'] = $e->getMessage();
+    header("Location: reset_password.html");
+    exit;
+} finally {
+    if (isset($stmt)) $stmt->close();
+    if (isset($update_stmt)) $update_stmt->close();
+    if (isset($delete_stmt)) $delete_stmt->close();
+    if (isset($conn)) $conn->close();
 }
-$stmt->close();
-$conn->close();
 ?>

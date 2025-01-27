@@ -2,12 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Verify Email</title>
+    <title>Resend Verification PIN</title>
     <link rel="stylesheet" href="styles/styles.css" />
   </head>
   <body>
     <div class="container">
-      <h2>Verify Email</h2>
+      <h2>Resend Verification PIN</h2>
 
       <?php if (isset($_SESSION['error'])): ?>
       <div class="alert alert-danger">
@@ -23,24 +23,13 @@
       <?php unset($_SESSION['success']); ?>
       <?php endif; ?>
 
-      <form action="verify_pin.php" method="post">
-        <label for="pin">Enter Verification PIN:</label>
-        <input
-          type="text"
-          id="pin"
-          name="pin"
-          placeholder="6-digit PIN"
-          pattern="[0-9]{6}"
-          title="Please enter a 6-digit PIN"
-          required
-        />
-        <button type="submit" class="btn">Verify</button>
+      <form action="resend_verification.php" method="post">
+        <label for="email">Enter your email address:</label>
+        <input type="email" id="email" name="email" required />
+        <button type="submit" class="btn">Resend PIN</button>
       </form>
 
-      <p>
-        Didn't receive the PIN?
-        <a href="resend_pin.html">Resend PIN</a>
-      </p>
+      <p>Back to <a href="pin_verification.html">PIN Verification</a></p>
     </div>
   </body>
 </html>

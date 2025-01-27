@@ -68,9 +68,25 @@ $stmt->close();
 // Hash the password
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
+// Solution: Add proper file validation
+function validateImage($file) {
+    $allowed = ['image/jpeg', 'image/png', 'image/gif'];
+    $max_size = 5 * 1024 * 1024; // 5MB
+    
+    if (!in_array($file['type'], $allowed)) {
+        return false;
+    }
+    if ($file['size'] > $max_size) {
+        return false;
+    }
+    return true;
+}
 
 // Handle profile image upload
-if ($profile_image['error'] === 0) {
+if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === 0) {
+    if (!validateImage($_FILES['profile_image'])) {
+        die('Invalid file type or size');
+    }
     $target_dir = "uploads/profile_images/";
     if (!is_dir($target_dir)) {
         mkdir($target_dir, 0755, true);
@@ -100,16 +116,13 @@ if ($profile_image['error'] === 0) {
 // Generate 6-digit PIN
 $pin = rand(100000, 999999);
 
-// Set PIN expiry time (e.g., 1 hour from now)
-$pin_expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
-
-// Insert user into database with PIN and expiry
+// Insert user into database with PIN (no expiry)
 if ($role === 'patient') {
-    $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin, email_verification_pin_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image, $pin, $pin_expiry);
+    $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image, $pin);
 } else if ($role === 'doctor') {
-    $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, degrees_and_certifications, years_of_experience, medical_license_number, work_address, available_consultation_hours, languages_spoken, profile_image, professional_biography, email_verification_pin, email_verification_pin_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssssiissssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $specialty, $degrees_and_certifications, $years_of_experience, $medical_license_number, $work_address, $available_consultation_hours, $languages_spoped, $profile_image, $professional_biography, $pin, $pin_expiry);
+    $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, degrees_and_certifications, years_of_experience, medical_license_number, work_address, available_consultation_hours, languages_spoken, profile_image, professional_biography, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssssssiisssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $specialty, $degrees_and_certifications, $years_of_experience, $medical_license_number, $work_address, $available_consultation_hours, $languages_spoken, $profile_image, $professional_biography, $pin);
 } else {
     echo "Invalid role.";
     exit;
@@ -124,12 +137,12 @@ if ($stmt->execute()) {
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = 'smtp.gmail.com'; // Your SMTP server
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'asifahamedstudent@gmail.com';
-        $mail->Password   = 'nsxj nitr rumm xrei';
-        $mail->SMTPSecure = 'ssl';
-        $mail->Port       = 465;
+        $mail->Username   = 'asifahamedstudent@gmail.com'; // SMTP username
+        $mail->Password   = 'nsxj nitr rumm xrei'; // SMTP password
+        $mail->SMTPSecure = 'ssl'; // or 'tls'
+        $mail->Port       = 465; // or 587 for TLS
 
         // Recipients
         $mail->setFrom('no-reply@medilinx.com', 'MediLinx');
@@ -141,30 +154,16 @@ if ($stmt->execute()) {
         $mail->Body    = $pin_message;
 
         $mail->send();
-        
-        // Store user email in session for verification
-        $_SESSION['verification_email'] = $email;
-        
-        echo "Registration successful. A verification PIN has been sent to your email address.";
-        // Redirect to pin verification page after 2 seconds
-        echo "<script>
-            setTimeout(function() {
-                window.location.href = 'pin_verification.html';
-            }, 2000);
-        </script>";
-        exit;
-        
     } catch (Exception $e) {
-        error_log("Registration successful, but failed to send verification PIN: " . $e->getMessage());
-        echo "Registration successful, but failed to send verification PIN. Please contact support.";
+        echo "Registration successful, but failed to send verification PIN: " . $mail->ErrorInfo;
         exit;
     }
-} else {
-    // Log the error message
-    error_log("Error inserting user into the database: " . $stmt->error);
 
-    // Inform the user without displaying the actual error
-    echo "Registration failed. Please try again later.";
+    // After successful registration and email sending
+    header("Location: pin_verification.html");
+    exit;
+} else {
+    echo "Error: " . $stmt->error;
 }
 $stmt->close();
 $conn->close();

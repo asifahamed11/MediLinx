@@ -38,6 +38,7 @@ if ($stmt->num_rows === 1) {
     if (password_verify($password, $hashed_password)) {
         if ($email_verified_at === NULL) {
             echo "Please verify your email before logging in.";
+            header("Location: pin_verification.html");
             exit;
         }
         // Password is correct and email is verified
