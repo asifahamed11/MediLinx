@@ -1,41 +1,56 @@
 <?php
+// index.php
 session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Registration</title>
-    <link rel="stylesheet" href="styles/styles.css">
+    <title>MediLinx - Healthcare Portal</title>
     <style>
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            font-family: 'Arial', sans-serif;
-            min-height: 100vh;
+        :root {
+            --primary-color: #1877f2;
+            --secondary-color: #42b72a;
+            --bg-color: #f0f2f5;
+            --text-color: #1c1e21;
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
 
         .container {
             background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            text-align: center;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             max-width: 500px;
-            width: 90%;
+            width: 100%;
+            text-align: center;
         }
 
         h1 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 32px;
         }
 
-        p {
-            color: #7f8c8d;
-            margin-bottom: 2rem;
+        .subtitle {
+            color: #65676b;
+            margin-bottom: 30px;
+            font-size: 17px;
         }
 
         .role-buttons {
@@ -46,34 +61,50 @@ session_start();
 
         .btn {
             padding: 12px 30px;
-            border-radius: 25px;
+            border-radius: 6px;
             text-decoration: none;
             color: white;
-            font-weight: bold;
-            transition: transform 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease;
         }
 
-        .btn:first-child {
-            background: #3498db;
+        .btn-patient {
+            background: var(--primary-color);
         }
 
-        .btn:last-child {
-            background: #2ecc71;
+        .btn-doctor {
+            background: var(--secondary-color);
         }
 
         .btn:hover {
-            transform: translateY(-3px);
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .login-link {
+            margin-top: 30px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to the Registration Portal</h1>
-        <p>Please select your role to proceed with registration:</p>
+        <h1>Welcome to MediLinx</h1>
+        <p class="subtitle">Connect with healthcare professionals and manage your medical journey</p>
         <div class="role-buttons">
-            <a href="patient_register.php" class="btn">Patient</a>
-            <a href="doctor_register.php" class="btn">Doctor</a>
+            <a href="patient_register.php" class="btn btn-patient">Join as Patient</a>
+            <a href="doctor_register.php" class="btn btn-doctor">Join as Doctor</a>
         </div>
+        <p style="margin-top: 20px;">
+            <a href="login.php" class="login-link">Already have an account?</a>
+        </p>
     </div>
 </body>
 </html>
