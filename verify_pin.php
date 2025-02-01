@@ -49,7 +49,7 @@ try {
         
         if ($update_stmt->execute()) {
             $_SESSION['success'] = "Email verified successfully!";
-            header("Location: login.html");
+            header("Location: login.php");
             exit;
         } else {
             throw new Exception("Error updating verification status");

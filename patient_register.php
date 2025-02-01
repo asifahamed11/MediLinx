@@ -120,7 +120,7 @@ require_once 'config.php';
 <body>
     <div class="container">
         <h2>Join as a Patient</h2>
-        <form action="process_registration.php" method="post" enctype="multipart/form-data">
+        <form action="registration.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="role" value="patient">
             
             <div class="form-row">
