@@ -160,7 +160,7 @@ if ($stmt->execute()) {
     }
 
     // After successful registration and email sending
-    header("Location: pin_verification.html");
+    header("Location: verify_pin.php");
     exit;
 } else {
     echo "Error: " . $stmt->error;
