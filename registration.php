@@ -68,50 +68,49 @@ $stmt->close();
 // Hash the password
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Solution: Add proper file validation
+
+// Validate image
 function validateImage($file) {
-    $allowed = ['image/jpeg', 'image/png', 'image/gif'];
-    $max_size = 5 * 1024 * 1024; // 5MB
-    
-    if (!in_array($file['type'], $allowed)) {
-        return false;
-    }
-    if ($file['size'] > $max_size) {
-        return false;
-    }
-    return true;
+    $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif'];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime_type = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    return in_array($mime_type, $allowed_mime_types);
 }
 
-// Handle profile image upload
-if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === 0) {
-    if (!validateImage($_FILES['profile_image'])) {
-        die('Invalid file type or size');
-    }
+// Default profile image path
+$profile_image_path = 'uploads/default_profile.png';
+
+// Check if the file is uploaded
+if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+    $profile_image = $_FILES['profile_image'];
+
     $target_dir = "uploads/profile_images/";
     if (!is_dir($target_dir)) {
         mkdir($target_dir, 0755, true);
     }
-    $target_file = $target_dir . basename($profile_image["name"]);
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Allow only certain file types
-    $allowed_types = array("jpg", "jpeg", "png", "gif");
-    if (!in_array($imageFileType, $allowed_types)) {
-        echo "Only JPG, JPEG, PNG, and GIF files are allowed.";
-        exit;
+    // Extract and validate file extension
+    $extension = strtolower(pathinfo($profile_image['name'], PATHINFO_EXTENSION));
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+    if (!in_array($extension, $allowed_extensions)) {
+        die("Invalid file type.");
     }
 
-    // Move the uploaded file to the target directory
-    if (move_uploaded_file($profile_image["tmp_name"], $target_file)) {
-        // Success
+    // Generate unique filename and move the file
+    $unique_filename = uniqid() . '_profile.' . $extension;
+    $target_file = $target_dir . $unique_filename;
+
+    if (validateImage($profile_image) && move_uploaded_file($profile_image['tmp_name'], $target_file)) {
+        $profile_image_path = $target_file;
     } else {
-        echo "Error uploading profile image.";
-        exit;
+        die("Invalid file or upload failed.");
     }
-} else {
-    // Optional: Handle case where no image is uploaded
-    $target_file = '';
 }
+
+
+
 
 // Generate 6-digit PIN
 $pin = rand(100000, 999999);
@@ -119,10 +118,10 @@ $pin = rand(100000, 999999);
 // Insert user into database with PIN (no expiry)
 if ($role === 'patient') {
     $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image, $pin);
+    $stmt->bind_param("sssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image_path, $pin);
 } else if ($role === 'doctor') {
     $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, degrees_and_certifications, years_of_experience, medical_license_number, work_address, available_consultation_hours, languages_spoken, profile_image, professional_biography, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssssiisssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $specialty, $degrees_and_certifications, $years_of_experience, $medical_license_number, $work_address, $available_consultation_hours, $languages_spoken, $profile_image, $professional_biography, $pin);
+    $stmt->bind_param("sssssssssiissssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $specialty, $degrees_and_certifications, $years_of_experience, $medical_license_number, $work_address, $available_consultation_hours, $languages_spoken, $profile_image_path, $professional_biography, $pin);
 } else {
     echo "Invalid role.";
     exit;

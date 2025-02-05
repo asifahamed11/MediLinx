@@ -37,9 +37,11 @@ session_start();
             width: 100%;
             height: 100%;
             background: url('https://img.freepik.com/free-vector/clean-medical-background_53876-97927.jpg?t=st=1738517715~exp=1738521315~hmac=368b8cb5c29b6bea18135d8045cb4eb8ab09652f55132e9b0bb942de9c98ab33&w=900');
+            background-repeat: no-repeat;
             opacity: .23;
             z-index: 0;
         }
+
 
         .container {
             position: relative;

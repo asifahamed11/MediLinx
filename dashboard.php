@@ -72,7 +72,10 @@ $conn->close();
 <body>
     <div class="container">
         <h2>Welcome, <?php echo htmlspecialchars($username); ?></h2>
-        <img src="<?php echo htmlspecialchars($profile_image); ?>" alt="Profile Image">
+        <img src="<?php 
+            $image_path = htmlspecialchars($profile_image);
+            echo !empty($image_path) ? $image_path : 'uploads/default_profile.png'; 
+        ?>" alt="Profile Image" onerror="this.src='uploads/default_profile.png'">
         <p>Role: <?php echo htmlspecialchars($role); ?></p>
         <p><a href="logout.php">Logout</a></p>
     </div>

@@ -43,6 +43,7 @@ require_once 'config.php';
             height: 100%;
             background: url('https://img.freepik.com/free-vector/clean-medical-background_53876-97927.jpg?t=st=1738517715~exp=1738521315~hmac=368b8cb5c29b6bea18135d8045cb4eb8ab09652f55132e9b0bb942de9c98ab33&w=900');
             opacity: 0.23;
+            background-repeat: no-repeat;
             z-index: 0;
         }
 
