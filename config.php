@@ -16,7 +16,7 @@ function connectDB() {
     $host = "localhost";
     $username = "root";
     $password = "";
-    $database = "user_authentication"; // replace with your database name
+    $database = "user_authentication"; //  database name
 
     $conn = mysqli_connect($host, $username, $password, $database);
     

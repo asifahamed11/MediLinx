@@ -10,8 +10,8 @@ require 'vendor/autoload.php';
 
 // Database configuration
 $servername = "localhost";
-$username_db = "root"; // Replace with your MySQL username
-$password_db = "";     // Replace with your MySQL password
+$username_db = "root"; //  MySQL username
+$password_db = "";     //  MySQL password
 $dbname = "user_authentication";
 
 // Create connection
@@ -115,7 +115,7 @@ if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPL
 // Generate 6-digit PIN
 $pin = rand(100000, 999999);
 
-// Insert user into database with PIN (no expiry)
+// Insert user into database with PIN
 if ($role === 'patient') {
     $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image_path, $pin);
@@ -136,7 +136,7 @@ if ($stmt->execute()) {
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com'; // Your SMTP server
+        $mail->Host       = 'smtp.gmail.com'; // SMTP server
         $mail->SMTPAuth   = true;
         $mail->Username   = 'asifahamedstudent@gmail.com'; // SMTP username
         $mail->Password   = 'nsxj nitr rumm xrei'; // SMTP password
