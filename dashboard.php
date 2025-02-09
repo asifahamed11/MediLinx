@@ -78,6 +78,7 @@ $conn->close();
         ?>" alt="Profile Image" onerror="this.src='uploads/default_profile.png'">
         <p>Role: <?php echo htmlspecialchars($role); ?></p>
         <p><a href="logout.php">Logout</a></p>
+        <a href="profile.php">Profile</a>
     </div>
 </body>
 </html>

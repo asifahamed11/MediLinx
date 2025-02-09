@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($update_stmt->execute()) {
                 $_SESSION['success'] = "";//Email verified successfully
-                header("Location: login.php");
+                header("Location: dashboard.php");
                 exit;
             } else {
                 throw new Exception("Error updating verification status");
