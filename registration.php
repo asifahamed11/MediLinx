@@ -61,6 +61,7 @@ $stmt->execute();
 $stmt->store_result();
 if ($stmt->num_rows > 0) {
     echo "Email already exists.";
+    header("Location: login.php");
     exit;
 }
 $stmt->close();
