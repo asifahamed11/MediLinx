@@ -6,339 +6,335 @@ require_once 'config.php';
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Patient Registration - MediLinx</title>
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --primary: #2A9D8F;
-  --secondary: #264653;
-  --accent: #E76F51;
-  --glass: rgba(255, 255, 255, 0.95);
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --text: #1e293b;
-  --gradient-1: linear-gradient(135deg, #2A9D8F 0%, #264653 100%);
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration - MediLinx</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2A9D8F;
+            --secondary: #264653;
+            --accent: #4CAF50;
+            --background: #F5F9FF;
+            --text: #2C3E50;
+            --neumorphic-shadow: 8px 8px 16px #d9d9d9, 
+                                -8px -8px 16px #ffffff;
+        }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Roboto', sans-serif;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-@keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+        body {
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
 
-body {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 50%, #e0f2f1 100%);
-  background-size: 200% 200%;
-  animation: gradientFlow 15s ease infinite;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
+        .container {
+            background: var(--background);
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: var(--neumorphic-shadow);
+            max-width: 900px;
+            width: 100%;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+        }
 
-.form-container {
-  background: var(--glass);
-  padding: 3rem;
-  border-radius: 2rem;
-  box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 800px;
-  position: relative;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  animation: slideIn 0.8s cubic-bezier(0.17, 0.84, 0.44, 1);
-}
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
 
-.form-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
 
-.form-header h1 {
-  font-family: 'Lato', sans-serif;
-  font-size: 2.5rem;
-  color: var(--secondary);
-  margin-bottom: 1rem;
-  background: var(--gradient-1);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+        .form-header p {
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 2rem;
+        }
 
-.form-header p {
-  color: #64748b;
-  font-size: 1.1rem;
-}
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
 
-.form-group {
-  position: relative;
-  margin-bottom: 1.2rem;
-}
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: var(--background);
+            box-shadow: inset 5px 5px 10px #d9d9d9,
+                        inset -5px -5px 10px #ffffff;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
 
-.input-container {
-  background: rgba(241, 245, 249, 0.3);
-  border-radius: 1rem;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            box-shadow: inset 2px 2px 5px #d9d9d9,
+                        inset -2px -2px 5px #ffffff;
+            outline: none;
+        }
 
-.input-container:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 4px 6px rgba(42, 157, 143, 0.1);
-}
+        .input-group label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: var(--background);
+            padding: 0 0.5rem;
+        }
 
-.form-input {
-  width: 100%;
-  padding: 1rem;
-  border: none;
-  background: transparent;
-  font-size: 1rem;
-  color: var(--text);
-}
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label,
+        .input-group textarea:focus ~ label,
+        .input-group textarea:not(:placeholder-shown) ~ label,
+        .input-group select:focus ~ label,
+        .input-group select:not(:placeholder-shown) ~ label {
+            top: 0;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
 
-.form-input:focus {
-  outline: none;
-}
+        .input-group textarea ~ label {
+            top: 1.2rem;
+        }
 
-.floating-label {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
-  pointer-events: none;
-  transition: all 0.3s ease;
-  background: var(--glass);
-  padding: 0 0.5rem;
-}
+        .input-group textarea:focus ~ label,
+        .input-group textarea:not(:placeholder-shown) ~ label {
+            top: 0;
+        }
 
-.form-input:focus ~ .floating-label,
-.form-input:not(:placeholder-shown) ~ .floating-label {
-  top: 0;
-  font-size: 0.85rem;
-  color: var(--primary);
-}
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            background: var(--background);
+            box-shadow: var(--neumorphic-shadow);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 2rem 0;
+        }
 
-select.form-input {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 1rem center/1em;
-}
+        .file-input:hover {
+            transform: translateY(-3px);
+        }
 
-.file-upload {
-  border: 2px dashed #cbd5e1;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  text-align: center;
-  margin: 1.5rem 0;
-  transition: all 0.3s ease;
-}
+        .file-input input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
 
-.file-upload:hover {
-  border-color: var(--primary);
-  background: rgba(42, 157, 143, 0.05);
-}
+        .file-input label {
+            display: block;
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--primary);
+        }
 
-.upload-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  cursor: pointer;
-}
+        .preview-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: var(--neumorphic-shadow);
+            margin: 1rem auto;
+            display: none;
+        }
 
-.upload-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: var(--gradient-1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 5px 5px 10px #d9d9d9,
+                       -5px -5px 10px #ffffff;
+        }
 
-.submit-btn {
-  width: 100%;
-  padding: 1.2rem;
-  background: var(--gradient-1);
-  color: white;
-  border: none;
-  border-radius: 1rem;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  font-family: 'Lato', sans-serif;
-}
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 8px 8px 15px #d9d9d9,
+                       -8px -8px 15px #ffffff;
+            letter-spacing: 1px;
+        }
 
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(42, 157, 143, 0.2);
-}
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text);
+        }
 
-.login-link {
-  text-align: center;
-  margin-top: 1.5rem;
-}
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
 
-.login-link a {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 600;
-}
+        .login-link a:hover {
+            color: var(--secondary);
+        }
 
-.login-link a:hover {
-  text-decoration: underline;
-}
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem;
+                margin: 1rem;
+            }
 
-@media (max-width: 768px) {
-  .form-container {
-    padding: 2rem;
-    border-radius: 1.5rem;
-  }
-  
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-header h1 {
-    font-size: 2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  body {
-    padding: 15px;
-  }
-  
-  .form-container {
-    padding: 1.5rem;
-    border-radius: 1rem;
-  }
-  
-  .submit-btn {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-}
-</style>
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="form-container">
-  <div class="form-header">
-    <h1>Create Patient Account</h1>
-    <p>Join MediLinx for seamless healthcare management</p>
-  </div>
-  
-  <form action="registration.php" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="role" value="patient">
-    
-    <div class="form-grid">
-      <div class="form-group">
-        <div class="input-container">
-          <input type="text" name="username" class="form-input" placeholder=" " required>
-          <span class="floating-label">Username</span>
+    <div class="container">
+        <h2><i class="fas fa-user"></i> Patient Registration</h2>
+        <div class="form-header">
         </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <input type="email" name="email" class="form-input" placeholder=" " required>
-          <span class="floating-label">Email</span>
+
+        <form action="registration.php" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="role" value="patient">
+            
+            <div class="form-grid">
+                <div class="input-group">
+                    <input type="text" id="username" name="username" required placeholder=" ">
+                    <label for="username"><i class="fas fa-user"></i> Username</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="email" id="email" name="email" required placeholder=" ">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="password" name="password" required placeholder=" ">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="confirm_password" name="confirm_password" required placeholder=" ">
+                    <label for="confirm_password"><i class="fas fa-lock"></i> Confirm Password</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="tel" id="phone" name="phone" placeholder=" ">
+                    <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="date" id="date_of_birth" name="date_of_birth" required placeholder=" ">
+                    <label for="date_of_birth"><i class="fas fa-calendar"></i> Date of Birth</label>
+                </div>
+
+                <div class="input-group">
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled selected></option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <label for="gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                </div>
+
+                <div class="input-group">
+                    <textarea id="medical_history" name="medical_history" rows="3" placeholder=" "></textarea>
+                    <label for="medical_history"><i class="fas fa-notes-medical"></i> Medical History</label>
+                </div>
+            </div>
+
+            <div class="file-input">
+                <input type="file" id="profile_image" name="profile_image" accept="image/*">
+                <label for="profile_image">
+                    <i class="fas fa-camera"></i> Upload Profile Photo
+                </label>
+                <img src="#" class="preview-image" alt="Profile Preview">
+            </div>
+
+            <button type="submit" class="btn-submit">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="login.php">Log in</a></p>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <input type="password" name="password" class="form-input" placeholder=" " required>
-          <span class="floating-label">Password</span>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <input type="password" name="confirm_password" class="form-input" placeholder=" " required>
-          <span class="floating-label">Confirm Password</span>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <input type="tel" name="phone" class="form-input" placeholder=" ">
-          <span class="floating-label">Phone Number (Optional)</span>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <input type="date" name="date_of_birth" class="form-input" placeholder=" " required>
-          <span class="floating-label">Date of Birth</span>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <select name="gender" class="form-input" required>
-            <option value="" disabled selected>Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-          <span class="floating-label">Gender</span>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <div class="input-container">
-          <textarea name="medical_history" class="form-input" placeholder=" " rows="3"></textarea>
-          <span class="floating-label">Medical History (Optional)</span>
-        </div>
-      </div>
     </div>
 
-    <div class="file-upload">
-      <label class="upload-label">
-        <div class="upload-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-          </svg>
-        </div>
-        <span>Upload Profile Picture (Optional)</span>
-        <input type="file" name="profile_image" accept="image/*" style="display: none;">
-      </label>
-    </div>
+    <script>
+        // Image preview functionality
+        const fileInput = document.querySelector('input[type="file"]');
+        const previewImage = document.querySelector('.preview-image');
 
-    <button type="submit" class="submit-btn">Create Account</button>
-  </form>
-
-  <div class="login-link">
-    <a href="login.php">Already have an account? Log in</a>
-  </div>
-</div>
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.style.display = 'block';
+                    previewImage.src = e.target.result;
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 </body>
 </html>

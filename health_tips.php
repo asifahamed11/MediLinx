@@ -104,9 +104,9 @@ $tips_content = $_SESSION['tips'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --accent: #3b82f6;
+            --primary: #2A9D8F;
+            --primary-dark:rgb(21, 133, 120);
+            --accent:rgb(67, 240, 220);
             --background: #ffffff;
             --card-bg: #ffffff;
             --text: #1f2937;
@@ -117,9 +117,9 @@ $tips_content = $_SESSION['tips'];
         }
 
         [data-theme="dark"] {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --accent: #60a5fa;
+            --primary: #2A9D8F;
+            --primary-dark:rgb(21, 133, 120);
+            --accent:rgb(67, 240, 220);
             --background: #111827;
             --card-bg: #1f2937;
             --text: #f3f4f6;

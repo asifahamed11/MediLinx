@@ -8,208 +8,399 @@ require_once 'config.php';
 <head>
     <meta charset="UTF-8">
     <title>Doctor Registration - MediLinx</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-    :root {
-        --primary-color: #00517C;    /* Deep medical blue */
-        --secondary-color: #4CAF50;  /* Soft green */
-        --bg-color: #F5F9FF;        /* Light blue-tinted background */
-        --text-color: #2C3E50;      /* Dark blue-gray text */
-        --accent-color: #E3F2FD;    /* Light blue accent */
-    }
+        :root {
+            --primary: #2A9D8F;
+            --secondary: #264653;
+            --accent: #4CAF50;
+            --background: #F5F9FF;
+            --text: #2C3E50;
+            --neumorphic-shadow: 8px 8px 16px #d9d9d9, 
+                                -8px -8px 16px #ffffff;
+        }
 
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-    body {
-        background: var(--bg-color);
-        padding: 40px 20px;
-        background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
+        body {
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
 
-    .container {
-        background: white;
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 8px 20px rgba(0, 81, 124, 0.1);
-        max-width: 800px;
-        margin: 0 auto;
-    }
+        .container {
+            background: var(--background);
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: var(--neumorphic-shadow);
+            max-width: 900px;
+            width: 100%;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+        }
 
-    h2 {
-        color: var(--primary-color);
-        margin-bottom: 30px;
-        text-align: center;
-        font-size: 32px;
-        position: relative;
-        padding-bottom: 15px;
-    }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    h2::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 60px;
-        height: 4px;
-        background: var(--secondary-color);
-        border-radius: 2px;
-    }
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
 
-    .section-title {
-        color: var(--primary-color);
-        margin: 25px 0 15px;
-        font-size: 20px;
-        padding-left: 15px;
-        border-left: 4px solid var(--secondary-color);
-    }
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
 
-    input, select, textarea {
-        width: 100%;
-        padding: 12px 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        background-color: #FAFBFC;
-    }
+        .form-section {
+            margin: 2.5rem 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: formEntrance 0.6s ease-out forwards;
+            animation-delay: 0.3s;
+        }
 
-    input:focus, select:focus, textarea:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(0, 81, 124, 0.1);
-        background-color: white;
-    }
+        @keyframes formEntrance {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .btn {
-        background: linear-gradient(135deg, var(--primary-color), #0077B6);
-        color: white;
-        padding: 14px;
-        border-radius: 8px;
-        font-size: 18px;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 81, 124, 0.2);
-        transition: all 0.3s ease;
-    }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 81, 124, 0.3);
-    }
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
 
-    .login-link {
-        margin-top: 25px;
-        text-align: center;
-    }
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: var(--background);
+            box-shadow: inset 5px 5px 10px #d9d9d9,
+                        inset -5px -5px 10px #ffffff;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
 
-    .login-link a {
-        color: var(--primary-color);
-        font-weight: 600;
-        text-decoration: none;
-        transition: color 0.3s;
-    }
+        .input-group input:focus,
+        .input-group textarea:focus {
+            box-shadow: inset 2px 2px 5px #d9d9d9,
+                        inset -2px -2px 5px #ffffff;
+            outline: none;
+        }
 
-    .form-group label {
-        color: var(--text-color);
-        font-weight: 500;
-        margin-bottom: 8px;
-        display: block;
-    }
+        .input-group label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: var(--background);
+            padding: 0 0.5rem;
+        }
 
-    /* Add medical icon decorations */
-    .container::before {
-        content: '⚕';
-        position: absolute;
-        top: -30px;
-        left: 20px;
-        font-size: 60px;
-        color: var(--primary-color);
-        opacity: 0.1;
-    }
-</style>
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label,
+        .input-group textarea:focus ~ label,
+        .input-group textarea:not(:placeholder-shown) ~ label {
+            top: 0;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
 
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            background: var(--background);
+            box-shadow: var(--neumorphic-shadow);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .file-input:hover {
+            transform: translateY(-3px);
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input label {
+            display: block;
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .preview-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: var(--neumorphic-shadow);
+            margin: 1rem auto;
+            display: none;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 5px 5px 10px #d9d9d9,
+                       -5px -5px 10px #ffffff;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 8px 8px 15px #d9d9d9,
+                       -8px -8px 15px #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .progress-step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 4px;
+            background: #e0e0e0;
+            width: 100%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h2>Join as a Healthcare Professional</h2>
-        <form action="registration.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="role" value="doctor">
-            
-            <!-- Basic Information -->
-            <h3 class="section-title">Basic Information</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-            </div>
-
-            <!-- Professional Information -->
-            <h3 class="section-title">Professional Information</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="specialty">Medical Specialty</label>
-                    <input type="text" id="specialty" name="specialty" required>
-                </div>
-                <div class="form-group">
-                    <label for="medical_license">Medical License Number</label>
-                    <input type="text" id="medical_license" name="medical_license" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="work_address">Clinic/Hospital Address</label>
-                    <input type="text" id="work_address" name="work_address" required>
-                </div>
-                <div class="form-group">
-                    <label for="experience">Years of Experience</label>
-                    <input type="number" id="experience" name="experience" min="0" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="consultation_hours">Consultation Hours</label>
-                <textarea id="consultation_hours" name="consultation_hours" rows="2" 
-                          placeholder="e.g., Mon-Fri: 9AM-5PM" required></textarea>
-            </div>
-
-            <!-- Contact Information -->
-            <h3 class="section-title">Contact & Security</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" required>
-                </div>
-                <div class="form-group">
-                    <label for="profile_image">Profile Picture</label>
-                    <input type="file" id="profile_image" name="profile_image" accept="image/*">
-                </div>
-            </div>
-
-            <button type="submit" class="btn">Create Professional Account</button>
-        </form>
-        <div class="login-link">
-            <a href="login.php">Already have an account? Log in</a>
+        <h2><i class="fas fa-user-md"></i> Doctor Registration</h2>
+        
+        <div class="progress-steps">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <div class="progress-step active">1</div>
+            <div class="progress-step">2</div>
+            <div class="progress-step">3</div>
         </div>
+
+        <form action="registration.php" method="post" enctype="multipart/form-data" class="animated-form">
+            <input type="hidden" name="role" value="doctor">
+
+            <!-- Section 1: Basic Information -->
+            <div class="form-section" data-step="1" style="display: block;">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <input type="text" id="username" name="username" required placeholder=" ">
+                        <label for="username"><i class="fas fa-user"></i> Username</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="email" name="email" required placeholder=" ">
+                        <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="password" name="password" required placeholder=" ">
+                        <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="confirm_password" name="confirm_password" required placeholder=" ">
+                        <label for="confirm_password"><i class="fas fa-lock"></i> Confirm Password</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Professional Information -->
+            <div class="form-section" data-step="2" style="display: none;">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <input type="text" id="specialty" name="specialty" required placeholder=" ">
+                        <label for="specialty"><i class="fas fa-stethoscope"></i> Specialty</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="medical_license_number" name="medical_license_number" required placeholder=" ">
+                        <label for="medical_license_number"><i class="fas fa-id-card"></i> License Number</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="years_of_experience" name="years_of_experience" required placeholder=" ">
+                        <label for="years_of_experience"><i class="fas fa-briefcase"></i> Experience (Years)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="languages_spoken" name="languages_spoken" required placeholder=" ">
+                        <label for="languages_spoken"><i class="fas fa-language"></i> Languages</label>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="degrees_and_certifications" name="degrees_and_certifications" required placeholder=" "></textarea>
+                        <label for="degrees_and_certifications"><i class="fas fa-graduation-cap"></i> Degrees & Certifications</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Additional Information -->
+            <div class="form-section" data-step="3" style="display: none;">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <input type="tel" id="phone" name="phone" required placeholder=" ">
+                        <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="work_address" name="work_address" required placeholder=" ">
+                        <label for="work_address"><i class="fas fa-hospital"></i> Work Address</label>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="available_consultation_hours" name="available_consultation_hours" required placeholder=" "></textarea>
+                        <label for="available_consultation_hours"><i class="fas fa-clock"></i> Consultation Hours</label>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="professional_biography" name="professional_biography" required placeholder=" "></textarea>
+                        <label for="professional_biography"><i class="fas fa-file-medical"></i> Professional Bio</label>
+                    </div>
+                    <div class="file-input">
+                        <input type="file" id="profile_image" name="profile_image" accept="image/*">
+                        <label for="profile_image">
+                            <i class="fas fa-camera"></i> Upload Profile Photo
+                        </label>
+                        <img src="#" class="preview-image" alt="Profile Preview">
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="nextStep()">Next Step</button>
+        </form>
     </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
+                currentStep++;
+                document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
+                updateProgress();
+            } else {
+                document.querySelector('form').submit();
+            }
+        }
+
+        function updateProgress() {
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const progressFill = document.querySelector('.progress-fill');
+            
+            progressSteps.forEach((step, index) => {
+                if (index < currentStep) step.classList.add('active');
+                else step.classList.remove('active');
+            });
+            
+            progressFill.style.width = `${((currentStep - 1) / (totalSteps - 1)) * 100}%`;
+        }
+
+        // Image preview functionality
+        const fileInput = document.querySelector('input[type="file"]');
+        const previewImage = document.querySelector('.preview-image');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImage.style.display = 'block';
+                previewImage.src = e.target.result;
+            }
+            
+            reader.readAsDataURL(file);
+        });
+    </script>
 </body>
 </html>

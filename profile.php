@@ -1,221 +1,233 @@
 <?php
+// profile.php (updated design)
 session_start();
 require_once 'config.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Establish database connection
 $conn = connectDB();
-
-// Fetch user data
 $user_id = $_SESSION['user_id'];
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
-
-// Close the connection
 $stmt->close();
 $conn->close();
-
 ?>
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($user['username']); ?>'s Profile - MediLinx</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2A9D8F;
             --secondary: #264653;
             --accent: #E76F51;
-            --glass: rgba(255, 255, 255, 0.95);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --light-bg: #f8f9fa;
+            --text: #2d3748;
+            --text-light: #718096;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 50%, #e0f2f1 100%);
+            font-family: 'Inter', sans-serif;
+            background: var(--light-bg);
             min-height: 100vh;
-            padding: 2rem;
-            margin: 0;
         }
 
         .profile-container {
             max-width: 1200px;
             margin: 2rem auto;
-            background: var(--glass);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .profile-header {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            padding: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 4rem 2rem;
             text-align: center;
             color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
         }
 
         .profile-image {
-            width: 150px;
-            height: 150px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             border: 4px solid white;
-            margin: 0 auto 1rem;
-            object-fit: cover;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
         }
 
         .profile-image:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(1deg);
         }
 
         .profile-name {
             font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            margin: 1rem 0 0.5rem;
+            font-weight: 700;
         }
 
         .profile-role {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
         }
 
         .profile-content {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 280px 1fr;
             gap: 2rem;
             padding: 2rem;
         }
 
         .profile-sidebar {
-            border-right: 2px solid rgba(0, 0, 0, 0.1);
-            padding-right: 2rem;
+            border-right: 2px solid #eee;
         }
 
         .info-card {
-            background: white;
+            background: var(--light-bg);
             padding: 1.5rem;
-            border-radius: 15px;
+            border-radius: 1rem;
             margin-bottom: 1.5rem;
-            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
         }
 
-        .info-card h3 {
-            color: var(--secondary);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 0.5rem;
+        .info-card:hover {
+            transform: translateY(-5px);
         }
 
         .info-item {
             margin-bottom: 1rem;
-            padding: 0.5rem;
-            border-radius: 8px;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
             transition: background 0.3s ease;
         }
 
         .info-item:hover {
-            background: rgba(42, 157, 143, 0.1);
+            background: rgba(42, 157, 143, 0.05);
         }
 
         .info-label {
             font-weight: 500;
             color: var(--secondary);
-            display: block;
-            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
         }
 
         .info-value {
-            color: #555;
-        }
-
-        .edit-button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
-
-        .edit-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+            color: var(--text);
+            font-size: 0.95rem;
         }
 
         .tabs {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
             margin-bottom: 2rem;
+            background: var(--light-bg);
+            padding: 0.5rem;
+            border-radius: 0.75rem;
         }
 
         .tab-button {
-            padding: 1rem 2rem;
+            flex: 1;
+            padding: 1rem;
             border: none;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 10px;
+            background: transparent;
+            border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .tab-button.active {
             background: var(--primary);
             color: white;
+            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.3);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.5s ease;
+            animation: tabContent 0.4s ease;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        .medical-history {
-            white-space: pre-wrap;
-            line-height: 1.6;
+        @keyframes tabContent {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .edit-button {
+            background: var(--primary);
+            color: white;
+            padding: 0.9rem 1.5rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .edit-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.3);
         }
 
         @media (max-width: 768px) {
             .profile-content {
                 grid-template-columns: 1fr;
-            }
-
-            .profile-sidebar {
-                border-right: none;
-                padding-right: 0;
-                border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-                padding-bottom: 2rem;
+                padding: 1.5rem;
             }
 
             .profile-header {
-                padding: 2rem;
+                padding: 2rem 1rem;
             }
 
             .profile-name {
                 font-size: 2rem;
+            }
+
+            .tabs {
+                flex-direction: column;
             }
         }
     </style>
@@ -223,8 +235,8 @@ $conn->close();
 <body>
     <div class="profile-container">
         <div class="profile-header">
-            <img src="<?php echo htmlspecialchars($user['profile_image'] ?: 'default-avatar.jpg'); ?>" 
-                 class="profile-image" 
+            <img src="<?php echo htmlspecialchars($user['profile_image'] ?: 'default-avatar.jpg'); ?>"
+                 class="profile-image"
                  alt="Profile Picture">
             <h1 class="profile-name"><?php echo htmlspecialchars($user['username']); ?></h1>
             <div class="profile-role"><?php echo ucfirst(htmlspecialchars($user['role'])); ?></div>
@@ -239,33 +251,33 @@ $conn->close();
         <div class="profile-content">
             <div class="profile-sidebar">
                 <div class="info-card">
-                    <h3>Contact Information</h3>
+                    <h3 class="info-label">Contact Information</h3>
                     <div class="info-item">
-                        <span class="info-label">Email</span>
-                        <span class="info-value"><?php echo htmlspecialchars($user['email']); ?></span>
+                        <div class="info-label">Email</div>
+                        <div class="info-value"><?php echo htmlspecialchars($user['email']); ?></div>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Phone</span>
-                        <span class="info-value"><?php echo htmlspecialchars($user['phone'] ?: 'Not provided'); ?></span>
+                        <div class="info-label">Phone</div>
+                        <div class="info-value"><?php echo htmlspecialchars($user['phone'] ?: 'N/A'); ?></div>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Address</span>
-                        <span class="info-value"><?php echo htmlspecialchars($user['address'] ?: 'Not provided'); ?></span>
+                        <div class="info-label">Address</div>
+                        <div class="info-value"><?php echo htmlspecialchars($user['address'] ?: 'N/A'); ?></div>
                     </div>
                 </div>
 
                 <?php if($user['role'] === 'doctor'): ?>
-                <div class="info-card">
-                    <h3>Professional Info</h3>
-                    <div class="info-item">
-                        <span class="info-label">Specialty</span>
-                        <span class="info-value"><?php echo htmlspecialchars($user['specialty']); ?></span>
+                    <div class="info-card">
+                        <h3 class="info-label">Professional Information</h3>
+                        <div class="info-item">
+                            <div class="info-label">Specialty</div>
+                            <div class="info-value"><?php echo htmlspecialchars($user['specialty']); ?></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">License Number</div>
+                            <div class="info-value"><?php echo htmlspecialchars($user['medical_license_number']); ?></div>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">License Number</span>
-                        <span class="info-value"><?php echo htmlspecialchars($user['medical_license_number']); ?></span>
-                    </div>
-                </div>
                 <?php endif; ?>
             </div>
 
@@ -273,49 +285,49 @@ $conn->close();
                 <div class="tabs">
                     <button class="tab-button active" data-tab="personal">Personal Info</button>
                     <?php if($user['role'] === 'doctor'): ?>
-                    <button class="tab-button" data-tab="professional">Professional Details</button>
+                        <button class="tab-button" data-tab="professional">Professional Details</button>
                     <?php else: ?>
-                    <button class="tab-button" data-tab="medical">Medical History</button>
+                        <button class="tab-button" data-tab="medical">Medical History</button>
                     <?php endif; ?>
                 </div>
 
                 <div class="tab-content active" id="personal">
                     <div class="info-card">
-                        <h3>Personal Details</h3>
+                        <h3 class="info-label">Personal Details</h3>
                         <div class="info-item">
-                            <span class="info-label">Date of Birth</span>
-                            <span class="info-value"><?php echo htmlspecialchars($user['date_of_birth'] ?: 'Not provided'); ?></span>
+                            <div class="info-label">Date of Birth</div>
+                            <div class="info-value"><?php echo htmlspecialchars($user['date_of_birth'] ?: 'N/A'); ?></div>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Gender</span>
-                            <span class="info-value"><?php echo htmlspecialchars($user['gender'] ?: 'Not specified'); ?></span>
+                            <div class="info-label">Gender</div>
+                            <div class="info-value"><?php echo htmlspecialchars($user['gender'] ?: 'Not specified'); ?></div>
                         </div>
                     </div>
                 </div>
 
                 <?php if($user['role'] === 'doctor'): ?>
-                <div class="tab-content" id="professional">
-                    <div class="info-card">
-                        <h3>Work Information</h3>
-                        <div class="info-item">
-                            <span class="info-label">Work Address</span>
-                            <span class="info-value"><?php echo htmlspecialchars($user['work_address']); ?></span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Consultation Hours</span>
-                            <span class="info-value"><?php echo htmlspecialchars($user['consultation_hours']); ?></span>
+                    <div class="tab-content" id="professional">
+                        <div class="info-card">
+                            <h3 class="info-label">Professional Details</h3>
+                            <div class="info-item">
+                                <div class="info-label">Work Address</div>
+                                <div class="info-value"><?php echo htmlspecialchars($user['work_address']); ?></div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Consultation Hours</div>
+                                <div class="info-value"><?php echo htmlspecialchars($user['consultation_hours']); ?></div>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <?php else: ?>
-                <div class="tab-content" id="medical">
-                    <div class="info-card">
-                        <h3>Medical History</h3>
-                        <div class="medical-history">
-                            <?php echo htmlspecialchars($user['medical_history'] ?: 'No medical history recorded'); ?>
+                    <div class="tab-content" id="medical">
+                        <div class="info-card">
+                            <h3 class="info-label">Medical History</h3>
+                            <div class="info-value" style="white-space: pre-wrap;">
+                                <?php echo htmlspecialchars($user['medical_history'] ?: 'No medical history recorded'); ?>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -325,13 +337,9 @@ $conn->close();
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
                 const tabId = button.dataset.tab;
-                
-                // Remove active class from all buttons and content
                 document.querySelectorAll('.tab-button, .tab-content').forEach(el => {
                     el.classList.remove('active');
                 });
-                
-                // Add active class to clicked button and corresponding content
                 button.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
             });
