@@ -334,7 +334,7 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
                      class="doctor-avatar"
                      onerror="this.src='default-avatar.jpg'">
                 <div class="doctor-info">
-                    <a href="profile.php?id=<?php echo $post['doctor_id']; ?>" class="doctor-name">
+                    <a href="doctor-profile.php?id=<?php echo $post['doctor_id']; ?>" class="doctor-name">
                         Dr. <?php echo htmlspecialchars($post['username']); ?>
                     </a>
                     <div class="doctor-specialty"><?php echo htmlspecialchars($post['specialty']); ?></div>

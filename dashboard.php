@@ -2,43 +2,92 @@
 session_start();
 require_once 'config.php';
 
-// Check if user is logged in
+// Verify user authentication
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-$conn = connectDB();
-$user_id = $_SESSION['user_id'];
+// Helper function to sanitize input
+function sanitizeInput($input) {
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+}
 
-// Get user info with prepared statement
-$user_stmt = $conn->prepare("SELECT role, username, profile_image, specialty FROM users WHERE id = ?");
+$conn = connectDB();
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+$user_id = (int)$_SESSION['user_id'];
+
+// Get current user info
+$user_stmt = $conn->prepare("SELECT role, username, profile_image FROM users WHERE id = ?");
+if (!$user_stmt) {
+    die("Preparation failed: " . $conn->error);
+}
 $user_stmt->bind_param("i", $user_id);
 $user_stmt->execute();
 $user_result = $user_stmt->get_result();
 $user = $user_result->fetch_assoc();
-$user_stmt->close();
 
-// Extract user data
-$role = $user['role'];
-$username = $user['username'];
-$profile_image = $user['profile_image'];
-$specialty = $user['specialty'];
+// Sanitize and validate filter parameters
+$specialty = isset($_GET['specialty']) ? sanitizeInput($_GET['specialty']) : '';
+$location = isset($_GET['location']) ? sanitizeInput($_GET['location']) : '';
+$experience = isset($_GET['experience']) ? (int)$_GET['experience'] : '';
+$languages = isset($_GET['languages']) ? array_map('sanitizeInput', (array)$_GET['languages']) : [];
+$rating = isset($_GET['rating']) ? (float)$_GET['rating'] : '';
 
-// Get latest posts with user info and like counts
-$posts_query = "SELECT p.*, u.username, u.profile_image, u.specialty, 
-                (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
-                EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = ?) as user_liked
-                FROM posts p 
-                JOIN users u ON p.doctor_id = u.id 
-                ORDER BY p.created_at DESC LIMIT 5";
-                
-$posts_stmt = $conn->prepare($posts_query);
-$posts_stmt->bind_param("i", $user_id);
-$posts_stmt->execute();
-$posts_result = $posts_stmt->get_result();
-$latest_posts = $posts_result->fetch_all(MYSQLI_ASSOC);
-$posts_stmt->close();
+// Get available specialties
+$specialties_query = "SELECT DISTINCT specialty FROM users WHERE specialty IS NOT NULL AND specialty != '' ORDER BY specialty";
+$specialties_result = $conn->query($specialties_query);
+$specialties = [];
+while ($row = $specialties_result->fetch_assoc()) {
+    $specialties[] = $row['specialty'];
+}
+
+// Build doctor query
+$query = "SELECT u.*, 
+          COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
+          (SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count
+          FROM users u 
+          WHERE u.role = 'doctor'";
+
+$params = [];
+$types = '';
+
+if (!empty($specialty)) {
+    $query .= " AND u.specialty LIKE ?";
+    $params[] = "%$specialty%";
+    $types .= 's';
+}
+
+if (!empty($location)) {
+    $query .= " AND u.work_address LIKE ?";
+    $params[] = "%$location%";
+    $types .= 's';
+}
+
+if (!empty($experience)) {
+    $query .= " AND u.years_of_experience >= ?";
+    $params[] = $experience;
+    $types .= 'i';
+}
+
+if (!empty($rating)) {
+    $query .= " HAVING avg_rating >= ?";
+    $params[] = $rating;
+    $types .= 'd';
+}
+
+$query .= " ORDER BY avg_rating DESC, review_count DESC";
+
+// Execute doctor query
+$stmt = $conn->prepare($query);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$doctors = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();
 ?>
@@ -46,16 +95,24 @@ $conn->close();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - MediLinx</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Doctors - MediLinx</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary: #2A9D8F;
+            --primary-dark: #238177;
             --secondary: #264653;
             --accent: #E76F51;
             --light-bg: #f8f9fa;
             --text: #2d3748;
+            --text-light: #718096;
             --gradient: linear-gradient(135deg, var(--primary) 0%, #2AC8B8 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
@@ -63,203 +120,323 @@ $conn->close();
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            color: var(--text);
+            line-height: 1.6;
         }
 
         .dashboard-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding: 2rem;
             animation: fadeIn 0.6s ease-out;
         }
 
-        .welcome-card {
-            background: var(--gradient);
-            padding: 3rem;
-            border-radius: 2rem;
-            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.2);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-lg);
             margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: var(--gradient);
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .search-header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .search-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .search-group {
+            position: relative;
+        }
+
+        .search-input {
+            width: 85%;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(42, 157, 143, 0.1);
+            border-radius: 1rem;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: rgba(42, 157, 143, 0.03);
+            color: var(--text);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.15);
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .search-button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
             display: flex;
             align-items: center;
-            gap: 3rem;
-            color: white;
-            transform: translateY(0);
-            transition: transform 0.3s ease;
-            animation: cardEnter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
         }
 
-        .welcome-card:hover {
-            transform: translateY(-4px);
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-dark) 0%,rgb(36, 175, 161) 100%);
         }
 
-        .profile-image {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
+        .doctors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            padding: 1rem 0;
+        }
+
+        .doctor-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .doctor-image-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            overflow: hidden;
+        }
+
+        .doctor-image {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            transition: var(--transition);
         }
 
-        .profile-image:hover {
+        .doctor-card:hover .doctor-image {
             transform: scale(1.05);
         }
 
-        .welcome-text h1 {
-            font-size: 2.5rem;
-            margin: 0 0 0.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .doctor-content {
+            padding: 1.5rem;
         }
 
-        .role-badge {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 0.5rem 1.25rem;
+        .doctor-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
             border-radius: 2rem;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            backdrop-filter: blur(4px);
-            display: inline-block;
+            box-shadow: var(--shadow-sm);
         }
 
-        .recent-posts {
-            background: white;
-            padding: 2rem;
-            border-radius: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-        }
-
-        .posts-grid {
-            display: grid;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .post-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateY(0);
-            animation: cardEnter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .post-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .doctor-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .doctor-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary);
+        .doctor-specialty {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
         }
 
         .doctor-name {
-            color: var(--secondary);
-            font-weight: 700;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .doctor-name:hover {
-            color: var(--primary);
-        }
-
-        .post-date {
-            color: var(--text);
-            opacity: 0.8;
-            font-size: 0.875rem;
-        }
-
-        .post-content {
-            color: var(--text);
-            line-height: 1.6;
-            margin: 1rem 0;
-            opacity: 0.9;
-        }
-
-        .post-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .like-count {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-        .read-more {
-            color: var(--accent);
-            text-decoration: none;
+            font-size: 1.25rem;
             font-weight: 600;
+            margin: 0.5rem 0;
+            color: var(--secondary);
+        }
+
+        .doctor-rating {
             display: flex;
             align-items: center;
+            gap: 0.3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        .doctor-rating span {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .doctor-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .doctor-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .doctor-detail-item i {
+            color: var(--primary);
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .view-profile-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            transition: opacity 0.3s ease;
+            width: 90%;
+            padding: 1rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            margin-top: auto;
         }
 
-        .read-more:hover {
-            opacity: 0.8;
+        .view-profile-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%,rgb(32, 149, 137) 100%);
+            transform: translateY(-2px);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-md);
         }
 
-        @keyframes cardEnter {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .no-results svg {
+            width: 80px;
+            height: 80px;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .no-results h3 {
+            color: var(--secondary);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .no-results p {
+            color: var(--text-light);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--primary);
+            border-left-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         @media (max-width: 768px) {
-            .welcome-card {
-                flex-direction: column;
-                text-align: center;
-                padding: 2rem;
-                gap: 1.5rem;
+            .dashboard-container {
+                padding: 1rem;
             }
 
-            .profile-image {
-                width: 100px;
-                height: 100px;
+            .search-section {
+                padding: 1.5rem;
             }
 
-            .welcome-text h1 {
+            .search-header h1 {
                 font-size: 2rem;
             }
 
-            .posts-grid {
+            .doctors-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .doctor-image-container {
+                height: 200px;
             }
         }
     </style>
@@ -268,74 +445,179 @@ $conn->close();
     <?php include 'navbar.php'; ?>
     
     <div class="dashboard-container">
-        <div class="welcome-card">
-            <img src="<?php echo htmlspecialchars($profile_image ?: 'uploads/default_profile.png'); ?>" 
-                 alt="Profile" 
-                 class="profile-image"
-                 onerror="this.src='uploads/default_profile.png'">
-            <div class="welcome-text">
-                <h1>Welcome, <?php echo htmlspecialchars($username); ?></h1>
-                <div class="role-badge">
-                    <?php echo ucfirst(htmlspecialchars($role)); ?> Account
-                </div>
+        <div class="search-section">
+            <div class="search-header">
+                <h1>Find Your Healthcare Specialist</h1>
+                <p>Connect with trusted medical professionals in your area</p>
             </div>
+            
+            <form class="search-form" method="GET">
+                <div class="search-group">
+                    <input type="text" 
+                           name="specialty" 
+                           id="specialtyInput" 
+                           placeholder="Search by specialty (e.g., Cardiologist)" 
+                           class="search-input" 
+                           value="<?= htmlspecialchars($specialty) ?>" 
+                           autocomplete="off">
+                </div>
+
+                <div class="search-group">
+                    <input type="text" 
+                           name="location" 
+                           placeholder="Location (City or ZIP)" 
+                           class="search-input" 
+                           value="<?= htmlspecialchars($location) ?>">
+                </div>
+
+                <div class="search-group">
+                    <select name="experience" class="search-input">
+                        <option value="">Years of Experience</option>
+                        <option value="5" <?= $experience == 5 ? 'selected' : '' ?>>5+ Years</option>
+                        <option value="10" <?= $experience == 10 ? 'selected' : '' ?>>10+ Years</option>
+                        <option value="15" <?= $experience == 15 ? 'selected' : '' ?>>15+ Years</option>
+                        <option value="20" <?= $experience == 20 ? 'selected' : '' ?>>20+ Years</option>
+                    </select>
+                </div>
+
+                <div class="search-group">
+                    <select name="rating" class="search-input">
+                        <option value="">Minimum Rating</option>
+                        <option value="4.5" <?= $rating == 4.5 ? 'selected' : '' ?>>★★★★½ & Up</option>
+                        <option value="4" <?= $rating == 4 ? 'selected' : '' ?>>★★★★ & Up</option>
+                        <option value="3.5" <?= $rating == 3.5 ? 'selected' : '' ?>>★★★½ & Up</option>
+                        <option value="3" <?= $rating == 3 ? 'selected' : '' ?>>★★★ & Up</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                    Find Doctors
+                </button>
+            </form>
         </div>
 
-        <div class="recent-posts">
-            <h2 style="font-size: 1.75rem; color: var(--secondary); margin-bottom: 1rem;">Latest Medical Updates</h2>
-            <div class="posts-grid">
-                <?php if (!empty($latest_posts)): ?>
-                    <?php foreach ($latest_posts as $post): ?>
-                        <div class="post-card">
-                            <div class="post-header">
-                                <div class="doctor-info">
-                                    <img src="<?php echo htmlspecialchars($post['profile_image']) ?: 'uploads/default_profile.png'; ?>" 
-                                         class="doctor-avatar"
-                                         alt="Doctor avatar"
-                                         onerror="this.src='uploads/default_profile.png'">
-                                    <div>
-                                        <a href="profile.php?id=<?php echo htmlspecialchars($post['doctor_id']); ?>" class="doctor-name">
-                                            Dr. <?php echo htmlspecialchars($post['username']); ?>
-                                        </a>
-                                        <div class="doctor-specialty">
-                                            <?php echo htmlspecialchars($post['specialty']); ?>
-                                        </div>
-                                    </div>
-                                </div>
-                                <span class="post-date">
-                                    <?php echo date('M j, Y', strtotime($post['created_at'])); ?>
-                                </span>
-                            </div>
-                            <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
-                            <p class="post-content">
-                                <?php echo nl2br(htmlspecialchars(substr($post['content'], 0, 200))); ?>...
-                            </p>
-                            <div class="post-actions">
-                                <div class="like-count <?php echo $post['user_liked'] ? 'liked' : ''; ?>">
-                                    <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
-                                        <!-- Updated handshake SVG path here -->
-                                        <path d="M14.5397 20.0186C12.8522 17.9434 11.2675 17.4979 9.78564 18.6821C7.5629 20.4583 6.92453 26.6496 8.71324 32.1086C10.502 37.5676 13.9801 45.0017 21.0016 45.0017C28.0231 45.0017 29.684 37.5222 32.5485 33.0001C35.413 28.478 36.9285 24.1152 34.1208 18.6821" 
-                                              stroke="currentColor" 
-                                              stroke-width="4"/>
-                                    </svg>
-                                    <?php echo $post['like_count']; ?> Likes
-                                </div>
-                                <a href="posts.php?id=<?php echo htmlspecialchars($post['id']); ?>" class="read-more">
-                                    Read Article
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                                    </svg>
-                                </a>
-                            </div>
+        <div class="doctors-grid">
+            <?php if (!empty($doctors)): ?>
+                <?php foreach ($doctors as $doctor): ?>
+                    <div class="doctor-card">
+                        <?php if (($doctor['avg_rating'] ?? 0) >= 4.5): ?>
+                            <div class="doctor-badge">Top Rated</div>
+                        <?php endif; ?>
+
+                        <div class="doctor-image-container">
+                            <img src="<?= htmlspecialchars($doctor['profile_image'] ?: 'uploads/default_profile.png') ?>" 
+                                 class="doctor-image" 
+                                 alt="Dr. <?= htmlspecialchars($doctor['username']) ?>"
+                                 onerror="this.src='uploads/default_profile.png'">
                         </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="post-card empty-state">
-                        <p>No recent posts available. Check back later!</p>
+
+                        <div class="doctor-content">
+                            <div class="doctor-specialty">
+                                <?= htmlspecialchars($doctor['specialty'] ?? 'General Practitioner') ?>
+                            </div>
+
+                            <div class="doctor-rating">
+                                <?php
+                                $rating = $doctor['avg_rating'] ?? 0;
+                                for ($i = 1; $i <= 5; $i++):
+                                    if ($rating >= $i):
+                                        echo '<i class="fas fa-star"></i>';
+                                    elseif ($rating >= $i - 0.5):
+                                        echo '<i class="fas fa-star-half-alt"></i>';
+                                    else:
+                                        echo '<i class="far fa-star"></i>';
+                                    endif;
+                                endfor;
+                                ?>
+                                <span>(<?= number_format($doctor['avg_rating'] ?? 0, 1) ?>)</span>
+                            </div>
+
+                            <h3 class="doctor-name">Dr. <?= htmlspecialchars($doctor['username']) ?></h3>
+
+                            <div class="doctor-details">
+                                <?php if (!empty($doctor['work_address'])): ?>
+                                    <div class="doctor-detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span><?= htmlspecialchars($doctor['work_address']) ?></span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($doctor['years_of_experience'])): ?>
+                                    <div class="doctor-detail-item">
+                                        <i class="fas fa-briefcase-medical"></i>
+                                        <span><?= htmlspecialchars($doctor['years_of_experience']) ?> Years Experience</span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($doctor['languages_spoken'])): ?>
+                                    <div class="doctor-detail-item">
+                                        <i class="fas fa-language"></i>
+                                        <span><?= htmlspecialchars($doctor['languages_spoken']) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <a href="doctor-profile.php?id=<?= $doctor['id'] ?>" class="view-profile-btn">
+                                View Profile
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
-                <?php endif; ?>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="no-results">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-4h2v2h-2v-2zm0-2V7h2v7h-2z"/>
+                    </svg>
+                    <h3>No Doctors Found</h3>
+                    <p>Try adjusting your search criteria or expanding your search area</p>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // Show loading overlay on form submit
+        document.querySelector('form').addEventListener('submit', () => {
+            document.querySelector('.loading-overlay').style.display = 'flex';
+        });
+
+        // Handle specialty autocomplete
+        const specialtyInput = document.getElementById('specialtyInput');
+        const specialties = <?= json_encode($specialties) ?>;
+        
+        specialtyInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const matchingSpecialties = specialties.filter(specialty => 
+                specialty.toLowerCase().includes(searchTerm)
+            );
+
+            // Update datalist options
+            const datalist = document.getElementById('specialties-list') || 
+                           document.createElement('datalist');
+            datalist.id = 'specialties-list';
+            datalist.innerHTML = matchingSpecialties
+                .map(specialty => `<option value="${specialty}">`)
+                .join('');
+
+            if (!document.getElementById('specialties-list')) {
+                document.body.appendChild(datalist);
+                specialtyInput.setAttribute('list', 'specialties-list');
+            }
+        });
+
+        // Handle image loading errors
+        document.querySelectorAll('.doctor-image').forEach(img => {
+            img.addEventListener('error', function() {
+                this.src = 'uploads/default_profile.png';
+                this.classList.add('image-error');
+            });
+        });
+    </script>
 </body>
 </html>
