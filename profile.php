@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $conn = connectDB();
-$user_id = $_SESSION['user_id'];
+$user_id = isset($_GET['id']) ? $_GET['id'] : $_SESSION['user_id'];
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -233,6 +233,7 @@ $conn->close();
     </style>
 </head>
 <body>
+<?php include 'navbar.php'; ?>
     <div class="profile-container">
         <div class="profile-header">
             <img src="<?php echo htmlspecialchars($user['profile_image'] ?: 'default-avatar.jpg'); ?>"
@@ -246,6 +247,11 @@ $conn->close();
                 </svg>
                 Edit Profile
             </a>
+            <?php if($user['role'] === 'doctor'): ?>
+                <a href="posts.php?doctor_id=<?php echo $user['id']; ?>" class="edit-button" style="margin-left: 1rem;">
+                    View All Posts
+                </a>
+            <?php endif; ?>
         </div>
 
         <div class="profile-content">
@@ -317,6 +323,49 @@ $conn->close();
                                 <div class="info-label">Consultation Hours</div>
                                 <div class="info-value"><?php echo htmlspecialchars($user['consultation_hours']); ?></div>
                             </div>
+                        </div>
+
+                        <!-- Add the new Recent Posts section here -->
+                        <div class="info-card">
+                            <h3 class="info-label">Recent Posts</h3>
+                            <?php
+                            $conn = connectDB(); // Reconnect to database
+                            $posts_stmt = $conn->prepare("SELECT p.*, 
+                                (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count
+                                FROM posts p 
+                                WHERE p.doctor_id = ? 
+                                ORDER BY p.created_at DESC 
+                                LIMIT 5");
+                            $posts_stmt->bind_param("i", $user['id']);
+                            $posts_stmt->execute();
+                            $posts_result = $posts_stmt->get_result();
+                            $doctor_posts = $posts_result->fetch_all(MYSQLI_ASSOC);
+                            ?>
+                            
+                            <?php if (!empty($doctor_posts)): ?>
+                                <?php foreach ($doctor_posts as $post): ?>
+                                    <div class="info-item" style="border-bottom: 1px solid #eee; padding: 1rem 0;">
+                                        <h4 style="margin: 0 0 0.5rem 0;"><?php echo htmlspecialchars($post['title']); ?></h4>
+                                        <p style="margin: 0 0 0.5rem 0; color: var(--text-light);">
+                                            <?php echo substr(htmlspecialchars($post['content']), 0, 150) . '...'; ?>
+                                        </p>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-size: 0.875rem; color: var(--text-light);">
+                                                <?php echo $post['like_count']; ?> likes
+                                            </span>
+                                            <span style="font-size: 0.875rem; color: var(--text-light);">
+                                                <?php echo date('M j, Y', strtotime($post['created_at'])); ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                                <div style="text-align: right; margin-top: 1rem;">
+                                    <a href="posts.php" style="color: var(--primary); text-decoration: none;">View all posts</a>
+                                </div>
+                            <?php else: ?>
+                                <p style="color: var(--text-light);">No posts yet.</p>
+                            <?php endif; ?>
+                            <?php $conn->close(); // Close the new connection ?>
                         </div>
                     </div>
                 <?php else: ?>
