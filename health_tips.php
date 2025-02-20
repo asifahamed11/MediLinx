@@ -325,6 +325,32 @@ $tips_content = $_SESSION['tips'];
             transform: scale(1.05);
         }
 
+        .back-btn {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 1rem;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .back-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+
         @media (max-width: 768px) {
             .title {
                 font-size: 2rem;
@@ -345,6 +371,10 @@ $tips_content = $_SESSION['tips'];
     </style>
 </head>
 <body>
+    <a href="index.php" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Back to Home
+    </a>
     <div class="theme-toggle-container">
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
             <i class="fas fa-moon"></i>
