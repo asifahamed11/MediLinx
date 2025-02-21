@@ -321,7 +321,7 @@ $conn->close();
                             </div>
                             <div class="info-item">
                                 <div class="info-label">Consultation Hours</div>
-                                <div class="info-value"><?php echo htmlspecialchars($user['consultation_hours']); ?></div>
+                                <div class="info-value"><?php echo htmlspecialchars($user['available_consultation_hours']); ?></div>
                             </div>
                         </div>
 

@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $medical_history = filter_input(INPUT_POST, 'medical_history', FILTER_SANITIZE_STRING);
         $specialty = filter_input(INPUT_POST, 'specialty', FILTER_SANITIZE_STRING);
         $work_address = filter_input(INPUT_POST, 'work_address', FILTER_SANITIZE_STRING);
-        $consultation_hours = filter_input(INPUT_POST, 'consultation_hours', FILTER_SANITIZE_STRING);
+        $available_consultation_hours = filter_input(INPUT_POST, 'available_consultation_hours', FILTER_SANITIZE_STRING);
         $date_of_birth = filter_input(INPUT_POST, 'date_of_birth', FILTER_SANITIZE_STRING);
         $gender = filter_input(INPUT_POST, 'gender', FILTER_SANITIZE_STRING);
 
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     address = ?,
                     specialty = ?,
                     work_address = ?,
-                    consultation_hours = ?,
+                    available_consultation_hours = ?,
                     date_of_birth = ?,
                     gender = ?,
                     profile_image = COALESCE(?, profile_image)
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $address,
                     $specialty,
                     $work_address,
-                    $consultation_hours,
+                    $available_consultation_hours,
                     $date_of_birth,
                     $gender,
                     $profile_image,
@@ -438,7 +438,7 @@ $conn->close();
             </div>
 
             <div class="button-group">
-                <a href="profile.php" class="btn btn-secondary">← Cancel</a>
+                <a href="profile.php" class="btn btn-secondary">← Done</a>
                 <button type="submit" class="btn btn-primary">💾 Save Changes</button>
             </div>
         </form>

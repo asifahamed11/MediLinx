@@ -1,5 +1,3 @@
--- Database: `user_authentication`
-
 CREATE TABLE `posts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `doctor_id` int(11) NOT NULL,

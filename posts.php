@@ -235,8 +235,8 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
         }
 
         .like-button.liked {
-            color: var(--accent);
-            background: rgba(231, 111, 81, 0.1);
+            color:rgb(234, 59, 59);
+            background: rgba(255, 0, 0, 0.1);
         }
 
         .like-button.liked svg {

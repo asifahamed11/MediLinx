@@ -82,6 +82,22 @@ function get_category_icon($category) {
     return $icons[strtolower($category)] ?? 'fa-check';
 }
 
+function get_category_tips($category) {
+    switch(strtolower($category)) {
+        case 'hydration':
+            return [
+                'Stay Hydrated' => 'Drink 8-10 glasses of water daily',
+                'Water Quality' => 'Use clean, filtered water when possible',
+                'Hydration Schedule' => 'Set regular reminders to drink water',
+                'Monitor Hydration' => 'Check urine color for hydration levels',
+                'Smart Drinking' => 'Avoid excessive caffeine and alcohol'
+            ];
+        // Add other categories as needed
+        default:
+            return [];
+    }
+}
+
 // Tip generation and caching logic
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh'])) {
     $_SESSION['tips'] = generate_health_tips();
@@ -100,32 +116,37 @@ $tips_content = $_SESSION['tips'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Health Advisor</title>
+    <title>Smart Health Advisor - Daily Wellness Tips</title>
+    <meta name="description" content="Get personalized health and wellness tips across nutrition, exercise, mental health, sleep, and hydration.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary: #2A9D8F;
-            --primary-dark:rgb(21, 133, 120);
-            --accent:rgb(67, 240, 220);
-            --background: #ffffff;
+            --primary-light: #4ecdc4;
+            --primary-dark: #1a7168;
+            --accent: #F4A261;
+            --background: #f8fafc;
             --card-bg: #ffffff;
             --text: #1f2937;
             --text-light: #6b7280;
             --border: #e5e7eb;
             --shadow: rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
+            --shadow-lg: rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         [data-theme="dark"] {
-            --primary: #2A9D8F;
-            --primary-dark:rgb(21, 133, 120);
-            --accent:rgb(67, 240, 220);
+            --primary: #4ecdc4;
+            --primary-light: #64dfb4;
+            --primary-dark: #2A9D8F;
+            --accent: #F4A261;
             --background: #111827;
             --card-bg: #1f2937;
-            --text: #f3f4f6;
+            --text:rgb(212, 216, 221);
             --text-light: #9ca3af;
             --border: #374151;
             --shadow: rgba(0, 0, 0, 0.25);
+            --shadow-lg: rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -135,7 +156,7 @@ $tips_content = $_SESSION['tips'];
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background-color: var(--background);
             color: var(--text);
             line-height: 1.6;
@@ -153,34 +174,40 @@ $tips_content = $_SESSION['tips'];
         .header {
             text-align: center;
             margin-bottom: 3rem;
+            animation: slideDown 0.6s ease-out;
         }
 
         .title {
             font-size: 2.5rem;
             color: var(--text);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 1rem;
         }
 
+        .title i {
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
         .search-container {
             max-width: 600px;
             margin: 0 auto;
+            position: relative;
         }
 
         .search-wrapper {
             position: relative;
-            margin-bottom: 1rem;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
+            margin-bottom: 1.5rem;
         }
 
         .search-bar {
@@ -192,24 +219,26 @@ $tips_content = $_SESSION['tips'];
             color: var(--text);
             font-size: 1rem;
             transition: var(--transition);
+            box-shadow: 0 2px 4px var(--shadow);
         }
 
         .search-bar:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.2);
+            transform: translateY(-1px);
         }
 
         .filter-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.75rem;
             justify-content: center;
             margin-bottom: 2rem;
         }
 
         .filter-btn {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             border: none;
             border-radius: 1.5rem;
             background-color: var(--card-bg);
@@ -217,48 +246,77 @@ $tips_content = $_SESSION['tips'];
             cursor: pointer;
             transition: var(--transition);
             border: 1px solid var(--border);
+            font-weight: 500;
+            box-shadow: 0 2px 4px var(--shadow);
         }
 
-        .filter-btn:hover,
+        .filter-btn:hover {
+            background-color: var(--primary-light);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px var(--shadow-lg);
+        }
+
         .filter-btn.active {
             background-color: var(--primary);
             color: white;
+            border-color: var(--primary-dark);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 2rem;
             padding: 1rem 0;
         }
 
         .card {
             background-color: var(--card-bg);
-            border-radius: 1rem;
+            border-radius: 1.5rem;
             box-shadow: 0 4px 6px var(--shadow);
             transition: var(--transition);
             position: relative;
             overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px var(--shadow);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 12px var(--shadow-lg);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: var(--transition);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
         }
 
         .card-content {
-            padding: 1.5rem;
+            padding: 1.75rem;
         }
 
         .card h2 {
             color: var(--text);
             font-size: 1.25rem;
             margin-bottom: 1rem;
+            line-height: 1.4;
         }
 
         .card p {
             color: var(--text-light);
             margin-bottom: 2rem;
+            font-size: 1rem;
         }
 
         .category-tag {
@@ -273,16 +331,50 @@ $tips_content = $_SESSION['tips'];
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            transform: translateY(0);
+            transition: var(--transition);
         }
 
-        .theme-toggle-container {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 1000;
+        .card:hover .category-tag {
+            transform: translateY(-2px);
+            background-color: var(--primary-dark);
+        }
+
+        .refresh-button {
+            padding: 1rem 2rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px var(--shadow);
+            margin: 2rem 0;
+        }
+
+        .refresh-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 8px var(--shadow-lg);
+        }
+
+        .refresh-button i {
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-button:hover i {
+            transform: rotate(180deg);
         }
 
         .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
             background: var(--card-bg);
             border: 2px solid var(--border);
             color: var(--text);
@@ -294,61 +386,48 @@ $tips_content = $_SESSION['tips'];
             align-items: center;
             justify-content: center;
             transition: var(--transition);
+            box-shadow: 0 2px 4px var(--shadow);
+            z-index: 1000;
         }
 
         .theme-toggle:hover {
             background-color: var(--primary);
             color: white;
+            transform: rotate(180deg);
         }
 
-        .refresh-container {
-            text-align: center;
-            margin: 2rem 0;
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .refresh-button {
-            padding: 0.8rem 2rem;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 2rem;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .refresh-button:hover {
-            background-color: var(--primary-dark);
-            transform: scale(1.05);
-        }
-
-        .back-btn {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1000;
-            background: var(--primary);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            transition: var(--transition);
-            font-size: 1rem;
-            box-shadow: 0 2px 4px var(--shadow);
-        }
-
-        .back-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px var(--shadow);
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         @media (max-width: 768px) {
@@ -361,25 +440,69 @@ $tips_content = $_SESSION['tips'];
             }
             
             .filter-buttons {
-                flex-direction: column;
+                gap: 0.5rem;
             }
             
             .filter-btn {
-                width: 100%;
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
             }
+
+            .card {
+                margin: 0 0.5rem;
+            }
+
+            .theme-toggle {
+                top: auto;
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--primary-light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <a href="index.php" class="back-btn">
-        <i class="fas fa-arrow-left"></i>
-        Back to Home
-    </a>
-    <div class="theme-toggle-container">
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-            <i class="fas fa-moon"></i>
-        </button>
+    <div class="loading">
+        <div class="loading-spinner"></div>
     </div>
+
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
 
     <div class="container">
         <header class="header">
@@ -387,25 +510,40 @@ $tips_content = $_SESSION['tips'];
                 <i class="fas fa-heartbeat"></i>
                 Smart Health Advisor
             </h1>
+            <p class="subtitle">Discover personalized health tips across nutrition, exercise, mental health, sleep, and hydration to improve your daily wellness routine.</p>
+            
             <div class="search-container">
                 <div class="search-wrapper">
-                    <i class="fas fa-search search-icon"></i>
                     <input 
                         type="text" 
                         class="search-bar" 
-                        placeholder="Search tips by category..."
-                        onkeyup="filterCards(this.value)"
+                        placeholder="Search tips by keyword or category..."
+                        onkeyup="debounce(filterCards, 300)(this.value)"
+                        aria-label="Search health tips"
                     >
+                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
                 </div>
                 <div class="filter-buttons">
-                    <button onclick="filterByCategory('all')" class="filter-btn active">All</button>
-                    <button onclick="filterByCategory('nutrition')" class="filter-btn">Nutrition</button>
-                    <button onclick="filterByCategory('exercise')" class="filter-btn">Exercise</button>
-                    <button onclick="filterByCategory('mental health')" class="filter-btn">Mental Health</button>
-                    <button onclick="filterByCategory('sleep')" class="filter-btn">Sleep</button>
-                    <button onclick="filterByCategory('hydration')" class="filter-btn">Hydration</button>
+                    <button onclick="filterByCategory('all')" class="filter-btn active" data-category="all">
+                        <i class="fas fa-th-large"></i> All Tips
+                    </button>
+                    <button onclick="filterByCategory('nutrition')" class="filter-btn" data-category="nutrition">
+                        <i class="fas fa-apple-alt"></i> Nutrition
+                    </button>
+                    <button onclick="filterByCategory('exercise')" class="filter-btn" data-category="exercise">
+                        <i class="fas fa-dumbbell"></i> Exercise
+                    </button>
+                    <button onclick="filterByCategory('mental health')" class="filter-btn" data-category="mental health">
+                        <i class="fas fa-brain"></i> Mental Health
+                    </button>
+                    <button onclick="filterByCategory('sleep')" class="filter-btn" data-category="sleep">
+                        <i class="fas fa-moon"></i> Sleep
+                    </button>
+                    <button onclick="filterByCategory('hydration')" class="filter-btn" data-category="hydration">
+                        <i class="fas fa-glass-water"></i> Hydration
+                    </button>
                 </div>
-                <form method="post" class="refresh-container">
+                <form method="post" class="refresh-container" onsubmit="showLoading()">
                     <button type="submit" name="refresh" class="refresh-button">
                         <i class="fas fa-sync-alt"></i>
                         Generate New Tips
@@ -417,13 +555,13 @@ $tips_content = $_SESSION['tips'];
         <div class="grid">
             <?php
             $tips = explode("\n", trim($tips_content));
-            foreach($tips as $tip): 
+            foreach($tips as $index => $tip): 
                 if(preg_match('/\[Category:\s*(.*?)\s*\].*Tip\s+\d+:\s*(.*?)\s*\|\s*(.*)/', $tip, $matches)):
                     $category = strtolower(trim($matches[1]));
                     $title = trim($matches[2]);
                     $content = trim($matches[3]);
             ?>
-                <div class="card" data-category="<?= htmlspecialchars($category, ENT_QUOTES, 'UTF-8') ?>">
+                <div class="card" data-category="<?= htmlspecialchars($category, ENT_QUOTES, 'UTF-8') ?>" style="animation: fadeIn 0.5s ease forwards <?= $index * 0.1 ?>s;">
                     <div class="card-content">
                         <h2><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h2>
                         <p><?= htmlspecialchars($content, ENT_QUOTES, 'UTF-8') ?></p>
@@ -438,81 +576,113 @@ $tips_content = $_SESSION['tips'];
     </div>
 
     <script>
-        // Theme toggling
-        function toggleTheme() {
-            const body = document.body;
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', newTheme);
-            
-            const themeIcon = document.querySelector('.theme-toggle i');
-            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('theme', newTheme);
+        // Debounce function for search optimization
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
         }
 
-        // Filter cards by search input
+        // Enhanced search functionality
         function filterCards(searchTerm) {
             const cards = document.querySelectorAll('.card');
             const lowercaseSearch = searchTerm.toLowerCase();
+            let visibleCount = 0;
             
             cards.forEach(card => {
                 const content = card.textContent.toLowerCase();
                 const category = card.dataset.category;
                 const isVisible = content.includes(lowercaseSearch) || 
-                                  category.includes(lowercaseSearch);
-                card.style.display = isVisible ? 'block' : 'none';
+                                category.includes(lowercaseSearch);
+                
+                if (isVisible) {
+                    card.style.display = 'block';
+                    card.style.animation = `fadeIn 0.5s ease forwards ${visibleCount * 0.1}s`;
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
             });
         }
 
-        // Filter cards by category
+        // Enhanced category filtering
         function filterByCategory(category) {
             const cards = document.querySelectorAll('.card');
             const buttons = document.querySelectorAll('.filter-btn');
+            let visibleCount = 0;
             
             buttons.forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.textContent.toLowerCase() === category || 
-                    (category === 'all' && btn.textContent === 'All')) {
+                if (btn.dataset.category === category) {
                     btn.classList.add('active');
                 }
             });
             
             cards.forEach(card => {
-                card.style.display = category === 'all' ? 'block' : 
-                    card.dataset.category === category ? 'block' : 'none';
+                const isVisible = category === 'all' || card.dataset.category === category;
+                
+                if (isVisible) {
+                    card.style.display = 'block';
+                    card.style.animation = `fadeIn 0.5s ease forwards ${visibleCount * 0.1}s`;
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
             });
+        }
+
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = `fas fa-${newTheme === 'dark' ? 'sun' : 'moon'}`;
+        }
+
+        // Loading state management
+        function showLoading() {
+            document.querySelector('.loading').classList.add('active');
         }
 
         // Initialize theme and animations
         document.addEventListener('DOMContentLoaded', () => {
+            // Set theme
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.setAttribute('data-theme', savedTheme);
             
             const themeIcon = document.querySelector('.theme-toggle i');
-            themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            themeIcon.className = `fas fa-${savedTheme === 'dark' ? 'sun' : 'moon'}`;
 
+            // Animate cards on load
             const cards = document.querySelectorAll('.card');
             cards.forEach((card, index) => {
                 card.style.animation = `fadeIn 0.5s ease forwards ${index * 0.1}s`;
-                card.style.opacity = '0';
+            });
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/') {
+                    e.preventDefault();
+                    document.querySelector('.search-bar').focus();
+                }
             });
         });
 
-        // Add CSS animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        // Handle service worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => {
+                    console.log('ServiceWorker registration failed:', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
