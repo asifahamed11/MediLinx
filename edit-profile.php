@@ -23,6 +23,17 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
+// Fetch degrees data if user is a doctor
+$degrees = [];
+if ($user['role'] === 'doctor') {
+    $degreeStmt = $conn->prepare("SELECT * FROM degrees WHERE doctor_id = ?");
+    $degreeStmt->bind_param("i", $user_id);
+    $degreeStmt->execute();
+    $degrees = $degreeStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $degreeStmt->close();
+}
+
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF protection
@@ -69,6 +80,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($error)) {
+            // Add this inside the if (empty($error)) block, before the existing UPDATE query
+            if ($user['role'] === 'doctor') {
+                // Delete existing degrees
+                $deleteStmt = $conn->prepare("DELETE FROM degrees WHERE doctor_id = ?");
+                $deleteStmt->bind_param("i", $user_id);
+                $deleteStmt->execute();
+
+                // Insert updated degrees
+                if (isset($_POST['degree_name'])) {
+                    $degreeStmt = $conn->prepare("INSERT INTO degrees (doctor_id, degree_name, institution, passing_year) VALUES (?, ?, ?, ?)");
+                    foreach ($_POST['degree_name'] as $index => $degreeName) {
+                        $institution = $_POST['institution'][$index];
+                        $year = $_POST['passing_year'][$index];
+                        $degreeStmt->bind_param("issi", $user_id, $degreeName, $institution, $year);
+                        $degreeStmt->execute();
+                    }
+                }
+            }
             // Build update query based on user role
             if ($user['role'] === 'doctor') {
                 $query = "UPDATE users SET 
@@ -133,8 +162,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Generate CSRF token
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-$stmt->close();
-$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -363,6 +390,34 @@ $conn->close();
                 border-radius: 1rem;
             }
         }
+        
+        .degree-entry {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr auto;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .btn-remove {
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-remove:hover {
+            background: #fca5a5;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -429,6 +484,25 @@ $conn->close();
                         <label class="form-label">Work Address</label>
                         <textarea name="work_address" class="form-input"><?php echo htmlspecialchars($user['work_address']); ?></textarea>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Degrees</label>
+                        <div id="degrees-container">
+                            <?php foreach ($degrees as $index => $degree): ?>
+                                <div class="degree-entry">
+                                    <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name" 
+                                           value="<?= htmlspecialchars($degree['degree_name']) ?>" required>
+                                    <input type="text" name="institution[]" class="form-input" placeholder="Institution" 
+                                           value="<?= htmlspecialchars($degree['institution']) ?>" required>
+                                    <input type="number" name="passing_year[]" class="form-input" placeholder="Year" 
+                                           value="<?= $degree['passing_year'] ?>" required>
+                                    <button type="button" class="btn-remove" onclick="removeDegree(this)">×</button>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addDegreeField()">
+                            + Add Degree
+                        </button>
+                    </div>
                 <?php else: ?>
                     <div class="form-group">
                         <label class="form-label">Medical History</label>
@@ -455,6 +529,23 @@ $conn->close();
                 reader.readAsDataURL(file);
             }
         });
+
+        function addDegreeField() {
+            const container = document.getElementById('degrees-container');
+            const entry = document.createElement('div');
+            entry.className = 'degree-entry';
+            entry.innerHTML = `
+                <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name" required>
+                <input type="text" name="institution[]" class="form-input" placeholder="Institution" required>
+                <input type="number" name="passing_year[]" class="form-input" placeholder="Year" required>
+                <button type="button" class="btn-remove" onclick="removeDegree(this)">×</button>
+            `;
+            container.appendChild(entry);
+        }
+
+        function removeDegree(button) {
+            button.parentElement.remove();
+        }
     </script>
 </body>
 </html>

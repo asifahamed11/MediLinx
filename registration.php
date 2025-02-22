@@ -110,9 +110,6 @@ if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPL
     }
 }
 
-
-
-
 // Generate 6-digit PIN
 $pin = rand(100000, 999999);
 
@@ -123,48 +120,68 @@ if ($role === 'patient') {
 } else if ($role === 'doctor') {
     $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, degrees_and_certifications, years_of_experience, medical_license_number, work_address, available_consultation_hours, languages_spoken, profile_image, professional_biography, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssssssssisssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $specialty, $degrees_and_certifications, $years_of_experience, $medical_license_number, $work_address, $available_consultation_hours, $languages_spoken, $profile_image_path, $professional_biography, $pin);
+    
+    if ($stmt->execute()) {
+        $doctor_id = $conn->insert_id; // Get the ID of the newly inserted doctor
+        
+        // Insert degrees
+        if (isset($_POST['degree_name']) && !empty($_POST['degree_name'])) {
+            $degreeStmt = $conn->prepare("INSERT INTO degrees (doctor_id, degree_name, institution, passing_year) VALUES (?, ?, ?, ?)");
+            
+            foreach ($_POST['degree_name'] as $index => $degreeName) {
+                $institution = $_POST['institution'][$index];
+                $year = $_POST['passing_year'][$index];
+                $degreeStmt->bind_param("issi", $doctor_id, $degreeName, $institution, $year);
+                if (!$degreeStmt->execute()) {
+                    // Handle degree insertion error
+                    error_log("Error inserting degree: " . $degreeStmt->error);
+                }
+            }
+            $degreeStmt->close();
+        }
+        
+        // Continue with email sending...
+        // Send PIN via email using PHPMailer
+        $pin_message = "Hello " . htmlspecialchars($username) . ",\n\nThank you for registering with MediLinx. Your verification PIN is: " . $pin . "\n\nPlease enter this PIN in the verification page to verify your email address.\n\nIf you did not sign up for this account, please ignore this email.";
+        $pin_subject = "MediLinx Email Verification PIN";
+
+        $mail = new PHPMailer(true);
+        try {
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com'; // SMTP server
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'asifahamedstudent@gmail.com'; // SMTP username
+            $mail->Password   = 'nsxj nitr rumm xrei'; // SMTP password
+            $mail->SMTPSecure = 'ssl'; // or 'tls'
+            $mail->Port       = 465; // or 587 for TLS
+
+            // Recipients
+            $mail->setFrom('no-reply@medilinx.com', 'MediLinx');
+            $mail->addAddress($email, $username);
+
+            // Content
+            $mail->isHTML(false);
+            $mail->Subject = $pin_subject;
+            $mail->Body    = $pin_message;
+
+            $mail->send();
+        } catch (Exception $e) {
+            echo "Registration successful, but failed to send verification PIN: " . $mail->ErrorInfo;
+            exit;
+        }
+
+        // After successful registration and email sending
+        header("Location: verify_pin.php");
+        exit;
+    } else {
+        echo "Error: " . $stmt->error;
+    }
 } else {
     echo "Invalid role.";
     exit;
 }
 
-if ($stmt->execute()) {
-    // Send PIN via email using PHPMailer
-    $pin_message = "Hello " . htmlspecialchars($username) . ",\n\nThank you for registering with MediLinx. Your verification PIN is: " . $pin . "\n\nPlease enter this PIN in the verification page to verify your email address.\n\nIf you did not sign up for this account, please ignore this email.";
-    $pin_subject = "MediLinx Email Verification PIN";
-
-    $mail = new PHPMailer(true);
-    try {
-        // Server settings
-        $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com'; // SMTP server
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'asifahamedstudent@gmail.com'; // SMTP username
-        $mail->Password   = 'nsxj nitr rumm xrei'; // SMTP password
-        $mail->SMTPSecure = 'ssl'; // or 'tls'
-        $mail->Port       = 465; // or 587 for TLS
-
-        // Recipients
-        $mail->setFrom('no-reply@medilinx.com', 'MediLinx');
-        $mail->addAddress($email, $username);
-
-        // Content
-        $mail->isHTML(false);
-        $mail->Subject = $pin_subject;
-        $mail->Body    = $pin_message;
-
-        $mail->send();
-    } catch (Exception $e) {
-        echo "Registration successful, but failed to send verification PIN: " . $mail->ErrorInfo;
-        exit;
-    }
-
-    // After successful registration and email sending
-    header("Location: verify_pin.php");
-    exit;
-} else {
-    echo "Error: " . $stmt->error;
-}
 $stmt->close();
 $conn->close();
 ?>

@@ -32,6 +32,17 @@ CREATE TABLE `reviews` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+-- Create degrees table
+CREATE TABLE `degrees` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `doctor_id` INT(11) NOT NULL,
+  `degree_name` VARCHAR(255) NOT NULL,
+  `institution` VARCHAR(255) NOT NULL,
+  `passing_year` YEAR NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

@@ -22,6 +22,13 @@ if ($result->num_rows === 0) {
 }
 $doctor = $result->fetch_assoc();
 
+// Get doctor's degrees
+$degrees = [];
+$degree_stmt = $conn->prepare("SELECT * FROM degrees WHERE doctor_id = ? ORDER BY passing_year DESC");
+$degree_stmt->bind_param("i", $doctor_id);
+$degree_stmt->execute();
+$degrees = $degree_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
 // Get doctor's posts with like counts
 $posts = [];
 $stmt = $conn->prepare("SELECT posts.*, 
@@ -423,6 +430,72 @@ $conn->close();
             70% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
+
+        .education-section {
+            margin-top: 2.5rem;
+        }
+
+        .education-section h3 {
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .degrees-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .degree-item {
+            background: rgba(42, 157, 143, 0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .degree-item:hover {
+            transform: translateY(-3px);
+            background: rgba(42, 157, 143, 0.08);
+        }
+
+        .degree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .degree-header h4 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .degree-header .year {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .institution, .specialization {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            margin-top: 0.5rem;
+        }
+
+        .institution i, .specialization i {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .no-degrees {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -466,6 +539,33 @@ $conn->close();
                     <div class="bio-section">
                         <h3>Professional Biography</h3>
                         <p><?= nl2br(htmlspecialchars($doctor['professional_biography'])) ?></p>
+                    </div>
+                    <div class="education-section">
+                        <h3>Education & Qualifications</h3>
+                        <?php if (!empty($degrees)): ?>
+                            <div class="degrees-list">
+                                <?php foreach ($degrees as $degree): ?>
+                                    <div class="degree-item">
+                                        <div class="degree-header">
+                                            <h4><?= htmlspecialchars($degree['degree_name']) ?></h4>
+                                            <span class="year"><?= htmlspecialchars($degree['passing_year']) ?></span>
+                                        </div>
+                                        <div class="institution">
+                                            <i class="fas fa-university"></i>
+                                            <?= htmlspecialchars($degree['institution']) ?>
+                                        </div>
+                                        <?php if (!empty($degree['specialization'])): ?>
+                                            <div class="specialization">
+                                                <i class="fas fa-graduation-cap"></i>
+                                                <?= htmlspecialchars($degree['specialization']) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <p class="no-degrees">No educational information available</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

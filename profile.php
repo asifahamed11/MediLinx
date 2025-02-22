@@ -272,6 +272,31 @@ $conn->close();
                     </div>
                 </div>
 
+                <div class="info-card">
+    <h3 class="info-label">Education</h3>
+    <?php
+    $degreeStmt = $conn->prepare("SELECT * FROM degrees WHERE doctor_id = ? ORDER BY passing_year DESC");
+    $degreeStmt->bind_param("i", $user['id']);
+    $degreeStmt->execute();
+    $degrees = $degreeStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    
+    if (!empty($degrees)): ?>
+        <div class="degrees-list">
+            <?php foreach ($degrees as $degree): ?>
+                <div class="degree-item">
+                    <div class="degree-name"><?= htmlspecialchars($degree['degree_name']) ?></div>
+                    <div class="degree-details">
+                        <span><?= htmlspecialchars($degree['institution']) ?></span>
+                        <span><?= $degree['passing_year'] ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <p>No degrees added yet</p>
+    <?php endif; ?>
+</div>
+
                 <?php if($user['role'] === 'doctor'): ?>
                     <div class="info-card">
                         <h3 class="info-label">Professional Information</h3>

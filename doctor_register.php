@@ -262,6 +262,84 @@ require_once 'config.php';
                 grid-template-columns: 1fr;
             }
         }
+        .degrees-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.degree-item {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: rgba(42, 157, 143, 0.05);
+}
+
+.degree-name {
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.degree-details {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    color: var(--text-light);
+}
+
+.btn-add-degree {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.degree-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr 100px auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.btn-remove {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+        .buttons-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-back {
+    padding: 1.2rem;
+    border: none;
+    border-radius: 15px;
+    background: var(--background);
+    color: var(--primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 5px 5px 10px #d9d9d9,
+                -5px -5px 10px #ffffff;
+    flex: 1;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 8px 8px 15px #d9d9d9,
+                -8px -8px 15px #ffffff;
+}
+
+.btn-submit {
+    flex: 2;
+}
     </style>
 </head>
 <body>
@@ -320,9 +398,17 @@ require_once 'config.php';
                         <label for="languages_spoken"><i class="fas fa-language"></i> Languages</label>
                     </div>
                     <div class="input-group">
-                        <textarea id="degrees_and_certifications" name="degrees_and_certifications" required placeholder=" "></textarea>
-                        <label for="degrees_and_certifications"><i class="fas fa-graduation-cap"></i> Degrees & Certifications</label>
-                    </div>
+    <div id="degrees-container">
+        <div class="degree-entry">
+            <input type="text" name="degree_name[]" placeholder="Degree Name" required>
+            <input type="text" name="institution[]" placeholder="Institution" required>
+            <input type="number" name="passing_year[]" placeholder="Passing Year" min="1900" max="<?= date('Y') ?>" required>
+        </div>
+    </div>
+    <button type="button" onclick="addDegreeField()" class="btn-add-degree">
+        <i class="fas fa-plus"></i> Add Another Degree
+    </button>
+</div>
                 </div>
             </div>
 
@@ -355,7 +441,14 @@ require_once 'config.php';
                 </div>
             </div>
 
-            <button type="button" class="btn-submit" onclick="nextStep()">Next Step</button>
+            <div class="buttons-container">
+                <button type="button" class="btn-back" onclick="previousStep()" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button type="button" class="btn-submit" onclick="nextStep()">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
         </form>
     </div>
 
@@ -369,6 +462,7 @@ require_once 'config.php';
                 currentStep++;
                 document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
                 updateProgress();
+                updateButtons();
             } else {
                 document.querySelector('form').submit();
             }
@@ -401,6 +495,43 @@ require_once 'config.php';
             
             reader.readAsDataURL(file);
         });
+        function addDegreeField() {
+    const container = document.getElementById('degrees-container');
+    const newEntry = document.createElement('div');
+    newEntry.className = 'degree-entry';
+    newEntry.innerHTML = `
+        <input type="text" name="degree_name[]" placeholder="Degree Name" required>
+        <input type="text" name="institution[]" placeholder="Institution" required>
+        <input type="number" name="passing_year[]" placeholder="Passing Year" min="1900" max="<?= date('Y') ?>" required>
+        <button type="button" onclick="this.parentElement.remove()" class="btn-remove">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(newEntry);
+}
+        function previousStep() {
+    if (currentStep > 1) {
+        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
+        currentStep--;
+        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
+        updateProgress();
+        updateButtons();
+    }
+}
+
+function updateButtons() {
+    const backButton = document.querySelector('.btn-back');
+    const nextButton = document.querySelector('.btn-submit');
+    
+    backButton.style.display = currentStep === 1 ? 'none' : 'block';
+    nextButton.textContent = currentStep === totalSteps ? 'Submit' : 'Next';
+    
+    if (currentStep === totalSteps) {
+        nextButton.innerHTML = 'Submit <i class="fas fa-check"></i>';
+    } else {
+        nextButton.innerHTML = 'Next <i class="fas fa-arrow-right"></i>';
+    }
+}
     </script>
 </body>
 </html>
