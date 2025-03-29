@@ -145,7 +145,7 @@ $nav_user = $nav_result->fetch_assoc();
     <div class="nav-container">
         <a href="dashboard.php" class="nav-brand">
 
-            <img src="logo.png" alt="logo" width="350" height="300" style="filter: invert(2)" />
+        MediLinx
         </a>
         
         <div class="nav-links">
