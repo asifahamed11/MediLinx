@@ -1,8 +1,15 @@
 <?php
 session_start();
-const API_KEY = 'AIzaSyADIxTwoGUdHq2ZYUE1d28qC1HuDnUT5jA'; //  API key
+const API_KEY = 'AIzaSyA-SczyTDGunUSkDCQL_6kDsSGV1JNvWrY';
+const CACHE_LIFETIME = 3; // 1 hour cache lifetime
 
 function generate_health_tips() {
+    // Check for cached tips in a file to reduce API calls
+    $cache_file = __DIR__ . '/cache/health_tips.json';
+    if (file_exists($cache_file) && (time() - filemtime($cache_file) < CACHE_LIFETIME)) {
+        return file_get_contents($cache_file);
+    }
+    
     $prompt = "Generate 12 professional health tips in this exact format:
         [Category: category_name] Tip X: Title | Detailed explanation
         Categories allowed: nutrition, exercise, mental health, sleep, hydration
@@ -11,45 +18,52 @@ function generate_health_tips() {
     try {
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+            CURLOPT_URL => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode([
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt]
-                        ]
-                    ]
-                ]
+                'contents' => [['parts' => [['text' => $prompt]]]]
             ]),
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
                 'x-goog-api-key: ' . API_KEY
             ],
             CURLOPT_TIMEOUT => 15,
-            CURLOPT_SSL_VERIFYPEER => true
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_CONNECTTIMEOUT => 5 // Faster timeout for connection
         ]);
 
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         
         if (curl_errno($ch)) {
             throw new Exception('API request failed: ' . curl_error($ch));
         }
         
-        if ($httpCode !== 200) {
-            throw new Exception('API returned HTTP code: ' . $httpCode);
+        if ($http_code !== 200) {
+            throw new Exception("API returned error code: $http_code");
         }
 
-        $data = json_decode($response, true);
         curl_close($ch);
-
-        if (!isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-            throw new Exception('Invalid API response structure');
+        
+        $data = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Failed to parse API response: ' . json_last_error_msg());
         }
-
-        return $data['candidates'][0]['content']['parts'][0]['text'];
+        
+        $tips = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        
+        if (!$tips) {
+            throw new Exception('No tips data in API response');
+        }
+        
+        // Cache the tips to a file
+        if (!is_dir(dirname($cache_file))) {
+            mkdir(dirname($cache_file), 0755, true);
+        }
+        file_put_contents($cache_file, $tips);
+        
+        return $tips;
     } catch (Exception $e) {
         error_log('Health Tips Error: ' . $e->getMessage());
         return get_fallback_tips();
@@ -57,59 +71,148 @@ function generate_health_tips() {
 }
 
 function get_fallback_tips() {
-    return "[Category: nutrition] Tip 1: Balanced Diet | Include a variety of colorful fruits and vegetables in daily meals.
-[Category: exercise] Tip 2: Daily Activity | Aim for at least 30 minutes of moderate exercise daily.
-[Category: mental health] Tip 3: Stress Management | Practice mindfulness meditation for 10 minutes each morning.
-[Category: sleep] Tip 4: Quality Rest | Maintain consistent sleep and wake times, even on weekends.
-[Category: hydration] Tip 5: Water Intake | Drink a glass of water before each meal.
-[Category: nutrition] Tip 6: Healthy Snacks | Choose nuts and fruits over processed snacks.
-[Category: exercise] Tip 7: Posture Check | Take regular breaks to stretch when sitting for long periods.
-[Category: mental health] Tip 8: Digital Detox | Designate screen-free time before bed.
-[Category: sleep] Tip 9: Sleep Environment | Keep bedroom dark and cool for better rest.
-[Category: hydration] Tip 10: Hydration Reminder | Carry a reusable water bottle throughout the day.
-[Category: nutrition] Tip 11: Portion Control | Use smaller plates to avoid overeating.
-[Category: exercise] Tip 12: Strength Training | Include resistance exercises in your weekly workout routine.";
+    // Using a static array is faster than a long string
+    return implode("\n", [
+        "[Category: nutrition] Tip 1: Balanced Diet | Include a variety of colorful fruits and vegetables in daily meals.",
+        "[Category: exercise] Tip 2: Daily Activity | Aim for at least 30 minutes of moderate exercise daily.",
+        "[Category: mental health] Tip 3: Stress Management | Practice mindfulness meditation for 10 minutes each morning.",
+        "[Category: sleep] Tip 4: Quality Rest | Maintain consistent sleep and wake times, even on weekends.",
+        "[Category: hydration] Tip 5: Water Intake | Drink a glass of water before each meal.",
+        "[Category: nutrition] Tip 6: Healthy Snacks | Choose nuts and fruits over processed snacks.",
+        "[Category: exercise] Tip 7: Posture Check | Take regular breaks to stretch when sitting for long periods.",
+        "[Category: mental health] Tip 8: Digital Detox | Designate screen-free time before bed.",
+        "[Category: sleep] Tip 9: Sleep Environment | Keep bedroom dark and cool for better rest.",
+        "[Category: hydration] Tip 10: Hydration Reminder | Carry a reusable water bottle throughout the day.",
+        "[Category: nutrition] Tip 11: Portion Control | Use smaller plates to avoid overeating.",
+        "[Category: exercise] Tip 12: Strength Training | Include resistance exercises in your weekly workout routine."
+    ]);
 }
+
+// Use static array for icons instead of creating the array each time
+$CATEGORY_ICONS = [
+    'nutrition' => 'fa-apple-alt',
+    'exercise' => 'fa-dumbbell',
+    'mental health' => 'fa-brain',
+    'sleep' => 'fa-moon',
+    'hydration' => 'fa-glass-water'
+];
 
 function get_category_icon($category) {
-    $icons = [
-        'nutrition' => 'fa-apple-alt',
-        'exercise' => 'fa-dumbbell',
-        'mental health' => 'fa-brain',
-        'sleep' => 'fa-moon',
-        'hydration' => 'fa-glass-water'
-    ];
-    return $icons[strtolower($category)] ?? 'fa-check';
+    global $CATEGORY_ICONS;
+    return $CATEGORY_ICONS[strtolower($category)] ?? 'fa-check';
 }
 
+// Use a static array for better performance
+$CATEGORY_TIPS_CACHE = [];
+
 function get_category_tips($category) {
-    switch(strtolower($category)) {
+    global $CATEGORY_TIPS_CACHE;
+    
+    $category = strtolower($category);
+    
+    // Return from cache if available
+    if (isset($CATEGORY_TIPS_CACHE[$category])) {
+        return $CATEGORY_TIPS_CACHE[$category];
+    }
+    
+    // Create and cache the tips
+    switch($category) {
         case 'hydration':
-            return [
+            $tips = [
                 'Stay Hydrated' => 'Drink 8-10 glasses of water daily',
                 'Water Quality' => 'Use clean, filtered water when possible',
                 'Hydration Schedule' => 'Set regular reminders to drink water',
                 'Monitor Hydration' => 'Check urine color for hydration levels',
                 'Smart Drinking' => 'Avoid excessive caffeine and alcohol'
             ];
-        // Add other categories as needed
+            break;
+        case 'nutrition':
+            $tips = [
+                'Balanced Meals' => 'Include protein, complex carbs, and healthy fats in each meal',
+                'Portion Control' => 'Use smaller plates to naturally reduce portion sizes',
+                'Meal Planning' => 'Plan meals in advance to reduce unhealthy choices',
+                'Mindful Eating' => 'Eat slowly and without distractions',
+                'Colorful Diet' => 'Eat a rainbow of vegetables and fruits each day'
+            ];
+            break;
+        case 'exercise':
+            $tips = [
+                'Consistent Movement' => 'Try to move your body every day',
+                'Strength Training' => 'Include resistance exercises at least twice weekly',
+                'Cardio Health' => 'Get at least 150 minutes of moderate cardio weekly',
+                'Active Transport' => 'Walk or cycle for short trips when possible',
+                'Stretching' => 'Make flexibility exercises part of your routine'
+            ];
+            break;
+        case 'mental health':
+            $tips = [
+                'Mindfulness' => 'Practice being present in the moment',
+                'Social Connection' => 'Maintain relationships with supportive people',
+                'Stress Management' => 'Learn techniques like deep breathing or meditation',
+                'Digital Detox' => 'Take regular breaks from screens and social media',
+                'Professional Help' => 'Seek support when needed - therapy is self-care'
+            ];
+            break;
+        case 'sleep':
+            $tips = [
+                'Sleep Schedule' => 'Go to bed and wake up at consistent times',
+                'Sleep Environment' => 'Keep your bedroom cool, dark, and quiet',
+                'Pre-Sleep Routine' => 'Develop a relaxing ritual before bed',
+                'Screen Limits' => 'Avoid screens 1-2 hours before bedtime',
+                'Sleep Duration' => 'Aim for 7-9 hours of quality sleep'
+            ];
+            break;
         default:
-            return [];
+            $tips = [];
+    }
+    
+    // Cache the result
+    $CATEGORY_TIPS_CACHE[$category] = $tips;
+    
+    return $tips;
+}
+
+// Use a file-based cache for tips generation with expiry
+function get_or_create_tips() {
+    $cache_key = 'health_tips_' . date('Ymd');
+    $session_key = 'tips_' . $cache_key;
+    
+    // Check if we need to refresh (from POST)
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh'])) {
+        $tips = generate_health_tips();
+        $_SESSION[$session_key] = $tips;
+        return $tips;
+    }
+    
+    // Check session first (fastest)
+    if (isset($_SESSION[$session_key])) {
+        return $_SESSION[$session_key];
+    }
+    
+    // Generate new tips
+    $tips = generate_health_tips();
+    $_SESSION[$session_key] = $tips;
+    return $tips;
+}
+
+// Use output buffering to improve performance
+ob_start();
+
+// Process tips with better handling
+$tips_content = get_or_create_tips();
+
+// Parse tips once outside the HTML loop for better performance
+$parsed_tips = [];
+$tips = explode("\n", trim($tips_content));
+foreach($tips as $tip) {
+    if(preg_match('/\[Category:\s*(.*?)\s*\].*Tip\s+\d+:\s*(.*?)\s*\|\s*(.*)/', $tip, $matches)) {
+        $parsed_tips[] = [
+            'category' => strtolower(trim($matches[1])),
+            'title' => trim($matches[2]),
+            'content' => trim($matches[3])
+        ];
     }
 }
-
-// Tip generation and caching logic
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh'])) {
-    $_SESSION['tips'] = generate_health_tips();
-    header('Location: ' . $_SERVER['PHP_SELF']);
-    exit;
-}
-
-if (!isset($_SESSION['tips'])) {
-    $_SESSION['tips'] = generate_health_tips();
-}
-
-$tips_content = $_SESSION['tips'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -493,9 +596,34 @@ $tips_content = $_SESSION['tips'];
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .back {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.8rem 1.5rem;
+            background:rgba(228, 116, 88, 0.92);
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            color: white;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .back:hover {
+            background: #E76F51;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 <body>
+<a href="index.php" class="back"><i class="fas fa-arrow-left"></i> Back</a>
     <div class="loading">
         <div class="loading-spinner"></div>
     </div>
@@ -553,27 +681,21 @@ $tips_content = $_SESSION['tips'];
         </header>
 
         <div class="grid">
-            <?php
-            $tips = explode("\n", trim($tips_content));
-            foreach($tips as $index => $tip): 
-                if(preg_match('/\[Category:\s*(.*?)\s*\].*Tip\s+\d+:\s*(.*?)\s*\|\s*(.*)/', $tip, $matches)):
-                    $category = strtolower(trim($matches[1]));
-                    $title = trim($matches[2]);
-                    $content = trim($matches[3]);
-            ?>
-                <div class="card" data-category="<?= htmlspecialchars($category, ENT_QUOTES, 'UTF-8') ?>" style="animation: fadeIn 0.5s ease forwards <?= $index * 0.1 ?>s;">
+            <?php foreach($parsed_tips as $index => $tip): ?>
+                <div class="card" data-category="<?= htmlspecialchars($tip['category'], ENT_QUOTES, 'UTF-8') ?>" style="animation: fadeIn 0.5s ease forwards <?= $index * 0.1 ?>s;">
                     <div class="card-content">
-                        <h2><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h2>
-                        <p><?= htmlspecialchars($content, ENT_QUOTES, 'UTF-8') ?></p>
+                        <h2><?= htmlspecialchars($tip['title'], ENT_QUOTES, 'UTF-8') ?></h2>
+                        <p><?= htmlspecialchars($tip['content'], ENT_QUOTES, 'UTF-8') ?></p>
                         <div class="category-tag">
-                            <i class="fas <?= get_category_icon($category) ?>"></i>
-                            <?= ucfirst(htmlspecialchars($category, ENT_QUOTES, 'UTF-8')) ?>
+                            <i class="fas <?= get_category_icon($tip['category']) ?>"></i>
+                            <?= ucfirst(htmlspecialchars($tip['category'], ENT_QUOTES, 'UTF-8')) ?>
                         </div>
                     </div>
                 </div>
-            <?php endif; endforeach; ?>
+            <?php endforeach; ?>
         </div>
     </div>
+
 
     <script>
         // Debounce function for search optimization
@@ -686,3 +808,7 @@ $tips_content = $_SESSION['tips'];
     </script>
 </body>
 </html>
+<?php
+// Flush the output buffer and send to browser
+ob_end_flush();
+?>

@@ -1,3 +1,37 @@
+CREATE TABLE `time_slots` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `doctor_id` INT(11) NOT NULL,
+  `start_time` DATETIME NOT NULL,
+  `end_time` DATETIME NOT NULL,
+  `location` VARCHAR(255) NOT NULL,
+  `status` ENUM('available', 'booked', 'cancelled') DEFAULT 'available',
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `appointments` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `patient_id` INT(11) NOT NULL,
+  `slot_id` INT(11) NOT NULL,
+  `reason` TEXT,
+  `status` ENUM('confirmed', 'completed', 'cancelled') DEFAULT 'confirmed',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`patient_id`) REFERENCES `users`(`id`),
+  FOREIGN KEY (`slot_id`) REFERENCES `time_slots`(`id`)
+);
+
+CREATE TABLE `notifications` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `message` TEXT NOT NULL,
+  `type` ENUM('appointment', 'system', 'reminder') NOT NULL,
+  `is_read` TINYINT(1) DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+);
+
 CREATE TABLE `posts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `doctor_id` int(11) NOT NULL,

@@ -496,6 +496,35 @@ $conn->close();
             background: rgba(0, 0, 0, 0.02);
             border-radius: 1rem;
         }
+        .time-slots {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.time-slot-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.book-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.book-btn:hover {
+    background: var(--primary-dark);
+}
     </style>
 </head>
 <body>
@@ -568,6 +597,40 @@ $conn->close();
                         <?php endif; ?>
                     </div>
                 </div>
+                <div class="availability-section">
+    <h3>Available Appointments</h3>
+    <?php
+    $slotStmt = $conn->prepare("SELECT * FROM time_slots 
+        WHERE doctor_id = ? 
+        AND status = 'available'
+        AND start_time > NOW()
+        ORDER BY start_time");
+    $slotStmt->bind_param("i", $doctor_id);
+    $slotStmt->execute();
+    $slots = $slotStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    
+    if (!empty($slots)): ?>
+        <div class="time-slots">
+            <?php foreach ($slots as $slot): ?>
+                <div class="time-slot-card">
+                    <div class="slot-time">
+                        <?= date('M j, Y g:i A', strtotime($slot['start_time'])) ?>
+                        - <?= date('g:i A', strtotime($slot['end_time'])) ?>
+                    </div>
+                    <div class="slot-location">
+                        <?= htmlspecialchars($slot['location']) ?>
+                    </div>
+                    <form method="POST" action="book_appointment.php">
+                        <input type="hidden" name="slot_id" value="<?= $slot['id'] ?>">
+                        <button type="submit" class="book-btn">Book Now</button>
+                    </form>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <p class="no-slots">No available time slots at the moment</p>
+    <?php endif; ?>
+</div>
             </div>
         </div>
 

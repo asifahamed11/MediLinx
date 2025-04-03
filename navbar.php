@@ -192,6 +192,23 @@ $nav_user = $nav_result->fetch_assoc();
                 </svg>
                 <span>Logout</span>
             </a>
+
+            <li class="nav-item">
+    <a class="nav-link" href="appointments.php">
+        <i class="fas fa-bell"></i>
+        <?php
+        if (isset($_SESSION['user_id'])) {
+            $unread = $conn->query("SELECT COUNT(*) FROM notifications 
+                WHERE user_id = {$_SESSION['user_id']} 
+                AND is_read = 0");
+            $count = $unread->fetch_row()[0];
+            if ($count > 0) {
+                echo "<span class='badge bg-danger'>$count</span>";
+            }
+        }
+        ?>
+    </a>
+</li>
         </div>
     </div>
 </nav>

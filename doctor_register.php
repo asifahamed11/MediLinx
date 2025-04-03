@@ -8,6 +8,7 @@ require_once 'config.php';
 <head>
     <meta charset="UTF-8">
     <title>Doctor Registration - MediLinx</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -16,6 +17,7 @@ require_once 'config.php';
             --accent: #4CAF50;
             --background: #F5F9FF;
             --text: #2C3E50;
+            --text-light: #718096;
             --neumorphic-shadow: 8px 8px 16px #d9d9d9, 
                                 -8px -8px 16px #ffffff;
         }
@@ -263,83 +265,99 @@ require_once 'config.php';
             }
         }
         .degrees-list {
-    display: grid;
-    gap: 1rem;
-}
+            display: grid;
+            gap: 1rem;
+        }
 
-.degree-item {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background: rgba(42, 157, 143, 0.05);
-}
+        .degree-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: rgba(42, 157, 143, 0.05);
+        }
 
-.degree-name {
-    font-weight: 600;
-    color: var(--secondary);
-}
+        .degree-name {
+            font-weight: 600;
+            color: var(--secondary);
+        }
 
-.degree-details {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0.5rem;
-    color: var(--text-light);
-}
+        .degree-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            color: var(--text-light);
+        }
 
-.btn-add-degree {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    margin-top: 1rem;
-}
+        .btn-add-degree {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
 
-.degree-entry {
-    display: grid;
-    grid-template-columns: 1fr 1fr 100px auto;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    align-items: center;
-}
+        .degree-entry {
+            display: grid;
+            grid-template-columns: 1fr 1fr 100px auto;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
 
-.btn-remove {
-    background: transparent;
-    border: none;
-    color: var(--accent);
-    cursor: pointer;
-    padding: 0.5rem;
-}
+        .btn-remove {
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
         .buttons-container {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-}
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
 
-.btn-back {
-    padding: 1.2rem;
-    border: none;
-    border-radius: 15px;
-    background: var(--background);
-    color: var(--primary);
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 5px 5px 10px #d9d9d9,
-                -5px -5px 10px #ffffff;
-    flex: 1;
-}
+        .btn-back {
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: var(--background);
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 5px 5px 10px #d9d9d9,
+                        -5px -5px 10px #ffffff;
+            flex: 1;
+        }
 
-.btn-back:hover {
-    transform: translateY(-2px);
-    box-shadow: 8px 8px 15px #d9d9d9,
-                -8px -8px 15px #ffffff;
-}
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 8px 8px 15px #d9d9d9,
+                        -8px -8px 15px #ffffff;
+        }
 
-.btn-submit {
-    flex: 2;
-}
+        .btn-submit {
+            flex: 2;
+        }
+        .time-slot-entry {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 2fr auto;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .btn-add-slot {
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -347,10 +365,13 @@ require_once 'config.php';
         <h2><i class="fas fa-user-md"></i> Doctor Registration</h2>
         
         <div class="progress-steps">
-            <div class="progress-bar"><div class="progress-fill"></div></div>
             <div class="progress-step active">1</div>
             <div class="progress-step">2</div>
             <div class="progress-step">3</div>
+            <div class="progress-step">4</div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
         </div>
 
         <form action="registration.php" method="post" enctype="multipart/form-data" class="animated-form">
@@ -398,17 +419,20 @@ require_once 'config.php';
                         <label for="languages_spoken"><i class="fas fa-language"></i> Languages</label>
                     </div>
                     <div class="input-group">
-    <div id="degrees-container">
-        <div class="degree-entry">
-            <input type="text" name="degree_name[]" placeholder="Degree Name" required>
-            <input type="text" name="institution[]" placeholder="Institution" required>
-            <input type="number" name="passing_year[]" placeholder="Passing Year" min="1900" max="<?= date('Y') ?>" required>
-        </div>
-    </div>
-    <button type="button" onclick="addDegreeField()" class="btn-add-degree">
-        <i class="fas fa-plus"></i> Add Another Degree
-    </button>
-</div>
+                        <div id="degrees-container">
+                            <div class="degree-entry">
+                                <input type="text" name="degree_name[]" placeholder="Degree Name" required>
+                                <input type="text" name="institution[]" placeholder="Institution" required>
+                                <input type="number" name="passing_year[]" placeholder="Passing Year" min="1900" max="<?= date('Y') ?>" required>
+                                <button type="button" onclick="removeFirstDegree(this)" class="btn-remove" style="visibility: hidden;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addDegreeField()" class="btn-add-degree">
+                            <i class="fas fa-plus"></i> Add Another Degree
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -441,6 +465,23 @@ require_once 'config.php';
                 </div>
             </div>
 
+            <!-- Section 4: Availability -->
+            <div class="form-section" data-step="4" style="display: none;">
+                <h3><i class="fas fa-calendar-alt"></i> Set Initial Availability</h3>
+                <div class="time-slots-container">
+                    <div class="time-slot-entry">
+                        <input type="date" name="slot_date[]" required min="<?= date('Y-m-d') ?>">
+                        <input type="time" name="start_time[]" required>
+                        <input type="time" name="end_time[]" required>
+                        <input type="text" name="location[]" placeholder="Clinic Address" required>
+                        <button type="button" class="btn-remove" onclick="removeTimeSlot(this)" style="visibility: hidden;">×</button>
+                    </div>
+                </div>
+                <button type="button" class="btn-add-slot" onclick="addTimeSlot()">
+                    <i class="fas fa-plus"></i> Add Time Slot
+                </button>
+            </div>
+
             <div class="buttons-container">
                 <button type="button" class="btn-back" onclick="previousStep()" style="display: none;">
                     <i class="fas fa-arrow-left"></i> Back
@@ -454,9 +495,14 @@ require_once 'config.php';
 
     <script>
         let currentStep = 1;
-        const totalSteps = 3;
+        const totalSteps = 4; // Changed from 3 to 4 to match all form sections
 
         function nextStep() {
+            // Form validation for current step
+            if (!validateCurrentStep()) {
+                return; // Stop if validation fails
+            }
+            
             if (currentStep < totalSteps) {
                 document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
                 currentStep++;
@@ -464,7 +510,18 @@ require_once 'config.php';
                 updateProgress();
                 updateButtons();
             } else {
+                // On final step, submit the form
                 document.querySelector('form').submit();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
+                currentStep--;
+                document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
+                updateProgress();
+                updateButtons();
             }
         }
 
@@ -477,7 +534,21 @@ require_once 'config.php';
                 else step.classList.remove('active');
             });
             
+            // Update the progress fill width based on current step
             progressFill.style.width = `${((currentStep - 1) / (totalSteps - 1)) * 100}%`;
+        }
+
+        function updateButtons() {
+            const backButton = document.querySelector('.btn-back');
+            const nextButton = document.querySelector('.btn-submit');
+            
+            backButton.style.display = currentStep === 1 ? 'none' : 'block';
+            
+            if (currentStep === totalSteps) {
+                nextButton.innerHTML = 'Submit <i class="fas fa-check"></i>';
+            } else {
+                nextButton.innerHTML = 'Next <i class="fas fa-arrow-right"></i>';
+            }
         }
 
         // Image preview functionality
@@ -486,52 +557,140 @@ require_once 'config.php';
 
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            const reader = new FileReader();
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.style.display = 'block';
+                    previewImage.src = e.target.result;
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Add degree field
+        let degreeCounter = 1;
+        
+        function addDegreeField() {
+            const container = document.getElementById('degrees-container');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'degree-entry';
+            newEntry.innerHTML = `
+                <input type="text" name="degree_name[]" placeholder="Degree Name" required>
+                <input type="text" name="institution[]" placeholder="Institution" required>
+                <input type="number" name="passing_year[]" placeholder="Passing Year" min="1900" max="${new Date().getFullYear()}" required>
+                <button type="button" onclick="this.parentElement.remove()" class="btn-remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(newEntry);
+            degreeCounter++;
             
-            reader.onload = function(e) {
-                previewImage.style.display = 'block';
-                previewImage.src = e.target.result;
+            // Show remove button on first degree if we have more than one degree
+            if (degreeCounter === 2) {
+                document.querySelector('#degrees-container .btn-remove').style.visibility = 'visible';
+            }
+        }
+        
+        function removeFirstDegree(button) {
+            if (degreeCounter > 1) {
+                button.parentElement.remove();
+                degreeCounter--;
+            }
+        }
+
+        // Time slot management
+        let timeSlotCounter = 1;
+
+        function addTimeSlot() {
+            const container = document.querySelector('.time-slots-container');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'time-slot-entry';
+            newEntry.innerHTML = `
+                <input type="date" name="slot_date[]" required min="${formatDate(new Date())}">
+                <input type="time" name="start_time[]" required>
+                <input type="time" name="end_time[]" required>
+                <input type="text" name="location[]" placeholder="Clinic Address" required>
+                <button type="button" class="btn-remove" onclick="removeTimeSlot(this)">×</button>
+            `;
+            container.appendChild(newEntry);
+            timeSlotCounter++;
+            
+            // Show remove button on first time slot if we have more than one
+            if (timeSlotCounter === 2) {
+                document.querySelector('.time-slots-container .btn-remove').style.visibility = 'visible';
+            }
+        }
+
+        function removeTimeSlot(button) {
+            if (timeSlotCounter > 1) {
+                button.parentElement.remove();
+                timeSlotCounter--;
+                
+                // Hide remove button on first time slot if we only have one left
+                if (timeSlotCounter === 1) {
+                    document.querySelector('.time-slots-container .btn-remove').style.visibility = 'hidden';
+                }
+            }
+        }
+        
+        // Helper function to format date as YYYY-MM-DD for date inputs
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Form validation function
+        function validateCurrentStep() {
+            const currentSection = document.querySelector(`[data-step="${currentStep}"]`);
+            const inputs = currentSection.querySelectorAll('input[required], textarea[required], select[required]');
+            
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
+                    isValid = false;
+                } else {
+                    input.style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff';
+                }
+            });
+            
+            // Special validation for password confirmation on step 1
+            if (currentStep === 1) {
+                const password = document.getElementById('password');
+                const confirmPassword = document.getElementById('confirm_password');
+                
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
+                    alert('Passwords do not match!');
+                    isValid = false;
+                }
             }
             
-            reader.readAsDataURL(file);
-        });
-        function addDegreeField() {
-    const container = document.getElementById('degrees-container');
-    const newEntry = document.createElement('div');
-    newEntry.className = 'degree-entry';
-    newEntry.innerHTML = `
-        <input type="text" name="degree_name[]" placeholder="Degree Name" required>
-        <input type="text" name="institution[]" placeholder="Institution" required>
-        <input type="number" name="passing_year[]" placeholder="Passing Year" min="1900" max="<?= date('Y') ?>" required>
-        <button type="button" onclick="this.parentElement.remove()" class="btn-remove">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    container.appendChild(newEntry);
-}
-        function previousStep() {
-    if (currentStep > 1) {
-        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
-        currentStep--;
-        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
-        updateProgress();
+            // Special validation for time slots on step 4
+            if (currentStep === 4) {
+                const startTimes = document.querySelectorAll('input[name="start_time[]"]');
+                const endTimes = document.querySelectorAll('input[name="end_time[]"]');
+                
+                for (let i = 0; i < startTimes.length; i++) {
+                    if (startTimes[i].value >= endTimes[i].value) {
+                        startTimes[i].style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
+                        endTimes[i].style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
+                        alert('End time must be after start time!');
+                        isValid = false;
+                    }
+                }
+            }
+            
+            return isValid;
+        }
+        
+        // Initialize the form
         updateButtons();
-    }
-}
-
-function updateButtons() {
-    const backButton = document.querySelector('.btn-back');
-    const nextButton = document.querySelector('.btn-submit');
-    
-    backButton.style.display = currentStep === 1 ? 'none' : 'block';
-    nextButton.textContent = currentStep === totalSteps ? 'Submit' : 'Next';
-    
-    if (currentStep === totalSteps) {
-        nextButton.innerHTML = 'Submit <i class="fas fa-check"></i>';
-    } else {
-        nextButton.innerHTML = 'Next <i class="fas fa-arrow-right"></i>';
-    }
-}
     </script>
 </body>
 </html>
