@@ -2,6 +2,7 @@
 session_start();
 require_once 'config.php';
 
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -172,9 +173,10 @@ $conn->close();
         }
 
         .profile-sidebar {
-            position: sticky;
-            top: 2rem;
+            top: 5rem;
             text-align: center;
+            align-self: flex-start;
+            height: fit-content;
         }
 
         .profile-image {
@@ -186,6 +188,8 @@ $conn->close();
             border: 4px solid var(--primary);
             box-shadow: 0 8px 24px rgba(42, 157, 143, 0.2);
             transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
         .profile-image:hover {
@@ -374,7 +378,8 @@ $conn->close();
             }
             
             .profile-sidebar {
-                position: static;
+                position: relative;
+                top: 0;
             }
             
             .container {
@@ -621,9 +626,10 @@ $conn->close();
                         <?= htmlspecialchars($slot['location']) ?>
                     </div>
                     <form method="POST" action="book_appointment.php">
-                        <input type="hidden" name="slot_id" value="<?= $slot['id'] ?>">
-                        <button type="submit" class="book-btn">Book Now</button>
-                    </form>
+        <input type="hidden" name="slot_id" value="<?= $slot['id'] ?>">
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+        <button type="submit" class="book-btn">Book Now</button>
+    </form>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -658,7 +664,7 @@ $conn->close();
     <path d="M9.3,19.7c-0.1-0.1-3.2-2.8-5.7-6.1c-0.3-0.4-0.3-1.1,0.2-1.4c0.4-0.3,1.1-0.3,1.4,0.2c1.8,2.3,3.8,4.3,4.8,5.3
         c1-1,3.1-3,4.9-5.3c0.3-0.4,1-0.5,1.4-0.2c0.4,0.3,0.5,1,0.2,1.4c-2.6,3.3-5.6,6-5.8,6.1C10.3,20.1,9.7,20.1,9.3,19.7z"/>
     <path d="M11,14C11,14,11,14,11,14c-0.4,0-0.7-0.2-0.9-0.6L7.9,9l-1,1.6C6.6,10.8,6.3,11,6,11H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h4.5
-        l1.7-2.6C7.4,6.1,7.7,6,8.1,6c0.4,0,0.7,0.2,0.8,0.6l2.2,4.5l1-1.6C12.4,9.2,12.7,9,13,9h6c0.6,0,1,0.4,1,1s-0.4,1-1,1h-5.5
+        l1.7-2.6C7.4,6.1,7.7,6,8.1,6c0.4,0,0.7,0.2,0.8,0.6l2.2,4.5l1-1.6C12.4,9.2,12.7,9,13,9h6c0.6,0,1,0.4,1,1s-0.4-1,1-1h-5.5
         l-1.7,2.6C11.6,13.8,11.3,14,11,14z"/>
 </svg>
                                     <?= $post['like_count'] ?> likes
@@ -708,10 +714,19 @@ $conn->close();
                         <div>
                             <h4><?= htmlspecialchars($review['username']) ?></h4>
                             <div class="star-rating">
-                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                    <i class="fas fa-star<?= $i <= $review['rating'] ? '' : '-alt' ?>"></i>
+                                <?php 
+                                $fullStars = floor($review['rating']);
+                                $halfStar = ($review['rating'] - $fullStars) >= 0.5;
+                                for ($i = 0; $i < 5; $i++): 
+                                ?>
+                                    <?php if ($i < $fullStars): ?>
+                                        <i class="fas fa-star"></i>
+                                    <?php elseif ($halfStar && $i === $fullStars): ?>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    <?php else: ?>
+                                        <i class="far fa-star"></i>
+                                    <?php endif; ?>
                                 <?php endfor; ?>
-                                <span>(<?= number_format($review['rating'], 1) ?>)</span>
                             </div>
                             <p><?= nl2br(htmlspecialchars($review['comment'])) ?></p>
                             <small><?= date('M j, Y', strtotime($review['created_at'])) ?></small>

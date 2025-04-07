@@ -1,5 +1,10 @@
 <?php
 // config.php
+// At the top of config.php
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
@@ -10,6 +15,8 @@ define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_USERNAME', 'asifahamedstudent@gmail.com');
 define('SMTP_PASSWORD', 'nsxj nitr rumm xrei');
 define('SMTP_PORT', 465);
+
+date_default_timezone_set('UTC');
 
 // Common functions
 function connectDB() {

@@ -1,7 +1,13 @@
 <?php
-// profile.php (updated design)
 session_start();
 require_once 'config.php';
+
+// Better content truncation
+function truncateText($text, $length = 150) {
+    if (strlen($text) <= $length) return $text;
+    $truncated = substr($text, 0, strpos($text, ' ', $length));
+    return $truncated ? $truncated . '...' : substr($text, 0, $length) . '...';
+}
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -372,7 +378,7 @@ $conn->close();
                                     <div class="info-item" style="border-bottom: 1px solid #eee; padding: 1rem 0;">
                                         <h4 style="margin: 0 0 0.5rem 0;"><?php echo htmlspecialchars($post['title']); ?></h4>
                                         <p style="margin: 0 0 0.5rem 0; color: var(--text-light);">
-                                            <?php echo substr(htmlspecialchars($post['content']), 0, 150) . '...'; ?>
+                                            <?php echo htmlspecialchars(truncateText($post['content'], 150)); ?>
                                         </p>
                                         <div style="display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 0.875rem; color: var(--text-light);">
