@@ -84,18 +84,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Redirect based on role
     if ($role === 'patient') {
-        header("Location: appointments.php");
+        header("Location: notifications.php");
     } else {
-        header("Location: appointments.php");
+        header("Location: notifications.php");
     }
     exit;
 }
 
 // If someone just navigates to this page without POST data
 if ($role === 'patient') {
-    header("Location: appointments.php");
+    header("Location: notifications.php");
 } else {
-    header("Location: appointments.php");
+    header("Location: notifications.php");
 }
 exit;
 ?>
