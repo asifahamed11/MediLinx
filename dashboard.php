@@ -508,7 +508,7 @@ $conn->close();
                         <div class="doctor-image-container">
                             <img src="<?= htmlspecialchars($doctor['profile_image'] ?: 'uploads/default_profile.png') ?>" 
                                  class="doctor-image" 
-                                 alt="Dr. <?= htmlspecialchars($doctor['username']) ?>"
+                                 alt="<?= htmlspecialchars($doctor['username']) ?>"
                                  onerror="this.src='uploads/default_profile.png'">
                         </div>
 
@@ -533,7 +533,7 @@ $conn->close();
                                 <span>(<?= number_format($doctor['avg_rating'] ?? 0, 1) ?>)</span>
                             </div>
 
-                            <h3 class="doctor-name">Dr. <?= htmlspecialchars($doctor['username']) ?></h3>
+                            <h3 class="doctor-name"><?= htmlspecialchars($doctor['username']) ?></h3>
 
                             <div class="doctor-details">
                                 <?php if (!empty($doctor['work_address'])): ?>

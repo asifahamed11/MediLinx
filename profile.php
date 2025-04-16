@@ -733,9 +733,11 @@ if ($user['role'] === 'patient') {
         <div class="profile-container">
             <div class="profile-header">
                 <div class="profile-image-container">
-                    <img src="<?php echo htmlspecialchars($user['profile_image'] ?: 'default-avatar.jpg'); ?>"
+                    <img src="<?php echo htmlspecialchars($user['profile_image'] ?: 'uploads/default_profile.jpg'); ?>"
                         class="profile-image"
-                        alt="Profile Picture">
+                        alt="Profile Picture"
+                        onerror="this.src='uploads/default_profile.png'">
+                        
                     <div class="profile-status"></div>
                 </div>
                 <h1 class="profile-name"><?php echo htmlspecialchars($user['username']); ?></h1>
