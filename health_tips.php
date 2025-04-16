@@ -1,7 +1,7 @@
 <?php
 session_start();
 const API_KEY = 'AIzaSyA-SczyTDGunUSkDCQL_6kDsSGV1JNvWrY';
-const CACHE_LIFETIME = 30; // 30s cache lifetime for tips
+const CACHE_LIFETIME = 3; // 3s cache lifetime for tips
 
 function generate_health_tips() {
     // Check for cached tips in a file to reduce API calls
@@ -10,7 +10,7 @@ function generate_health_tips() {
         return file_get_contents($cache_file);
     }
     
-    $prompt = "Generate 12 professional health tips in this exact format:
+    $prompt = "Generate 21 professional health tips in this exact format:
         [Category: category_name] Tip X: Title | Detailed explanation
         Categories allowed: nutrition, exercise, mental health, sleep, hydration
         Example: [Category: nutrition] Tip 1: Balanced Diet | Aim for colorful fruits and vegetables";

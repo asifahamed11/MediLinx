@@ -210,7 +210,7 @@ $unread_count = $unread_data['count'];
         background-color: var(--accent);
         color: white;
         border-radius: 50%;
-        padding: 0.2rem 0.5rem;
+
         font-size: 0.7rem;
         font-weight: bold;
         display: flex;

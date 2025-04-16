@@ -883,8 +883,7 @@ if ($user['role'] === 'patient') {
         <div class="info-card">
             <h3><i class="fas fa-language"></i> Languages</h3>
             <div class="info-item">
-                <div class="info-value">
-                </div>
+            <div class="info-value"><?php echo htmlspecialchars($user['languages_spoken'] ?: 'N/A'); ?></div>
             </div>
         </div>
         <?php endif; ?>

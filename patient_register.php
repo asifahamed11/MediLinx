@@ -257,7 +257,7 @@ require_once 'config.php';
             <div class="form-grid">
                 <div class="input-group">
                     <input type="text" id="username" name="username" required placeholder=" ">
-                    <label for="username"><i class="fas fa-user"></i> Username</label>
+                    <label for="username"><i class="fas fa-user"></i> Name</label>
                 </div>
 
                 <div class="input-group">

@@ -195,7 +195,6 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
 
         .post-image {
             width: 100%;
-            max-height: 480px;
             object-fit: cover;
             border-radius: 1rem;
             margin: 1.5rem 0;
@@ -335,7 +334,7 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
                      onerror="this.src='default-avatar.jpg'">
                 <div class="doctor-info">
                     <a href="doctor-profile.php?id=<?php echo $post['doctor_id']; ?>" class="doctor-name">
-                        Dr. <?php echo htmlspecialchars($post['username']); ?>
+                        <?php echo htmlspecialchars($post['username']); ?>
                     </a>
                     <div class="doctor-specialty"><?php echo htmlspecialchars($post['specialty']); ?></div>
                 </div>

@@ -11,7 +11,6 @@ $conn = connectDB();
 $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 
-// Initialize variables that might be used outside the try block
 $appointments = null;
 $total_pages = 1;
 $error_message = "";
@@ -404,7 +403,6 @@ try {
             btn.style.opacity = '0.8';
         }
 
-        // Add staggered animations for cards
         document.querySelectorAll('.appointment-card').forEach((card, index) => {
             card.style.animationDelay = `${index * 0.1}s`;
         });

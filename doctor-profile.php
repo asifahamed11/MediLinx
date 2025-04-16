@@ -120,7 +120,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dr. <?= htmlspecialchars($doctor['username']) ?> - MediLinx</title>
+    <title> <?= htmlspecialchars($doctor['username']) ?> - MediLinx</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -541,7 +541,7 @@ $conn->close();
                 <div class="profile-sidebar">
                     <img src="<?= htmlspecialchars($doctor['profile_image'] ?: 'uploads/default_profile.png') ?>" 
                          class="profile-image" 
-                         alt="Dr. <?= htmlspecialchars($doctor['username']) ?>"
+                         alt="<?= htmlspecialchars($doctor['username']) ?>"
                          onerror="this.src='uploads/default_profile.png'">
                     <div class="rating-badge">
                         <i class="fas fa-star"></i>
@@ -550,7 +550,7 @@ $conn->close();
                 </div>
 
                 <div class="profile-info">
-                    <h1>Dr. <?= htmlspecialchars($doctor['username']) ?></h1>
+                    <h1><?= htmlspecialchars($doctor['username']) ?></h1>
                     <p class="text-primary"><?= htmlspecialchars($doctor['specialty']) ?></p>
                     
                     <div class="doctor-details">
@@ -602,7 +602,9 @@ $conn->close();
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="availability-section">
+                
+            </div>
+            <div class="availability-section">
     <h3>Available Appointments</h3>
     <?php
     $slotStmt = $conn->prepare("SELECT * FROM time_slots 
@@ -637,7 +639,6 @@ $conn->close();
         <p class="no-slots">No available time slots at the moment</p>
     <?php endif; ?>
 </div>
-            </div>
         </div>
 
         <?php if (!empty($posts)): ?>

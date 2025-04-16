@@ -1,5 +1,4 @@
 <?php
-// doctor_register.php
 session_start();
 require_once 'config.php';
 ?>
@@ -382,7 +381,7 @@ require_once 'config.php';
                 <div class="form-grid">
                     <div class="input-group">
                         <input type="text" id="username" name="username" required placeholder=" ">
-                        <label for="username"><i class="fas fa-user"></i> Username</label>
+                        <label for="username"><i class="fas fa-user"></i> Name</label>
                     </div>
                     <div class="input-group">
                         <input type="email" id="email" name="email" required placeholder=" ">
@@ -495,12 +494,11 @@ require_once 'config.php';
 
     <script>
         let currentStep = 1;
-        const totalSteps = 4; // Changed from 3 to 4 to match all form sections
+        const totalSteps = 4; 
 
         function nextStep() {
-            // Form validation for current step
             if (!validateCurrentStep()) {
-                return; // Stop if validation fails
+                return; 
             }
             
             if (currentStep < totalSteps) {
@@ -510,7 +508,7 @@ require_once 'config.php';
                 updateProgress();
                 updateButtons();
             } else {
-                // On final step, submit the form
+               
                 document.querySelector('form').submit();
             }
         }
@@ -534,7 +532,7 @@ require_once 'config.php';
                 else step.classList.remove('active');
             });
             
-            // Update the progress fill width based on current step
+            
             progressFill.style.width = `${((currentStep - 1) / (totalSteps - 1)) * 100}%`;
         }
 
@@ -587,7 +585,7 @@ require_once 'config.php';
             container.appendChild(newEntry);
             degreeCounter++;
             
-            // Show remove button on first degree if we have more than one degree
+
             if (degreeCounter === 2) {
                 document.querySelector('#degrees-container .btn-remove').style.visibility = 'visible';
             }
@@ -617,7 +615,7 @@ require_once 'config.php';
             container.appendChild(newEntry);
             timeSlotCounter++;
             
-            // Show remove button on first time slot if we have more than one
+
             if (timeSlotCounter === 2) {
                 document.querySelector('.time-slots-container .btn-remove').style.visibility = 'visible';
             }
@@ -628,14 +626,14 @@ require_once 'config.php';
                 button.parentElement.remove();
                 timeSlotCounter--;
                 
-                // Hide remove button on first time slot if we only have one left
+
                 if (timeSlotCounter === 1) {
                     document.querySelector('.time-slots-container .btn-remove').style.visibility = 'hidden';
                 }
             }
         }
         
-        // Helper function to format date as YYYY-MM-DD for date inputs
+
         function formatDate(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -659,7 +657,7 @@ require_once 'config.php';
                 }
             });
             
-            // Special validation for password confirmation on step 1
+
             if (currentStep === 1) {
                 const password = document.getElementById('password');
                 const confirmPassword = document.getElementById('confirm_password');
