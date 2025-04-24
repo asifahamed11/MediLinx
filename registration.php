@@ -1,8 +1,6 @@
 <?php
-// Start output buffering to allow redirects
 ob_start();
 
-// Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 session_start();
@@ -14,10 +12,10 @@ use PHPMailer\PHPMailer\Exception;
 // Include the Composer autoloader
 require 'vendor/autoload.php';
 
-// Database configuration - consider moving to a config file
+
 $servername = "localhost";
-$username_db = "root"; // MySQL username
-$password_db = ""; // MySQL password
+$username_db = "root"; 
+$password_db = ""; 
 $dbname = "user_authentication";
 
 // Create connection

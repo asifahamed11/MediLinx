@@ -3,13 +3,14 @@ session_start();
 const API_KEY = 'AIzaSyA-SczyTDGunUSkDCQL_6kDsSGV1JNvWrY';
 const CACHE_LIFETIME = 3; // 3s cache lifetime for tips
 
-function generate_health_tips() {
+function generate_health_tips()
+{
     // Check for cached tips in a file to reduce API calls
     $cache_file = __DIR__ . '/cache/health_tips.json';
     if (file_exists($cache_file) && (time() - filemtime($cache_file) < CACHE_LIFETIME)) {
         return file_get_contents($cache_file);
     }
-    
+
     $prompt = "Generate 21 professional health tips in this exact format:
         [Category: category_name] Tip X: Title | Detailed explanation
         Categories allowed: nutrition, exercise, mental health, sleep, hydration
@@ -35,34 +36,34 @@ function generate_health_tips() {
 
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
+
         if (curl_errno($ch)) {
             throw new Exception('API request failed: ' . curl_error($ch));
         }
-        
+
         if ($http_code !== 200) {
             throw new Exception("API returned error code: $http_code");
         }
 
         curl_close($ch);
-        
+
         $data = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception('Failed to parse API response: ' . json_last_error_msg());
         }
-        
+
         $tips = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
-        
+
         if (!$tips) {
             throw new Exception('No tips data in API response');
         }
-        
+
         // Cache the tips to a file
         if (!is_dir(dirname($cache_file))) {
             mkdir(dirname($cache_file), 0755, true);
         }
         file_put_contents($cache_file, $tips);
-        
+
         return $tips;
     } catch (Exception $e) {
         error_log('Health Tips Error: ' . $e->getMessage());
@@ -70,8 +71,8 @@ function generate_health_tips() {
     }
 }
 
-function get_fallback_tips() {
-    // Using a static array is faster than a long string
+function get_fallback_tips()
+{
     return implode("\n", [
         "[Category: nutrition] Tip 1: Balanced Diet | Include a variety of colorful fruits and vegetables in daily meals.",
         "[Category: exercise] Tip 2: Daily Activity | Aim for at least 30 minutes of moderate exercise daily.",
@@ -88,7 +89,6 @@ function get_fallback_tips() {
     ]);
 }
 
-// Use static array for icons instead of creating the array each time
 $CATEGORY_ICONS = [
     'nutrition' => 'fa-apple-alt',
     'exercise' => 'fa-dumbbell',
@@ -97,26 +97,27 @@ $CATEGORY_ICONS = [
     'hydration' => 'fa-glass-water'
 ];
 
-function get_category_icon($category) {
+function get_category_icon($category)
+{
     global $CATEGORY_ICONS;
     return $CATEGORY_ICONS[strtolower($category)] ?? 'fa-check';
 }
 
-// Use a static array for better performance
+
 $CATEGORY_TIPS_CACHE = [];
 
-function get_category_tips($category) {
+function get_category_tips($category)
+{
     global $CATEGORY_TIPS_CACHE;
-    
+
     $category = strtolower($category);
-    
-    // Return from cache if available
+
+
     if (isset($CATEGORY_TIPS_CACHE[$category])) {
         return $CATEGORY_TIPS_CACHE[$category];
     }
-    
-    // Create and cache the tips
-    switch($category) {
+
+    switch ($category) {
         case 'hydration':
             $tips = [
                 'Stay Hydrated' => 'Drink 8-10 glasses of water daily',
@@ -165,47 +166,47 @@ function get_category_tips($category) {
         default:
             $tips = [];
     }
-    
+
     // Cache the result
     $CATEGORY_TIPS_CACHE[$category] = $tips;
-    
+
     return $tips;
 }
 
 // Use a file-based cache for tips generation with expiry
-function get_or_create_tips() {
+function get_or_create_tips()
+{
     $cache_key = 'health_tips_' . date('Ymd');
     $session_key = 'tips_' . $cache_key;
-    
-    // Check if we need to refresh (from POST)
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh'])) {
         $tips = generate_health_tips();
         $_SESSION[$session_key] = $tips;
         return $tips;
     }
-    
-    // Check session first (fastest)
+
+
     if (isset($_SESSION[$session_key])) {
         return $_SESSION[$session_key];
     }
-    
-    // Generate new tips
+
+
     $tips = generate_health_tips();
     $_SESSION[$session_key] = $tips;
     return $tips;
 }
 
-// Use output buffering to improve performance
+
 ob_start();
 
-// Process tips with better handling
+
 $tips_content = get_or_create_tips();
 
-// Parse tips once outside the HTML loop for better performance
+
 $parsed_tips = [];
 $tips = explode("\n", trim($tips_content));
-foreach($tips as $tip) {
-    if(preg_match('/\[Category:\s*(.*?)\s*\].*Tip\s+\d+:\s*(.*?)\s*\|\s*(.*)/', $tip, $matches)) {
+foreach ($tips as $tip) {
+    if (preg_match('/\[Category:\s*(.*?)\s*\].*Tip\s+\d+:\s*(.*?)\s*\|\s*(.*)/', $tip, $matches)) {
         $parsed_tips[] = [
             'category' => strtolower(trim($matches[1])),
             'title' => trim($matches[2]),
@@ -216,6 +217,7 @@ foreach($tips as $tip) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -523,7 +525,7 @@ foreach($tips as $tip) {
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
             opacity: 0;
             transition: opacity 0.4s ease;
             pointer-events: none;
@@ -685,6 +687,7 @@ foreach($tips as $tip) {
                 opacity: 0;
                 transform: translateY(-50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -696,6 +699,7 @@ foreach($tips as $tip) {
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -707,10 +711,12 @@ foreach($tips as $tip) {
                 transform: scale(1);
                 opacity: 1;
             }
+
             50% {
                 transform: scale(1.1);
                 opacity: 0.8;
             }
+
             100% {
                 transform: scale(1);
                 opacity: 1;
@@ -721,9 +727,11 @@ foreach($tips as $tip) {
             0% {
                 transform: translateY(0px);
             }
+
             50% {
                 transform: translateY(-10px);
             }
+
             100% {
                 transform: translateY(0px);
             }
@@ -733,6 +741,7 @@ foreach($tips as $tip) {
             from {
                 transform: rotate(0deg);
             }
+
             to {
                 transform: rotate(360deg);
             }
@@ -742,21 +751,21 @@ foreach($tips as $tip) {
             .title {
                 font-size: 2.2rem;
             }
-            
+
             .subtitle {
                 font-size: 1.1rem;
             }
-            
+
             .grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
             }
-            
+
             .filter-buttons {
                 gap: 0.5rem;
                 margin-bottom: 2rem;
             }
-            
+
             .filter-btn {
                 padding: 0.7rem 1.2rem;
                 font-size: 0.9rem;
@@ -771,12 +780,12 @@ foreach($tips as $tip) {
                 bottom: 1.5rem;
                 right: 1.5rem;
             }
-            
+
             .search-bar {
                 padding: 1rem 1rem 1rem 3rem;
                 font-size: 1rem;
             }
-            
+
             .refresh-button {
                 padding: 1rem 2rem;
                 font-size: 1rem;
@@ -836,10 +845,13 @@ foreach($tips as $tip) {
         }
 
         @keyframes pulsOut {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(0);
                 opacity: 1;
             }
+
             50% {
                 transform: scale(1);
                 opacity: 0;
@@ -866,188 +878,191 @@ foreach($tips as $tip) {
         }
 
         .back:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(to right, #E57245, #E5A261);
-}
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(to right, #E57245, #E5A261);
+        }
 
-.back i {
-    transition: transform 0.3s ease;
-}
+        .back i {
+            transition: transform 0.3s ease;
+        }
 
-.back:hover i {
-    transform: translateX(-5px);
-}
+        .back:hover i {
+            transform: translateX(-5px);
+        }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 12px;
-}
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
 
-::-webkit-scrollbar-track {
-    background: var(--background);
-}
+        ::-webkit-scrollbar-track {
+            background: var(--background);
+        }
 
-::-webkit-scrollbar-thumb {
-    background: var(--primary);
-    border-radius: 6px;
-    border: 3px solid var(--background);
-}
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 6px;
+            border: 3px solid var(--background);
+        }
 
-::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark);
-}
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
 
-/* Card animations */
-@keyframes cardAppear {
-    from {
-        opacity: 0;
-        transform: translateY(30px) rotateX(20deg);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) rotateX(0);
-    }
-}
+        /* Card animations */
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(30px) rotateX(20deg);
+            }
 
-/* Toast notification */
-.toast {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--card-bg);
-    color: var(--text);
-    padding: 1rem 2rem;
-    border-radius: 2rem;
-    box-shadow: 0 5px 15px var(--shadow-lg);
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 1px solid var(--border);
-}
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
 
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-bg);
+            color: var(--text);
+            padding: 1rem 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 5px 15px var(--shadow-lg);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid var(--border);
+        }
 
-.toast i {
-    color: var(--primary);
-    font-size: 1.2rem;
-}
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
 
-/* Keyboard shortcut hints */
-.keyboard-hint {
-    position: absolute;
-    right: 1.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--border);
-    color: var(--text-light);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    opacity: 0.5;
-    transition: var(--transition);
-}
+        .toast i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
 
-.search-wrapper:focus-within .keyboard-hint {
-    opacity: 0;
-}
+        /* Keyboard shortcut hints */
+        .keyboard-hint {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--border);
+            color: var(--text-light);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
 
-/* Additional animations */
-.animated-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
-    opacity: 0.4;
-}
+        .search-wrapper:focus-within .keyboard-hint {
+            opacity: 0;
+        }
 
-.animated-bg-circle {
-    position: absolute;
-    border-radius: 50%;
-    background: linear-gradient(to right, var(--primary-light), var(--primary));
-    opacity: 0.1;
-    filter: blur(60px);
-    animation: moveAround 20s ease-in-out infinite alternate;
-}
+        /* Additional animations */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.4;
+        }
 
-.animated-bg-circle:nth-child(1) {
-    width: 400px;
-    height: 400px;
-    top: 10%;
-    left: 10%;
-    animation-delay: 0s;
-}
+        .animated-bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--primary-light), var(--primary));
+            opacity: 0.1;
+            filter: blur(60px);
+            animation: moveAround 20s ease-in-out infinite alternate;
+        }
 
-.animated-bg-circle:nth-child(2) {
-    width: 350px;
-    height: 350px;
-    top: 60%;
-    right: 5%;
-    background: linear-gradient(to right, var(--accent-light), var(--accent));
-    animation-delay: -5s;
-}
+        .animated-bg-circle:nth-child(1) {
+            width: 400px;
+            height: 400px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
 
-.animated-bg-circle:nth-child(3) {
-    width: 250px;
-    height: 250px;
-    bottom: 5%;
-    left: 30%;
-    background: linear-gradient(to right, var(--primary-dark), var(--primary));
-    animation-delay: -10s;
-}
+        .animated-bg-circle:nth-child(2) {
+            width: 350px;
+            height: 350px;
+            top: 60%;
+            right: 5%;
+            background: linear-gradient(to right, var(--accent-light), var(--accent));
+            animation-delay: -5s;
+        }
 
-@keyframes moveAround {
-    0% {
-        transform: translate(0, 0);
-    }
-    100% {
-        transform: translate(100px, 50px);
-    }
-}
+        .animated-bg-circle:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            bottom: 5%;
+            left: 30%;
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            animation-delay: -10s;
+        }
 
-/* Tooltip */
-.tooltip {
-    position: relative;
-    display: inline-block;
-}
+        @keyframes moveAround {
+            0% {
+                transform: translate(0, 0);
+            }
 
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    background-color: var(--card-bg);
-    color: var(--text);
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -60px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    box-shadow: 0 3px 6px var(--shadow);
-    border: 1px solid var(--border);
-    font-size: 0.8rem;
-}
+            100% {
+                transform: translate(100px, 50px);
+            }
+        }
 
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-}
-</style>
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: var(--card-bg);
+            color: var(--text);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 3px 6px var(--shadow);
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
 </head>
+
 <body>
     <div class="animated-bg">
         <div class="animated-bg-circle"></div>
@@ -1079,17 +1094,16 @@ foreach($tips as $tip) {
                 Smart Health Advisor
             </h1>
             <p class="subtitle">Discover personalized health tips across nutrition, exercise, mental health, sleep, and hydration to improve your daily wellness routine.</p>
-            
+
             <div class="search-container">
                 <div class="search-wrapper">
-                    <input 
-                        type="text" 
-                        class="search-bar" 
+                    <input
+                        type="text"
+                        class="search-bar"
                         placeholder="Search tips by keyword or category..."
                         onkeyup="debounce(filterCards, 300)(this.value)"
                         aria-label="Search health tips"
-                        id="search-input"
-                    >
+                        id="search-input">
                     <i class="fas fa-search search-icon"></i>
                     <span class="keyboard-hint">Press / to search</span>
                 </div>
@@ -1123,14 +1137,14 @@ foreach($tips as $tip) {
         </header>
 
         <div class="grid" id="tips-grid">
-            <?php foreach($parsed_tips as $index => $tip): ?>
+            <?php foreach ($parsed_tips as $index => $tip): ?>
                 <div class="card" data-category="<?= htmlspecialchars($tip['category'], ENT_QUOTES, 'UTF-8') ?>" style="animation-delay: <?= $index * 0.1 ?>s;">
                     <div class="card-content">
                         <h2><?= htmlspecialchars($tip['title'], ENT_QUOTES, 'UTF-8') ?></h2>
                         <p><?= htmlspecialchars($tip['content'], ENT_QUOTES, 'UTF-8') ?></p>
                         <div class="category-tag">
                             <i class="fas <?= get_category_icon($tip['category']) ?>"></i>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -1154,13 +1168,13 @@ foreach($tips as $tip) {
             const lowercaseSearch = searchTerm.toLowerCase();
             let visibleCount = 0;
             let hasResults = false;
-            
+
             cards.forEach(card => {
                 const content = card.textContent.toLowerCase();
                 const category = card.dataset.category;
-                const isVisible = content.includes(lowercaseSearch) || 
-                                category.includes(lowercaseSearch);
-                
+                const isVisible = content.includes(lowercaseSearch) ||
+                    category.includes(lowercaseSearch);
+
                 if (isVisible) {
                     card.style.display = 'block';
                     // Reset animation to trigger it again
@@ -1173,7 +1187,7 @@ foreach($tips as $tip) {
                     card.style.display = 'none';
                 }
             });
-            
+
             // Show message when no results
             if (!hasResults && searchTerm) {
                 showToast('No tips found matching "' + searchTerm + '"');
@@ -1185,17 +1199,17 @@ foreach($tips as $tip) {
             const cards = document.querySelectorAll('.card');
             const buttons = document.querySelectorAll('.filter-btn');
             let visibleCount = 0;
-            
+
             buttons.forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.category === category) {
                     btn.classList.add('active');
                 }
             });
-            
+
             cards.forEach(card => {
                 const isVisible = category === 'all' || card.dataset.category === category;
-                
+
                 if (isVisible) {
                     card.style.display = 'block';
                     // Reset animation to trigger it again
@@ -1207,7 +1221,7 @@ foreach($tips as $tip) {
                     card.style.display = 'none';
                 }
             });
-            
+
             if (category !== 'all') {
                 showToast(`Showing ${visibleCount} ${category} tips`);
             } else {
@@ -1219,10 +1233,10 @@ foreach($tips as $tip) {
         function showToast(message, duration = 3000) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
-            
+
             toastMessage.textContent = message;
             toast.classList.add('show');
-            
+
             setTimeout(() => {
                 toast.classList.remove('show');
             }, duration);
@@ -1233,20 +1247,20 @@ foreach($tips as $tip) {
             const body = document.body;
             const currentTheme = body.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             body.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
+
             const themeIcon = document.querySelector('.theme-toggle i');
             themeIcon.className = `fas fa-${newTheme === 'dark' ? 'sun' : 'moon'}`;
-            
+
             showToast(`Switched to ${newTheme} mode`);
         }
 
         // Loading state management
         function showLoading() {
             document.querySelector('.loading').classList.add('active');
-            
+
             // Auto hide after timeout (fallback safety)
             setTimeout(() => {
                 document.querySelector('.loading').classList.remove('active');
@@ -1258,7 +1272,7 @@ foreach($tips as $tip) {
             // Set theme
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.setAttribute('data-theme', savedTheme);
-            
+
             const themeIcon = document.querySelector('.theme-toggle i');
             themeIcon.className = `fas fa-${savedTheme === 'dark' ? 'sun' : 'moon'}`;
 
@@ -1275,13 +1289,13 @@ foreach($tips as $tip) {
                     e.preventDefault();
                     document.getElementById('search-input').focus();
                 }
-                
+
                 // Escape key to clear search
                 if (e.key === 'Escape') {
                     document.getElementById('search-input').value = '';
                     filterCards('');
                 }
-                
+
                 // Number keys 1-6 for category filtering
                 if (!isNaN(parseInt(e.key)) && parseInt(e.key) >= 1 && parseInt(e.key) <= 6 && document.activeElement.tagName !== 'INPUT') {
                     const categories = ['all', 'nutrition', 'exercise', 'mental health', 'sleep', 'hydration'];
@@ -1289,19 +1303,19 @@ foreach($tips as $tip) {
                     filterByCategory(selectedCategory);
                 }
             });
-            
+
             // Add card click to copy functionality
             cards.forEach(card => {
                 card.addEventListener('click', function(e) {
                     // Don't copy if clicking on category tag
                     if (e.target.closest('.category-tag')) return;
-                    
+
                     const title = this.querySelector('h2').textContent;
                     const content = this.querySelector('p').textContent;
                     const category = this.dataset.category;
-                    
+
                     const textToCopy = `${title}: ${content} (${category})`;
-                    
+
                     navigator.clipboard.writeText(textToCopy).then(() => {
                         showToast('Tip copied to clipboard!');
                     }).catch(err => {
@@ -1309,7 +1323,7 @@ foreach($tips as $tip) {
                     });
                 });
             });
-            
+
             // Show welcome toast
             setTimeout(() => {
                 showToast('Welcome to Smart Health Advisor! 💪');
@@ -1324,13 +1338,14 @@ foreach($tips as $tip) {
                 });
             });
         }
-        
+
         // Add animation to filter buttons
         document.querySelectorAll('.filter-btn').forEach((btn, index) => {
             btn.style.animationDelay = `${0.3 + (index * 0.1)}s`;
         });
     </script>
 </body>
+
 </html>
 <?php
 // Flush the output buffer and send to browser

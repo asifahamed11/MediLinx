@@ -328,12 +328,12 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
         <?php foreach ($posts as $post): ?>
         <div class="post-card">
             <div class="post-header">
-                <img src="<?php echo htmlspecialchars($post['profile_image'] ?: 'default-avatar.jpg'); ?>" 
+                <img src="<?php echo htmlspecialchars($post['profile_image'] ?: 'uploads/default_profile.png'); ?>" 
                      alt="Doctor's profile" 
                      class="doctor-avatar"
-                     onerror="this.src='default-avatar.jpg'">
+                     onerror="this.src='uploads/default_profile.png'">
                 <div class="doctor-info">
-                    <a href="doctor-profile.php?id=<?php echo $post['doctor_id']; ?>" class="doctor-name">
+                    <a href="uploads/default_profile.png?id=<?php echo $post['doctor_id']; ?>" class="doctor-name">
                         <?php echo htmlspecialchars($post['username']); ?>
                     </a>
                     <div class="doctor-specialty"><?php echo htmlspecialchars($post['specialty']); ?></div>

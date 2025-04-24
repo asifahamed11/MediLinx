@@ -1,5 +1,4 @@
 <?php
-// patient_register.php
 session_start();
 require_once 'config.php';
 ?>
