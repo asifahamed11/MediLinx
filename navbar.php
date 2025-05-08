@@ -42,8 +42,15 @@ $unread_count = $unread_data['count'];
     }
 
     @keyframes navbarSlideDown {
-        from { transform: translateY(-100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     .nav-container {
@@ -144,9 +151,17 @@ $unread_count = $unread_data['count'];
     }
 
     @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.6); }
-        70% { box-shadow: 0 0 0 10px rgba(42, 157, 143, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(42, 157, 143, 0); }
+        0% {
+            box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.6);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(42, 157, 143, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(42, 157, 143, 0);
+        }
     }
 
     .nav-button {
@@ -223,9 +238,17 @@ $unread_count = $unread_data['count'];
     }
 
     @keyframes badgePulse {
-        0% { box-shadow: 0 0 0 0 rgba(231, 111, 81, 0.7); }
-        70% { box-shadow: 0 0 0 8px rgba(231, 111, 81, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(231, 111, 81, 0); }
+        0% {
+            box-shadow: 0 0 0 0 rgba(231, 111, 81, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 8px rgba(231, 111, 81, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(231, 111, 81, 0);
+        }
     }
 
     .notification-icon {
@@ -336,6 +359,126 @@ $unread_count = $unread_data['count'];
             opacity: 1;
         }
     }
+
+    /* Dropdown styles */
+    .dropdown {
+        position: relative;
+    }
+
+    .dropdown-toggle {
+        position: relative;
+    }
+
+    .dropdown-toggle::after {
+        content: '';
+        display: inline-block;
+        margin-left: 0.3em;
+        vertical-align: middle;
+        border-top: 0.3em solid;
+        border-right: 0.3em solid transparent;
+        border-bottom: 0;
+        border-left: 0.3em solid transparent;
+        position: relative;
+        top: 0.1em;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        min-width: 220px;
+        padding: 0.5rem 0;
+        margin: 0.125rem 0 0;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        animation: dropdownFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: top center;
+        overflow: hidden;
+    }
+
+    @keyframes dropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .dropdown-menu.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        clear: both;
+        font-weight: 500;
+        color: var(--secondary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+        background-color: rgba(42, 157, 143, 0.08);
+        color: var(--primary);
+        transform: translateX(3px);
+    }
+
+    .dropdown-item.active {
+        background-color: rgba(42, 157, 143, 0.12);
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .dropdown-item i {
+        color: var(--primary);
+        font-size: 0.9rem;
+        transition: transform 0.3s ease;
+    }
+
+    .dropdown-item:hover i {
+        transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+        .dropdown-menu {
+            position: static;
+            box-shadow: none;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .dropdown-item {
+            color: white;
+            padding: 0.75rem 1rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .dropdown-item i {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .dropdown-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+    }
 </style>
 
 <div class="overlay" id="overlay"></div>
@@ -348,7 +491,7 @@ $unread_count = $unread_data['count'];
             </svg>
             MediLinx
         </a>
-        
+
         <button class="mobile-menu-toggle" id="menuToggle">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -356,18 +499,18 @@ $unread_count = $unread_data['count'];
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
-        
+
         <div class="nav-links" id="navLinks">
             <a href="dashboard.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
-                <span>Find Doctors</span>
+                <span>Dashboard</span>
             </a>
-            
+
             <a href="posts.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'posts.php' ? 'active' : ''; ?>">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -377,30 +520,44 @@ $unread_count = $unread_data['count'];
                 <span>Posts</span>
             </a>
 
-            <?php if($nav_user['role'] === 'doctor'): ?>
-                <a href="create-post.php" class="nav-button">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            <div class="dropdown">
+                <a href="javascript:void(0)" class="nav-link dropdown-toggle <?php echo in_array(basename($_SERVER['PHP_SELF']), ['profile.php', 'appointments.php', 'manage_time_slots.php', 'create_post.php']) ? 'active' : ''; ?>" onclick="toggleProfileDropdown()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <span>Create Post</span>
+                    <span>Profile</span>
                 </a>
-            <?php endif; ?>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="profile.php" class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a href="appointments.php" class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'appointments.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-calendar-check"></i> My Appointments
+                    </a>
+                    <?php if ($_SESSION['role'] == 'patient'): ?>
+                        <a href="calendar_booking.php" class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'calendar_booking.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-calendar-plus"></i> Book Appointment
+                        </a>
+                    <?php endif; ?>
+                    <?php if ($_SESSION['role'] == 'doctor'): ?>
+                        <a href="manage_time_slots.php" class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_time_slots.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-clock"></i> Manage Time Slots
+                        </a>
+                        <a href="create_post.php" class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'create_post.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-edit"></i> Create Post
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
 
-            <a href="profile.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Profile</span>
-            </a>
-
-            <a href="notifications.php" class="nav-link notification-container <?php echo basename($_SERVER['PHP_SELF']) == 'appointments.php' ? 'active' : ''; ?>">
+            <a href="notifications.php" class="nav-link notification-container <?php echo basename($_SERVER['PHP_SELF']) == 'notifications.php' ? 'active' : ''; ?>">
                 <div class="notification-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-icon">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                     </svg>
-                    <?php if($unread_count > 0): ?>
+                    <?php if ($unread_count > 0): ?>
                         <span class="badge"><?php echo $unread_count; ?></span>
                     <?php endif; ?>
                 </div>
@@ -420,64 +577,36 @@ $unread_count = $unread_data['count'];
 </nav>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const menuToggle = document.getElementById('menuToggle');
-    const navLinks = document.getElementById('navLinks');
-    const overlay = document.getElementById('overlay');
-    
-    menuToggle.addEventListener('click', function() {
-        navLinks.classList.toggle('active');
-        overlay.classList.toggle('active');
-        
-        // Change menu icon when opened
-        if (navLinks.classList.contains('active')) {
-            menuToggle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>`;
-        } else {
-            menuToggle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>`;
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        const overlay = document.getElementById('overlay');
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
         }
-    });
-    
-    // Close menu when clicking overlay
-    overlay.addEventListener('click', function() {
-        navLinks.classList.remove('active');
-        overlay.classList.remove('active');
-        menuToggle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>`;
-    });
-    
-    // Add entry animations for navbar items
-    const navItems = document.querySelectorAll('.nav-link, .nav-button');
-    navItems.forEach((item, index) => {
-        item.style.opacity = '0';
-        item.style.transform = 'translateY(-10px)';
-        item.style.transition = `all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${0.1 + index * 0.1}s`;
-        
-        setTimeout(() => {
-            item.style.opacity = '1';
-            item.style.transform = 'translateY(0)';
-        }, 100);
-    });
-    
-    // Highlight current page in navbar
-    const currentPage = window.location.pathname.split('/').pop();
-    const pageNavLinks = document.querySelectorAll('.nav-link');
-    
-    pageNavLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPage) {
-            link.classList.add('active');
+
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                navLinks.classList.remove('active');
+                overlay.classList.remove('active');
+            });
         }
+
+        // Close profile dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                document.getElementById('profileDropdown').classList.remove('show');
+            }
+        });
     });
-});
+
+    // Profile dropdown toggle
+    function toggleProfileDropdown() {
+        document.getElementById('profileDropdown').classList.toggle('show');
+    }
 </script>

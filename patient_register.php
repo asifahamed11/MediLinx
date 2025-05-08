@@ -4,6 +4,7 @@ require_once 'config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +18,8 @@ require_once 'config.php';
             --accent: #4CAF50;
             --background: #F5F9FF;
             --text: #2C3E50;
-            --neumorphic-shadow: 8px 8px 16px #d9d9d9, 
-                                -8px -8px 16px #ffffff;
+            --neumorphic-shadow: 8px 8px 16px #d9d9d9,
+                -8px -8px 16px #ffffff;
         }
 
         * {
@@ -105,7 +106,7 @@ require_once 'config.php';
             border-radius: 15px;
             background: var(--background);
             box-shadow: inset 5px 5px 10px #d9d9d9,
-                        inset -5px -5px 10px #ffffff;
+                inset -5px -5px 10px #ffffff;
             transition: all 0.3s ease;
             font-size: 1rem;
         }
@@ -114,7 +115,7 @@ require_once 'config.php';
         .input-group textarea:focus,
         .input-group select:focus {
             box-shadow: inset 2px 2px 5px #d9d9d9,
-                        inset -2px -2px 5px #ffffff;
+                inset -2px -2px 5px #ffffff;
             outline: none;
         }
 
@@ -130,23 +131,23 @@ require_once 'config.php';
             padding: 0 0.5rem;
         }
 
-        .input-group input:focus ~ label,
-        .input-group input:not(:placeholder-shown) ~ label,
-        .input-group textarea:focus ~ label,
-        .input-group textarea:not(:placeholder-shown) ~ label,
-        .input-group select:focus ~ label,
-        .input-group select:not(:placeholder-shown) ~ label {
+        .input-group input:focus~label,
+        .input-group input:not(:placeholder-shown)~label,
+        .input-group textarea:focus~label,
+        .input-group textarea:not(:placeholder-shown)~label,
+        .input-group select:focus~label,
+        .input-group select:not(:placeholder-shown)~label {
             top: 0;
             font-size: 0.9rem;
             color: var(--primary);
         }
 
-        .input-group textarea ~ label {
+        .input-group textarea~label {
             top: 1.2rem;
         }
 
-        .input-group textarea:focus ~ label,
-        .input-group textarea:not(:placeholder-shown) ~ label {
+        .input-group textarea:focus~label,
+        .input-group textarea:not(:placeholder-shown)~label {
             top: 0;
         }
 
@@ -205,13 +206,13 @@ require_once 'config.php';
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 5px 5px 10px #d9d9d9,
-                       -5px -5px 10px #ffffff;
+                -5px -5px 10px #ffffff;
         }
 
         .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 8px 8px 15px #d9d9d9,
-                       -8px -8px 15px #ffffff;
+                -8px -8px 15px #ffffff;
             letter-spacing: 1px;
         }
 
@@ -244,6 +245,7 @@ require_once 'config.php';
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2><i class="fas fa-user"></i> Patient Registration</h2>
@@ -252,7 +254,7 @@ require_once 'config.php';
 
         <form action="registration.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="role" value="patient">
-            
+
             <div class="form-grid">
                 <div class="input-group">
                     <input type="text" id="username" name="username" required placeholder=" ">
@@ -325,15 +327,16 @@ require_once 'config.php';
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                
+
                 reader.onload = function(e) {
                     previewImage.style.display = 'block';
                     previewImage.src = e.target.result;
                 }
-                
+
                 reader.readAsDataURL(file);
             }
         });
     </script>
 </body>
+
 </html>

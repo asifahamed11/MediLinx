@@ -1,7 +1,3 @@
---
--- Table structure for table `appointments`
---
-
 CREATE TABLE `appointments` (
   `id` int(11) NOT NULL,
   `patient_id` int(11) NOT NULL,
@@ -11,10 +7,6 @@ CREATE TABLE `appointments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Table structure for table `degrees`
---
-
 CREATE TABLE `degrees` (
   `id` int(11) NOT NULL,
   `doctor_id` int(11) NOT NULL,
@@ -22,10 +14,6 @@ CREATE TABLE `degrees` (
   `institution` varchar(255) NOT NULL,
   `passing_year` year(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Table structure for table `notifications`
---
 
 CREATE TABLE `notifications` (
   `id` int(11) NOT NULL,
@@ -35,10 +23,6 @@ CREATE TABLE `notifications` (
   `is_read` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Table structure for table `posts`
---
 
 CREATE TABLE `posts` (
   `id` int(11) NOT NULL,
@@ -50,20 +34,12 @@ CREATE TABLE `posts` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Table structure for table `post_likes`
---
-
 CREATE TABLE `post_likes` (
   `id` int(11) NOT NULL,
   `post_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Table structure for table `reviews`
---
 
 CREATE TABLE `reviews` (
   `id` int(11) NOT NULL,
@@ -74,10 +50,6 @@ CREATE TABLE `reviews` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Table structure for table `time_slots`
---
-
 CREATE TABLE `time_slots` (
   `id` int(11) NOT NULL,
   `doctor_id` int(11) NOT NULL,
@@ -87,13 +59,9 @@ CREATE TABLE `time_slots` (
   `status` enum('available','booked','cancelled') DEFAULT 'available'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Table structure for table `users`
---
-
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `role` enum('patient','doctor') NOT NULL,
+  `role` enum('patient','doctor','admin') NOT NULL,
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,

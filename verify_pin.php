@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $servername = "localhost";
     $username_db = "root";
     $password_db = "";
-    $dbname = "user_authentication";
+    $dbname = "medilinx";
 
     try {
         // Create connection
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Get and validate PIN
         $pin = trim($_POST['pin'] ?? '');
-        
+
         if (!preg_match('/^[0-9]{6}$/', $pin)) {
             throw new Exception("Invalid PIN format");
         }
@@ -48,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $update_stmt->bind_param("i", $row['id']);
-            
+
             if ($update_stmt->execute()) {
-                $_SESSION['success'] = "";//Email verified successfully
+                $_SESSION['success'] = ""; //Email verified successfully
                 header("Location: dashboard.php");
                 exit;
             } else {
@@ -59,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             throw new Exception("Invalid verification PIN");
         }
-
     } catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
     } finally {
@@ -71,14 +70,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verify Email - MediLinx</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto:wght@300;400;500&display=swap"
-        rel="stylesheet"
-    />
+        rel="stylesheet" />
     <style>
         :root {
             --primary: #2a9d8f;
@@ -176,8 +175,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pointer-events: none;
         }
 
-        input:focus ~ label,
-        input:valid ~ label {
+        input:focus~label,
+        input:valid~label {
             top: 0;
             transform: translateY(-50%) scale(0.9);
             color: var(--primary);
@@ -246,12 +245,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Verify Email</h2>
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert alert-error">
-                <?php 
+                <?php
                 echo htmlspecialchars($_SESSION['error']);
                 unset($_SESSION['error']);
                 ?>
@@ -259,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
-                <?php 
+                <?php
                 echo htmlspecialchars($_SESSION['success']);
                 unset($_SESSION['success']);
                 ?>
@@ -273,8 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     name="pin"
                     pattern="[0-9]{6}"
                     title="Please enter a 6-digit PIN"
-                    required
-                />
+                    required />
                 <label for="pin">Verification PIN</label>
             </div>
             <button type="submit">Verify Account</button>
@@ -288,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pinInput.focus();
 
             // Add floating label functionality
-            pinInput.addEventListener("input", function () {
+            pinInput.addEventListener("input", function() {
                 if (this.value.length === 6) {
                     this.blur();
                 }
@@ -296,4 +295,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>
 </body>
+
 </html>

@@ -14,9 +14,9 @@ require 'vendor/autoload.php';
 
 
 $servername = "localhost";
-$username_db = "root"; 
-$password_db = ""; 
-$dbname = "user_authentication";
+$username_db = "root";
+$password_db = "";
+$dbname = "medilinx";
 
 // Create connection
 $conn = new mysqli($servername, $username_db, $password_db, $dbname);
@@ -27,7 +27,8 @@ if ($conn->connect_error) {
 }
 
 // Modern sanitization function to replace deprecated FILTER_SANITIZE_STRING
-function sanitizeInput($input) {
+function sanitizeInput($input)
+{
     return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
 }
 
@@ -102,16 +103,17 @@ try {
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // Improved image validation function
-    function validateImage($file) {
+    function validateImage($file)
+    {
         if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
             return false;
         }
-        
+
         // Check file size (limit to 5MB)
         if ($file['size'] > 5242880) {
             return false;
         }
-        
+
         $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif'];
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $file['tmp_name']);
@@ -159,59 +161,59 @@ try {
     if ($role === 'patient') {
         $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image_path, $pin);
-        
+
         if (!$stmt->execute()) {
             throw new Exception("Error in patient registration: " . $stmt->error);
         }
-        
+
         $user_id = $conn->insert_id;
-        
     } else if ($role === 'doctor') {
         $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, years_of_experience, medical_license_number, work_address, available_consultation_hours, languages_spoken, profile_image, professional_biography, email_verification_pin, degrees_and_certifications) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        $stmt->bind_param("ssssssssissssssss", 
-            $role, 
-            $username, 
-            $email, 
-            $hashed_password, 
-            $phone, 
-            $date_of_birth, 
-            $gender, 
-            $specialty, 
-            $years_of_experience, 
-            $medical_license_number, 
-            $work_address, 
-            $available_consultation_hours, 
-            $languages_spoken, 
-            $profile_image_path, 
-            $professional_biography, 
+        $stmt->bind_param(
+            "ssssssssissssssss",
+            $role,
+            $username,
+            $email,
+            $hashed_password,
+            $phone,
+            $date_of_birth,
+            $gender,
+            $specialty,
+            $years_of_experience,
+            $medical_license_number,
+            $work_address,
+            $available_consultation_hours,
+            $languages_spoken,
+            $profile_image_path,
+            $professional_biography,
             $pin,
             $degrees_and_certifications
         );
-        
+
         if (!$stmt->execute()) {
             throw new Exception("Error in doctor registration: " . $stmt->error);
         }
-        
+
         $doctor_id = $conn->insert_id;
-        
+
         // Insert degrees
         if (isset($_POST['degree_name']) && is_array($_POST['degree_name']) && !empty($_POST['degree_name'])) {
             $degreeStmt = $conn->prepare("INSERT INTO degrees (doctor_id, degree_name, institution, passing_year) VALUES (?, ?, ?, ?)");
-            
+
             foreach ($_POST['degree_name'] as $index => $degreeName) {
                 // Validate array keys exist
                 if (!isset($_POST['institution'][$index]) || !isset($_POST['passing_year'][$index])) {
                     continue;
                 }
-                
+
                 $institution = sanitizeInput($_POST['institution'][$index]);
                 $year = intval($_POST['passing_year'][$index]);
-                
+
                 if (empty($degreeName) || empty($institution) || $year <= 0) {
                     continue; // Skip invalid entries
                 }
-                
+
                 $degreeStmt->bind_param("issi", $doctor_id, $degreeName, $institution, $year);
                 if (!$degreeStmt->execute()) {
                     throw new Exception("Error inserting degree: " . $degreeStmt->error);
@@ -219,7 +221,7 @@ try {
             }
             $degreeStmt->close();
         }
-        
+
         // Insert time slots if provided
         if (isset($_POST['slot_date']) && is_array($_POST['slot_date']) && !empty($_POST['slot_date'])) {
             $slotStmt = $conn->prepare("INSERT INTO time_slots (doctor_id, start_time, end_time, location) VALUES (?, ?, ?, ?)");
@@ -229,38 +231,39 @@ try {
                 if (!isset($_POST['start_time'][$index]) || !isset($_POST['end_time'][$index]) || !isset($_POST['location'][$index])) {
                     continue;
                 }
-                
+
                 $startTime = sanitizeInput($_POST['start_time'][$index]);
                 $endTime = sanitizeInput($_POST['end_time'][$index]);
                 $location = sanitizeInput($_POST['location'][$index]);
-                
+
                 if (empty($date) || empty($startTime) || empty($endTime) || empty($location)) {
                     continue; // Skip invalid entries
                 }
-                
+
                 // Validate start and end times
                 $currentTime = time();
                 $slotStartDateTime = strtotime("$date $startTime");
                 $slotEndDateTime = strtotime("$date $endTime");
-                
+
                 if ($slotStartDateTime <= $currentTime) {
                     throw new Exception("Invalid time slot: Time must be in the future");
                 }
-                
+
                 if ($slotStartDateTime >= $slotEndDateTime) {
                     throw new Exception("Invalid time slot: End time must be after start time");
                 }
 
                 $formattedStartTime = date("Y-m-d H:i:s", $slotStartDateTime);
                 $formattedEndTime = date("Y-m-d H:i:s", $slotEndDateTime);
-                
-                $slotStmt->bind_param("isss", 
+
+                $slotStmt->bind_param(
+                    "isss",
                     $doctor_id,
                     $formattedStartTime,
                     $formattedEndTime,
                     $location
                 );
-                
+
                 if (!$slotStmt->execute()) {
                     throw new Exception("Error saving time slot: " . $slotStmt->error);
                 }
@@ -281,12 +284,12 @@ try {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com'; // SMTP server
         $mail->SMTPAuth   = true;
-        
+
         // Use environment variables or config file for credentials
         // For demonstration, using the original credentials but this is NOT secure
         $mail->Username   = 'asifahamedstudent@gmail.com'; // BETTER: getenv('SMTP_USERNAME');
         $mail->Password   = 'nsxj nitr rumm xrei'; // BETTER: getenv('SMTP_PASSWORD');
-        
+
         $mail->SMTPSecure = 'ssl'; // or 'tls'
         $mail->Port       = 465; // or 587 for TLS
 
@@ -300,20 +303,18 @@ try {
         $mail->Body    = $pin_message;
 
         $mail->send();
-        
+
         // Commit the transaction only if everything was successful
         $conn->commit();
-        
+
         // Redirect to verification page
         header("Location: verify_pin.php");
         exit;
-        
     } catch (Exception $e) {
         // Rollback transaction if email sending fails
         $conn->rollback();
         throw new Exception("Registration successful, but failed to send verification PIN: " . $mail->ErrorInfo);
     }
-    
 } catch (Exception $e) {
     // Rollback transaction if any error occurred
     $conn->rollback();

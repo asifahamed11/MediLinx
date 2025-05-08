@@ -8,7 +8,7 @@ if (empty($_SESSION['csrf_token'])) {
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'user_authentication');
+define('DB_NAME', 'medilinx');
 
 // SMTP Configuration
 define('SMTP_HOST', 'smtp.gmail.com');
@@ -19,27 +19,29 @@ define('SMTP_PORT', 465);
 date_default_timezone_set('UTC');
 
 // Common functions
-function connectDB() {
+function connectDB()
+{
     $host = "localhost";
     $username = "root";
     $password = "";
-    $database = "user_authentication"; //  database name
+    $database = "medilinx"; //  database name
 
     $conn = mysqli_connect($host, $username, $password, $database);
-    
+
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
-    
+
     return $conn;
 }
 
-function redirect($path) {
+function redirect($path)
+{
     header("Location: $path");
     exit;
 }
 
-function sanitize($data) {
+function sanitize($data)
+{
     return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
 }
-?>

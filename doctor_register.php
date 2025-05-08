@@ -4,6 +4,7 @@ require_once 'config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Doctor Registration - MediLinx</title>
@@ -17,8 +18,8 @@ require_once 'config.php';
             --background: #F5F9FF;
             --text: #2C3E50;
             --text-light: #718096;
-            --neumorphic-shadow: 8px 8px 16px #d9d9d9, 
-                                -8px -8px 16px #ffffff;
+            --neumorphic-shadow: 8px 8px 16px #d9d9d9,
+                -8px -8px 16px #ffffff;
         }
 
         * {
@@ -114,7 +115,7 @@ require_once 'config.php';
             border-radius: 15px;
             background: var(--background);
             box-shadow: inset 5px 5px 10px #d9d9d9,
-                        inset -5px -5px 10px #ffffff;
+                inset -5px -5px 10px #ffffff;
             transition: all 0.3s ease;
             font-size: 1rem;
         }
@@ -122,7 +123,7 @@ require_once 'config.php';
         .input-group input:focus,
         .input-group textarea:focus {
             box-shadow: inset 2px 2px 5px #d9d9d9,
-                        inset -2px -2px 5px #ffffff;
+                inset -2px -2px 5px #ffffff;
             outline: none;
         }
 
@@ -138,10 +139,10 @@ require_once 'config.php';
             padding: 0 0.5rem;
         }
 
-        .input-group input:focus ~ label,
-        .input-group input:not(:placeholder-shown) ~ label,
-        .input-group textarea:focus ~ label,
-        .input-group textarea:not(:placeholder-shown) ~ label {
+        .input-group input:focus~label,
+        .input-group input:not(:placeholder-shown)~label,
+        .input-group textarea:focus~label,
+        .input-group textarea:not(:placeholder-shown)~label {
             top: 0;
             font-size: 0.9rem;
             color: var(--primary);
@@ -199,13 +200,13 @@ require_once 'config.php';
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 5px 5px 10px #d9d9d9,
-                       -5px -5px 10px #ffffff;
+                -5px -5px 10px #ffffff;
         }
 
         .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 8px 8px 15px #d9d9d9,
-                       -8px -8px 15px #ffffff;
+                -8px -8px 15px #ffffff;
             letter-spacing: 1px;
         }
 
@@ -263,6 +264,7 @@ require_once 'config.php';
                 grid-template-columns: 1fr;
             }
         }
+
         .degrees-list {
             display: grid;
             gap: 1rem;
@@ -311,6 +313,7 @@ require_once 'config.php';
             cursor: pointer;
             padding: 0.5rem;
         }
+
         .buttons-container {
             display: flex;
             gap: 1rem;
@@ -328,19 +331,20 @@ require_once 'config.php';
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 5px 5px 10px #d9d9d9,
-                        -5px -5px 10px #ffffff;
+                -5px -5px 10px #ffffff;
             flex: 1;
         }
 
         .btn-back:hover {
             transform: translateY(-2px);
             box-shadow: 8px 8px 15px #d9d9d9,
-                        -8px -8px 15px #ffffff;
+                -8px -8px 15px #ffffff;
         }
 
         .btn-submit {
             flex: 2;
         }
+
         .time-slot-entry {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 2fr auto;
@@ -359,10 +363,11 @@ require_once 'config.php';
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2><i class="fas fa-user-md"></i> Doctor Registration</h2>
-        
+
         <div class="progress-steps">
             <div class="progress-step active">1</div>
             <div class="progress-step">2</div>
@@ -494,13 +499,13 @@ require_once 'config.php';
 
     <script>
         let currentStep = 1;
-        const totalSteps = 4; 
+        const totalSteps = 4;
 
         function nextStep() {
             if (!validateCurrentStep()) {
-                return; 
+                return;
             }
-            
+
             if (currentStep < totalSteps) {
                 document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
                 currentStep++;
@@ -508,7 +513,7 @@ require_once 'config.php';
                 updateProgress();
                 updateButtons();
             } else {
-               
+
                 document.querySelector('form').submit();
             }
         }
@@ -526,22 +531,22 @@ require_once 'config.php';
         function updateProgress() {
             const progressSteps = document.querySelectorAll('.progress-step');
             const progressFill = document.querySelector('.progress-fill');
-            
+
             progressSteps.forEach((step, index) => {
                 if (index < currentStep) step.classList.add('active');
                 else step.classList.remove('active');
             });
-            
-            
+
+
             progressFill.style.width = `${((currentStep - 1) / (totalSteps - 1)) * 100}%`;
         }
 
         function updateButtons() {
             const backButton = document.querySelector('.btn-back');
             const nextButton = document.querySelector('.btn-submit');
-            
+
             backButton.style.display = currentStep === 1 ? 'none' : 'block';
-            
+
             if (currentStep === totalSteps) {
                 nextButton.innerHTML = 'Submit <i class="fas fa-check"></i>';
             } else {
@@ -557,19 +562,19 @@ require_once 'config.php';
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                
+
                 reader.onload = function(e) {
                     previewImage.style.display = 'block';
                     previewImage.src = e.target.result;
                 }
-                
+
                 reader.readAsDataURL(file);
             }
         });
 
         // Add degree field
         let degreeCounter = 1;
-        
+
         function addDegreeField() {
             const container = document.getElementById('degrees-container');
             const newEntry = document.createElement('div');
@@ -584,13 +589,13 @@ require_once 'config.php';
             `;
             container.appendChild(newEntry);
             degreeCounter++;
-            
+
 
             if (degreeCounter === 2) {
                 document.querySelector('#degrees-container .btn-remove').style.visibility = 'visible';
             }
         }
-        
+
         function removeFirstDegree(button) {
             if (degreeCounter > 1) {
                 button.parentElement.remove();
@@ -614,7 +619,7 @@ require_once 'config.php';
             `;
             container.appendChild(newEntry);
             timeSlotCounter++;
-            
+
 
             if (timeSlotCounter === 2) {
                 document.querySelector('.time-slots-container .btn-remove').style.visibility = 'visible';
@@ -625,14 +630,14 @@ require_once 'config.php';
             if (timeSlotCounter > 1) {
                 button.parentElement.remove();
                 timeSlotCounter--;
-                
+
 
                 if (timeSlotCounter === 1) {
                     document.querySelector('.time-slots-container .btn-remove').style.visibility = 'hidden';
                 }
             }
         }
-        
+
 
         function formatDate(date) {
             const year = date.getFullYear();
@@ -640,14 +645,14 @@ require_once 'config.php';
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        
+
         // Form validation function
         function validateCurrentStep() {
             const currentSection = document.querySelector(`[data-step="${currentStep}"]`);
             const inputs = currentSection.querySelectorAll('input[required], textarea[required], select[required]');
-            
+
             let isValid = true;
-            
+
             inputs.forEach(input => {
                 if (!input.value.trim()) {
                     input.style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
@@ -656,24 +661,24 @@ require_once 'config.php';
                     input.style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff';
                 }
             });
-            
+
 
             if (currentStep === 1) {
                 const password = document.getElementById('password');
                 const confirmPassword = document.getElementById('confirm_password');
-                
+
                 if (password.value !== confirmPassword.value) {
                     confirmPassword.style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
                     alert('Passwords do not match!');
                     isValid = false;
                 }
             }
-            
+
             // Special validation for time slots on step 4
             if (currentStep === 4) {
                 const startTimes = document.querySelectorAll('input[name="start_time[]"]');
                 const endTimes = document.querySelectorAll('input[name="end_time[]"]');
-                
+
                 for (let i = 0; i < startTimes.length; i++) {
                     if (startTimes[i].value >= endTimes[i].value) {
                         startTimes[i].style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
@@ -683,12 +688,13 @@ require_once 'config.php';
                     }
                 }
             }
-            
+
             return isValid;
         }
-        
+
         // Initialize the form
         updateButtons();
     </script>
 </body>
+
 </html>

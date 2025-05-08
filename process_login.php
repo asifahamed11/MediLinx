@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
-        
+
         if (password_verify($password, $user['password'])) {
             // Store essential information in session
             $_SESSION['user_id'] = $user['id'];
@@ -48,4 +48,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
     $conn->close();
 }
-?>

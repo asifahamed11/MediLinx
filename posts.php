@@ -3,68 +3,80 @@
 session_start();
 require_once 'config.php';
 
+// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
+// Initialize variables
+$doctor_id = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : 0;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $conn = connectDB();
 
-// Get user role
-$user_stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
-$user_stmt->bind_param("i", $_SESSION['user_id']);
-$user_stmt->execute();
-$user_result = $user_stmt->get_result();
-$user = $user_result->fetch_assoc();
+// Fetch all doctors for the filter
+$doctors_stmt = $conn->prepare("SELECT id, username, specialty FROM users WHERE role = 'doctor' ORDER BY username");
+$doctors_stmt->execute();
+$doctors = $doctors_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-// Handle like/unlike
-if (isset($_POST['post_id'])) {
-    $post_id = $_POST['post_id'];
-    $user_id = $_SESSION['user_id'];
-    
-    // Check if already liked
-    $check_stmt = $conn->prepare("SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?");
-    $check_stmt->bind_param("ii", $post_id, $user_id);
-    $check_stmt->execute();
-    $check_result = $check_stmt->get_result();
-    
-    if ($check_result->num_rows > 0) {
-        // Unlike
-        $delete_stmt = $conn->prepare("DELETE FROM post_likes WHERE post_id = ? AND user_id = ?");
-        $delete_stmt->bind_param("ii", $post_id, $user_id);
-        $delete_stmt->execute();
-    } else {
-        // Like
-        $like_stmt = $conn->prepare("INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)");
-        $like_stmt->bind_param("ii", $post_id, $user_id);
-        $like_stmt->execute();
-    }
-    
-    header('Location: posts.php');
-    exit();
+// Build the query based on filters
+$query = "SELECT p.*, u.username, u.profile_image, u.specialty, 
+         (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
+         EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = ?) as user_liked 
+         FROM posts p 
+         JOIN users u ON p.doctor_id = u.id 
+         WHERE 1=1";
+$params = [$_SESSION['user_id']];
+$types = "i";
+
+if ($doctor_id > 0) {
+    $query .= " AND p.doctor_id = ?";
+    $params[] = $doctor_id;
+    $types .= "i";
 }
 
-// Get posts with doctor info and like counts
-$query = "SELECT p.*, u.username, u.profile_image, u.specialty,
-          (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
-          EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = ?) as user_liked
-          FROM posts p
-          JOIN users u ON p.doctor_id = u.id
-          ORDER BY p.created_at DESC";
+if (!empty($search)) {
+    $search_param = "%" . $search . "%";
+    $query .= " AND (p.title LIKE ? OR p.content LIKE ?)";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= "ss";
+}
+
+$query .= " ORDER BY p.created_at DESC";
 
 $stmt = $conn->prepare($query);
-$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
-$result = $stmt->get_result();
-$posts = $result->fetch_all(MYSQLI_ASSOC);
+$posts = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$conn->close();
+
+// Helper function to format date
+function formatDate($date)
+{
+    $timestamp = strtotime($date);
+    return date('M j, Y', $timestamp);
+}
+
+// Helper function to truncate text
+function truncateText($text, $length = 150)
+{
+    if (strlen($text) <= $length) return $text;
+    $truncated = substr($text, 0, strpos($text, ' ', $length));
+    return $truncated ? $truncated . '...' : substr($text, 0, $length) . '...';
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Posts - MediLinx</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary: #2A9D8F;
@@ -76,312 +88,405 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
             background: var(--light-bg);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            color: var(--secondary);
+            font-size: 2rem;
             margin: 0;
         }
 
-        .posts-container {
-            max-width: 800px;
-            margin: 0 auto;
-            animation: fadeIn 0.6s ease-out;
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background: white;
+            min-width: 180px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .search-form {
+            display: flex;
+            position: relative;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem;
+            padding-right: 3rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background: white;
+            min-width: 250px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: none;
+            border: none;
+            padding: 0 1rem;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .search-button:hover {
+            color: var(--primary);
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
         }
 
         .post-card {
             background: white;
-            border-radius: 1.5rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateY(0);
-            cursor: pointer;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .post-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .doctor-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            margin-right: 1.25rem;
-            object-fit: cover;
-            border: 3px solid var(--primary);
-            transition: transform 0.3s ease;
-        }
-
-        .doctor-avatar:hover {
-            transform: scale(1.05);
-        }
-
-        .doctor-info {
-            flex-grow: 1;
-        }
-
-        .doctor-name {
-            font-weight: 700;
-            color: var(--secondary);
-            text-decoration: none;
-            font-size: 1.1rem;
-            position: relative;
-            display: inline-block;
-        }
-
-        .doctor-name::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary);
-            transition: width 0.3s ease;
-        }
-
-        .doctor-name:hover::after {
-            width: 100%;
-        }
-
-        .doctor-specialty {
-            font-size: 0.875rem;
-            color: var(--primary);
-            font-weight: 500;
-            background: rgba(42, 157, 143, 0.1);
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-top: 4px;
-        }
-
-        .post-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 1.5rem 0;
-            color: var(--secondary);
-            line-height: 1.3;
-            position: relative;
-            padding-left: 1.5rem;
-        }
-
-        .post-title::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 6px;
-            height: 70%;
-            background: var(--gradient);
-            border-radius: 4px;
-        }
-
-        .post-content {
-            color: var(--text);
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
-            opacity: 0.9;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .post-image {
             width: 100%;
+            height: 200px;
             object-fit: cover;
-            border-radius: 1rem;
-            margin: 1.5rem 0;
+        }
+
+        .post-content {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-title {
+            color: var(--secondary);
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .post-author-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 2px solid var(--primary);
+        }
+
+        .post-author-info {
+            font-size: 0.9rem;
+        }
+
+        .author-name {
+            color: var(--secondary);
+            font-weight: 600;
             display: block;
-            animation: imageLoad 0.6s ease-out;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .author-specialty {
+            color: #718096;
+            font-size: 0.8rem;
+        }
+
+        .post-excerpt {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            flex: 1;
         }
 
         .post-footer {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .like-button {
-            background: rgba(42, 157, 143, 0.08);
-            border: none;
-            color: var(--primary);
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            gap: 0.75rem;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            justify-content: center;
-            border-radius: 30px;
-            overflow: visible;
-            transition: all 0.3s ease;
-        }
-
-        .like-button:hover {
-            background: rgba(42, 157, 143, 0.15);
-            transform: scale(1.05);
-        }
-
-        .like-button.liked {
-            color:rgb(234, 59, 59);
-            background: rgba(255, 0, 0, 0.1);
-        }
-
-        .like-button.liked svg {
-            animation: heartBounce 0.6s ease;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f0f0;
         }
 
         .post-date {
-            font-size: 0.875rem;
-            color: var(--text);
-            opacity: 0.7;
-            font-weight: 500;
+            color: #718096;
+            font-size: 0.85rem;
         }
 
-        .create-post-button {
+        .post-likes {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .like-icon {
+            color: #cbd5e0;
+            transition: all 0.3s ease;
+        }
+
+        .like-icon.liked {
+            color: var(--accent);
+        }
+
+        .btn {
             display: inline-flex;
             align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
             background: var(--gradient);
             color: white;
-            padding: 1rem 2rem;
-            border-radius: 15px;
-            text-decoration: none;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
             border: none;
-            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.2);
         }
 
-        .create-post-button:hover {
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
+            box-shadow: 0 8px 20px rgba(42, 157, 143, 0.3);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+        .read-more {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .read-more:hover {
+            color: var(--secondary);
+            gap: 0.5rem;
+        }
+
+        .no-posts {
+            background: white;
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .no-posts-icon {
+            font-size: 3rem;
+            color: #cbd5e0;
+            margin-bottom: 1.5rem;
+        }
+
+        .no-posts-text {
+            font-size: 1.2rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            .filter-container {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
             }
-        }
 
-        @keyframes heartBounce {
-            0% { transform: scale(1); }
-            30% { transform: scale(1.3); }
-            50% { transform: scale(0.9); }
-            70% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes imageLoad {
-            from {
-                opacity: 0;
-                transform: scale(0.98);
+            .search-form {
+                width: 100%;
             }
-            to {
-                opacity: 1;
-                transform: scale(1);
+
+            .search-input {
+                width: 100%;
             }
-        }
 
-        .loading-skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: 8px;
-            min-height: 200px;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .post-card:nth-child(even) {
-            animation-delay: 0.1s;
-        }
-
-        .post-card:nth-child(odd) {
-            animation-delay: 0.2s;
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
+
 <body>
-<?php include 'navbar.php'; ?>
-    <div class="posts-container">
-        <?php foreach ($posts as $post): ?>
-        <div class="post-card">
-            <div class="post-header">
-                <img src="<?php echo htmlspecialchars($post['profile_image'] ?: 'uploads/default_profile.png'); ?>" 
-                     alt="Doctor's profile" 
-                     class="doctor-avatar"
-                     onerror="this.src='uploads/default_profile.png'">
-                <div class="doctor-info">
-                    <a href="uploads/default_profile.png?id=<?php echo $post['doctor_id']; ?>" class="doctor-name">
-                        <?php echo htmlspecialchars($post['username']); ?>
-                    </a>
-                    <div class="doctor-specialty"><?php echo htmlspecialchars($post['specialty']); ?></div>
-                </div>
-            </div>
+    <?php include 'navbar.php'; ?>
 
-            <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
-            <div class="post-content"><?php echo nl2br(htmlspecialchars($post['content'])); ?></div>
-            
-            <?php if ($post['image']): ?>
-            <div class="loading-skeleton">
-                <img src="<?php echo htmlspecialchars($post['image']); ?>" 
-                     alt="Post image" 
-                     class="post-image"
-                     onload="this.previousElementSibling.style.display='none'"
-                     onerror="this.style.display='none'; this.previousElementSibling.style.display='none'">
-            </div>
-            <?php endif; ?>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Medical Posts</h1>
 
-            <div class="post-footer">
-                <form method="POST" style="display: inline;">
-                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                    <button type="submit" class="like-button <?php echo $post['user_liked'] ? 'liked' : ''; ?>">
-                    <svg fill="<?php echo $post['user_liked'] ? 'currentColor' : '#000000'; ?>"  version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-     width="18px" height="18px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
-    <path d="M19,7c-0.6,0-1-0.4-1-1c0-2.2-1.8-4-4-4c-1.3,0-2.4,0.6-3.2,1.6c-0.4,0.5-1.2,0.5-1.6,0C8.4,2.6,7.3,2,6,2C3.8,2,2,3.8,2,6
-        c0,0.6-0.4,1-1,1S0,6.6,0,6c0-3.3,2.7-6,6-6c1.5,0,2.9,0.6,4,1.5c1.1-1,2.5-1.5,4-1.5c3.3,0,6,2.7,6,6C20,6.6,19.6,7,19,7z"/>
-    <path d="M9.3,19.7c-0.1-0.1-3.2-2.8-5.7-6.1c-0.3-0.4-0.3-1.1,0.2-1.4c0.4-0.3,1.1-0.3,1.4,0.2c1.8,2.3,3.8,4.3,4.8,5.3
-        c1-1,3.1-3,4.9-5.3c0.3-0.4,1-0.5,1.4-0.2c0.4,0.3,0.5,1,0.2,1.4c-2.6,3.3-5.6,6-5.8,6.1C10.3,20.1,9.7,20.1,9.3,19.7z"/>
-    <path d="M11,14C11,14,11,14,11,14c-0.4,0-0.7-0.2-0.9-0.6L7.9,9l-1,1.6C6.6,10.8,6.3,11,6,11H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h4.5
-        l1.7-2.6C7.4,6.1,7.7,6,8.1,6c0.4,0,0.7,0.2,0.8,0.6l2.2,4.5l1-1.6C12.4,9.2,12.7,9,13,9h6c0.6,0,1,0.4,1,1s-0.4,1-1,1h-5.5
-        l-1.7,2.6C11.6,13.8,11.3,14,11,14z"/>
-</svg>
-                        <?php echo $post['like_count']; ?> likes
+            <div class="filter-container">
+                <form action="" method="get" class="search-form">
+                    <input type="text" name="search" placeholder="Search posts..." class="search-input" value="<?php echo htmlspecialchars($search); ?>">
+                    <?php if ($doctor_id): ?>
+                        <input type="hidden" name="doctor_id" value="<?php echo $doctor_id; ?>">
+                    <?php endif; ?>
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i>
                     </button>
                 </form>
-                <span class="post-date">
-                    <?php echo date('F j, Y', strtotime($post['created_at'])); ?>
-                </span>
+
+                <form action="" method="get" id="doctorFilterForm">
+                    <select name="doctor_id" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Doctors</option>
+                        <?php foreach ($doctors as $doctor): ?>
+                            <option value="<?php echo $doctor['id']; ?>" <?php echo $doctor_id == $doctor['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($doctor['username']); ?> - <?php echo htmlspecialchars($doctor['specialty']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if ($search): ?>
+                        <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+                    <?php endif; ?>
+                </form>
+
+                <?php if ($doctor_id || $search): ?>
+                    <a href="posts.php" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Reset Filters
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($_SESSION['role'] === 'doctor'): ?>
+                    <a href="create_post.php" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Post
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
-        <?php endforeach; ?>
-        
+
         <?php if (empty($posts)): ?>
-        <div class="post-card">
-            <p style="text-align: center; color: var(--text); padding: 2rem;">🌟 No posts available yet. Check back later!</p>
-        </div>
+            <div class="no-posts">
+                <div class="no-posts-icon">
+                    <i class="fas fa-file-medical-alt"></i>
+                </div>
+                <h2 class="no-posts-text">No posts found</h2>
+                <p>Try adjusting your search or filters to find what you're looking for.</p>
+            </div>
+        <?php else: ?>
+            <div class="posts-grid">
+                <?php foreach ($posts as $post): ?>
+                    <div class="post-card">
+                        <?php if (!empty($post['image'])): ?>
+                            <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="post-image">
+                        <?php endif; ?>
+
+                        <div class="post-content">
+                            <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
+
+                            <div class="post-meta">
+                                <img src="<?php echo !empty($post['profile_image']) ? htmlspecialchars($post['profile_image']) : 'uploads/default_profile.png'; ?>"
+                                    alt="<?php echo htmlspecialchars($post['username']); ?>"
+                                    class="post-author-image"
+                                    onerror="this.src='uploads/default_profile.png'">
+
+                                <div class="post-author-info">
+                                    <span class="author-name">Dr. <?php echo htmlspecialchars($post['username']); ?></span>
+                                    <span class="author-specialty"><?php echo htmlspecialchars($post['specialty']); ?></span>
+                                </div>
+                            </div>
+
+                            <div class="post-excerpt">
+                                <?php echo nl2br(htmlspecialchars(truncateText($post['content'], 200))); ?>
+                            </div>
+
+                            <div class="post-footer">
+                                <span class="post-date"><?php echo formatDate($post['created_at']); ?></span>
+
+                                <div class="post-likes">
+                                    <i class="fas fa-heart like-icon <?php echo $post['user_liked'] ? 'liked' : ''; ?>"></i>
+                                    <?php echo $post['like_count']; ?> likes
+                                </div>
+                            </div>
+
+                            <a href="view_post.php?id=<?php echo $post['id']; ?>" class="read-more">
+                                Read More <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
     </div>
+
+    <script>
+        // Auto-submit the doctor filter form when selection changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterForm = document.getElementById('doctorFilterForm');
+            if (filterForm) {
+                const select = filterForm.querySelector('select');
+                select.addEventListener('change', function() {
+                    filterForm.submit();
+                });
+            }
+        });
+    </script>
 </body>
+
 </html>

@@ -54,12 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle profile image upload
         if (!empty($_FILES['profile_image']['name'])) {
             $target_dir = "uploads/profile_images/";
-            
+
             // Create directory if it doesn't exist
             if (!file_exists($target_dir)) {
                 mkdir($target_dir, 0777, true);
             }
-            
+
             $file_name = uniqid() . '-' . basename($_FILES['profile_image']['name']);
             $target_file = $target_dir . $file_name;
             $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $target_file)) {
                     $profile_image = $target_file;
-                    
+
                     // Delete old profile image if exists
                     if (!empty($user['profile_image']) && file_exists($user['profile_image'])) {
                         unlink($user['profile_image']);
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
-            
+
             // Build update query based on user role
             if ($user['role'] === 'doctor') {
                 $query = "UPDATE users SET 
@@ -124,7 +124,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     WHERE id = ?";
 
                 $stmt = $conn->prepare($query);
-                $stmt->bind_param("ssssssssssi",
+                $stmt->bind_param(
+                    "ssssssssssi",
                     $phone,
                     $address,
                     $specialty,
@@ -148,7 +149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     WHERE id = ?";
 
                 $stmt = $conn->prepare($query);
-                $stmt->bind_param("ssssssi",
+                $stmt->bind_param(
+                    "ssssssi",
                     $phone,
                     $address,
                     $medical_history,
@@ -167,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $user = $result->fetch_assoc();
-                
+
                 // Refresh degrees data if user is a doctor
                 if ($user['role'] === 'doctor') {
                     $degreeStmt = $conn->prepare("SELECT * FROM degrees WHERE doctor_id = ?");
@@ -188,6 +190,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -232,15 +235,22 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             margin: 2rem auto;
             background: white;
             border-radius: 1.5rem;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative;
         }
 
         @keyframes fadeInUp {
-            from { transform: translateY(40px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .floating-particles {
@@ -268,6 +278,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 transform: translateY(0) rotate(0deg);
                 opacity: 0.4;
             }
+
             100% {
                 transform: translateY(-1000px) rotate(720deg);
                 opacity: 0;
@@ -395,14 +406,14 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.5s ease;
             cursor: pointer;
         }
 
         .current-image:hover {
             transform: scale(1.05);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
         }
 
         .image-overlay {
@@ -506,8 +517,15 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .alert-success {
@@ -535,7 +553,9 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
 
         @keyframes shimmer {
-            100% { transform: translateX(100%); }
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         .section-title {
@@ -653,8 +673,13 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .form-footer {
@@ -670,22 +695,22 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             .form-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .edit-container {
                 margin: 1rem;
                 border-radius: 1rem;
             }
-            
+
             .degree-entry {
                 grid-template-columns: 1fr;
                 gap: 0.75rem;
                 padding: 1rem;
             }
-            
+
             .btn-remove {
                 margin-left: auto;
             }
-            
+
             .tab {
                 padding: 0.6rem 1rem;
                 font-size: 0.9rem;
@@ -773,10 +798,13 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
 
         @keyframes spin {
-            100% { transform: rotate(360deg); }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="edit-container">
         <div class="floating-particles">
@@ -784,7 +812,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 <span style="left: <?php echo rand(0, 100); ?>%; top: <?php echo rand(0, 100); ?>%; width: <?php echo rand(10, 30); ?>px; height: <?php echo rand(10, 30); ?>px; animation-delay: <?php echo $i * 0.5; ?>s; animation-duration: <?php echo rand(8, 15); ?>s;"></span>
             <?php endfor; ?>
         </div>
-        
+
         <div class="edit-header">
             <h1 class="animate__animated animate__fadeInDown">Update Your Profile</h1>
             <p class="animate__animated animate__fadeIn animate__delay-1s">
@@ -805,10 +833,10 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
             <div class="image-upload animate__animated animate__fadeIn animate__delay-1s">
                 <div class="profile-image-container">
-                    <img src="<?php echo !empty($user['profile_image']) ? htmlspecialchars($user['profile_image']) : 'uploads/profile_images/default-profile.png'; ?>" 
-                         alt="Profile Image"
-                         class="current-image" 
-                         id="profileImg">
+                    <img src="<?php echo !empty($user['profile_image']) ? htmlspecialchars($user['profile_image']) : 'uploads/profile_images/default-profile.png'; ?>"
+                        alt="Profile Image"
+                        class="current-image"
+                        id="profileImg">
                     <div class="image-overlay" onclick="document.getElementById('fileInput').click()">
                         <div class="upload-icon">📸</div>
                     </div>
@@ -816,8 +844,8 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 <input type="file" name="profile_image" id="fileInput" class="file-input" accept="image/*">
                 <label for="fileInput" class="upload-label">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" style="margin-right: 8px;" viewBox="0 0 16 16">
-                        <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
-                        <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                        <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                        <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z" />
                     </svg>
                     Change Photo
                 </label>
@@ -826,207 +854,208 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             <div class="tab-container animate__animated animate__fadeIn animate__delay-1s">
                 <button type="button" class="tab active" data-tab="personal">Personal Info</button>
                 <?php if ($user['role'] === 'doctor'): ?>
-    <button type="button" class="tab" data-tab="professional">Professional Info</button>
-    <button type="button" class="tab" data-tab="education">Education</button>
-<?php endif; ?>
-</div>
-
-<div id="personal" class="tab-content active">
-    <h3 class="section-title">Personal Information</h3>
-    <div class="form-grid">
-        <div class="form-group">
-            <label class="form-label">Phone Number</label>
-            <input type="tel" name="phone" class="form-input" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="Your contact number">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Date of Birth</label>
-            <input type="date" name="date_of_birth" class="form-input" value="<?php echo htmlspecialchars($user['date_of_birth'] ?? ''); ?>">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Gender</label>
-            <select name="gender" class="form-input">
-                <option value="">Select Gender</option>
-                <option value="Male" <?php echo ($user['gender'] ?? '') === 'Male' ? 'selected' : ''; ?>>Male</option>
-                <option value="Female" <?php echo ($user['gender'] ?? '') === 'Female' ? 'selected' : ''; ?>>Female</option>
-                <option value="Other" <?php echo ($user['gender'] ?? '') === 'Other' ? 'selected' : ''; ?>>Other</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Address</label>
-            <textarea name="address" class="form-input" placeholder="Your residential address"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
-        </div>
-
-        <?php if ($user['role'] === 'patient'): ?>
-        <div class="form-group full-width">
-            <label class="form-label">Medical History</label>
-            <textarea name="medical_history" class="form-input" placeholder="Please provide relevant medical history information"><?php echo htmlspecialchars($user['medical_history'] ?? ''); ?></textarea>
-        </div>
-        <?php endif; ?>
-    </div>
-</div>
-
-<?php if ($user['role'] === 'doctor'): ?>
-<div id="professional" class="tab-content">
-    <h3 class="section-title">Professional Information</h3>
-    <div class="form-grid">
-        <div class="form-group">
-            <label class="form-label">Specialty</label>
-            <input type="text" name="specialty" class="form-input" value="<?php echo htmlspecialchars($user['specialty'] ?? ''); ?>" placeholder="Your medical specialty">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Languages Spoken</label>
-            <input type="text" name="languages_spoken" class="form-input" value="<?php echo htmlspecialchars($user['languages_spoken'] ?? ''); ?>" placeholder="E.g. English, Spanish, French">
-        </div>
-
-        <div class="form-group full-width">
-            <label class="form-label">Work Address</label>
-            <textarea name="work_address" class="form-input" placeholder="Your clinic or hospital address"><?php echo htmlspecialchars($user['work_address'] ?? ''); ?></textarea>
-        </div>
-
-        <div class="form-group full-width">
-            <label class="form-label">Consultation Hours</label>
-            <textarea name="available_consultation_hours" class="form-input" placeholder="E.g. Mon-Fri: 9AM-5PM, Sat: 9AM-1PM"><?php echo htmlspecialchars($user['available_consultation_hours'] ?? ''); ?></textarea>
-        </div>
-
-        <div class="form-group full-width">
-            <label class="form-label">Professional Biography</label>
-            <textarea name="professional_biography" class="form-input" placeholder="A brief description of your professional experience and approach" rows="5"><?php echo htmlspecialchars($user['professional_biography'] ?? ''); ?></textarea>
-        </div>
-    </div>
-</div>
-
-<div id="education" class="tab-content">
-    <h3 class="section-title">Education & Qualifications</h3>
-    <div id="degrees-container">
-        <?php if (empty($degrees)): ?>
-            <div class="degree-entry animate__animated animate__fadeIn">
-                <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name (e.g. MD, MBBS)" required>
-                <input type="text" name="institution[]" class="form-input" placeholder="Institution" required>
-                <input type="number" name="passing_year[]" class="form-input" placeholder="Year" min="1950" max="<?php echo date('Y'); ?>" required>
-                <button type="button" class="btn-remove" onclick="removeDegree(this)" data-tooltip="Remove degree">×</button>
+                    <button type="button" class="tab" data-tab="professional">Professional Info</button>
+                    <button type="button" class="tab" data-tab="education">Education</button>
+                <?php endif; ?>
             </div>
-        <?php else: ?>
-            <?php foreach ($degrees as $index => $degree): ?>
-                <div class="degree-entry animate__animated animate__fadeIn" style="animation-delay: <?php echo $index * 0.1; ?>s">
-                    <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name" 
-                           value="<?= htmlspecialchars($degree['degree_name']) ?>" required>
-                    <input type="text" name="institution[]" class="form-input" placeholder="Institution" 
-                           value="<?= htmlspecialchars($degree['institution']) ?>" required>
-                    <input type="number" name="passing_year[]" class="form-input" placeholder="Year" 
-                           value="<?= $degree['passing_year'] ?>" min="1950" max="<?php echo date('Y'); ?>" required>
-                    <button type="button" class="btn-remove" onclick="removeDegree(this)" data-tooltip="Remove degree">×</button>
+
+            <div id="personal" class="tab-content active">
+                <h3 class="section-title">Personal Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" name="phone" class="form-input" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="Your contact number">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="date_of_birth" class="form-input" value="<?php echo htmlspecialchars($user['date_of_birth'] ?? ''); ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select name="gender" class="form-input">
+                            <option value="">Select Gender</option>
+                            <option value="Male" <?php echo ($user['gender'] ?? '') === 'Male' ? 'selected' : ''; ?>>Male</option>
+                            <option value="Female" <?php echo ($user['gender'] ?? '') === 'Female' ? 'selected' : ''; ?>>Female</option>
+                            <option value="Other" <?php echo ($user['gender'] ?? '') === 'Other' ? 'selected' : ''; ?>>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-input" placeholder="Your residential address"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                    </div>
+
+                    <?php if ($user['role'] === 'patient'): ?>
+                        <div class="form-group full-width">
+                            <label class="form-label">Medical History</label>
+                            <textarea name="medical_history" class="form-input" placeholder="Please provide relevant medical history information"><?php echo htmlspecialchars($user['medical_history'] ?? ''); ?></textarea>
+                        </div>
+                    <?php endif; ?>
                 </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-    <button type="button" class="btn-add" onclick="addDegreeField()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-        </svg>
-        Add Another Degree
-    </button>
-</div>
-<?php endif; ?>
+            </div>
 
-<div class="button-group animate__animated animate__fadeIn animate__delay-1s">
-    <a href="profile.php" class="btn btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-        </svg>
-        Back to Profile
-    </a>
-    <button type="submit" class="btn btn-primary" id="saveBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/>
-        </svg>
-        Save Changes
-    </button>
-</div>
+            <?php if ($user['role'] === 'doctor'): ?>
+                <div id="professional" class="tab-content">
+                    <h3 class="section-title">Professional Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Specialty</label>
+                            <input type="text" name="specialty" class="form-input" value="<?php echo htmlspecialchars($user['specialty'] ?? ''); ?>" placeholder="Your medical specialty">
+                        </div>
 
-<div class="form-footer">
-    <p>Last updated: <?php echo date('F j, Y'); ?></p>
-</div>
+                        <div class="form-group">
+                            <label class="form-label">Languages Spoken</label>
+                            <input type="text" name="languages_spoken" class="form-input" value="<?php echo htmlspecialchars($user['languages_spoken'] ?? ''); ?>" placeholder="E.g. English, Spanish, French">
+                        </div>
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-</div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Work Address</label>
+                            <textarea name="work_address" class="form-input" placeholder="Your clinic or hospital address"><?php echo htmlspecialchars($user['work_address'] ?? ''); ?></textarea>
+                        </div>
 
-<script>
-document.getElementById('fileInput').addEventListener('change', function(e) {
-    const [file] = e.target.files;
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('profileImg').src = e.target.result;
-            document.getElementById('profileImg').classList.add('animate__animated', 'animate__pulse');
-            setTimeout(() => {
-                document.getElementById('profileImg').classList.remove('animate__animated', 'animate__pulse');
-            }, 1000);
-        }
-        reader.readAsDataURL(file);
-    }
-});
+                        <div class="form-group full-width">
+                            <label class="form-label">Consultation Hours</label>
+                            <textarea name="available_consultation_hours" class="form-input" placeholder="E.g. Mon-Fri: 9AM-5PM, Sat: 9AM-1PM"><?php echo htmlspecialchars($user['available_consultation_hours'] ?? ''); ?></textarea>
+                        </div>
 
-function addDegreeField() {
-    const container = document.getElementById('degrees-container');
-    const entry = document.createElement('div');
-    entry.className = 'degree-entry animate__animated animate__fadeIn';
-    entry.innerHTML = `
+                        <div class="form-group full-width">
+                            <label class="form-label">Professional Biography</label>
+                            <textarea name="professional_biography" class="form-input" placeholder="A brief description of your professional experience and approach" rows="5"><?php echo htmlspecialchars($user['professional_biography'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="education" class="tab-content">
+                    <h3 class="section-title">Education & Qualifications</h3>
+                    <div id="degrees-container">
+                        <?php if (empty($degrees)): ?>
+                            <div class="degree-entry animate__animated animate__fadeIn">
+                                <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name (e.g. MD, MBBS)" required>
+                                <input type="text" name="institution[]" class="form-input" placeholder="Institution" required>
+                                <input type="number" name="passing_year[]" class="form-input" placeholder="Year" min="1950" max="<?php echo date('Y'); ?>" required>
+                                <button type="button" class="btn-remove" onclick="removeDegree(this)" data-tooltip="Remove degree">×</button>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($degrees as $index => $degree): ?>
+                                <div class="degree-entry animate__animated animate__fadeIn" style="animation-delay: <?php echo $index * 0.1; ?>s">
+                                    <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name"
+                                        value="<?= htmlspecialchars($degree['degree_name']) ?>" required>
+                                    <input type="text" name="institution[]" class="form-input" placeholder="Institution"
+                                        value="<?= htmlspecialchars($degree['institution']) ?>" required>
+                                    <input type="number" name="passing_year[]" class="form-input" placeholder="Year"
+                                        value="<?= $degree['passing_year'] ?>" min="1950" max="<?php echo date('Y'); ?>" required>
+                                    <button type="button" class="btn-remove" onclick="removeDegree(this)" data-tooltip="Remove degree">×</button>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="btn-add" onclick="addDegreeField()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                        </svg>
+                        Add Another Degree
+                    </button>
+                </div>
+            <?php endif; ?>
+
+            <div class="button-group animate__animated animate__fadeIn animate__delay-1s">
+                <a href="profile.php" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+                    </svg>
+                    Back to Profile
+                </a>
+                <button type="submit" class="btn btn-primary" id="saveBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z" />
+                    </svg>
+                    Save Changes
+                </button>
+            </div>
+
+            <div class="form-footer">
+                <p>Last updated: <?php echo date('F j, Y'); ?></p>
+            </div>
+
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+            </div>
+
+            <script>
+                document.getElementById('fileInput').addEventListener('change', function(e) {
+                    const [file] = e.target.files;
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('profileImg').src = e.target.result;
+                            document.getElementById('profileImg').classList.add('animate__animated', 'animate__pulse');
+                            setTimeout(() => {
+                                document.getElementById('profileImg').classList.remove('animate__animated', 'animate__pulse');
+                            }, 1000);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+
+                function addDegreeField() {
+                    const container = document.getElementById('degrees-container');
+                    const entry = document.createElement('div');
+                    entry.className = 'degree-entry animate__animated animate__fadeIn';
+                    entry.innerHTML = `
         <input type="text" name="degree_name[]" class="form-input" placeholder="Degree Name (e.g. MD, MBBS)" required>
         <input type="text" name="institution[]" class="form-input" placeholder="Institution" required>
         <input type="number" name="passing_year[]" class="form-input" placeholder="Year" min="1950" max="${new Date().getFullYear()}" required>
         <button type="button" class="btn-remove" onclick="removeDegree(this)" data-tooltip="Remove degree">×</button>
     `;
-    container.appendChild(entry);
-}
+                    container.appendChild(entry);
+                }
 
-function removeDegree(button) {
-    const degreeEntry = button.parentElement;
-    degreeEntry.classList.add('animate__animated', 'animate__fadeOut');
-    setTimeout(() => {
-        degreeEntry.remove();
-    }, 500);
-}
+                function removeDegree(button) {
+                    const degreeEntry = button.parentElement;
+                    degreeEntry.classList.add('animate__animated', 'animate__fadeOut');
+                    setTimeout(() => {
+                        degreeEntry.remove();
+                    }, 500);
+                }
 
-// Tab functionality
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        // Remove active class from all tabs and tab content
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        // Add active class to clicked tab
-        this.classList.add('active');
-        
-        // Show corresponding tab content
-        const tabContent = document.getElementById(this.dataset.tab);
-        tabContent.classList.add('active');
-    });
-});
+                // Tab functionality
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Remove active class from all tabs and tab content
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-// Form submission loading indicator
-document.getElementById('profileForm').addEventListener('submit', function() {
-    document.getElementById('loadingOverlay').classList.add('active');
-    document.getElementById('saveBtn').disabled = true;
-    document.getElementById('saveBtn').innerHTML = 'Saving...';
-});
+                        // Add active class to clicked tab
+                        this.classList.add('active');
 
-// Alert auto-dismiss
-setTimeout(() => {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        alert.classList.add('animate__animated', 'animate__fadeOut');
-        setTimeout(() => {
-            alert.style.display = 'none';
-        }, 500);
-    });
-}, 5000);
-</script>
-</form>
-</div>
+                        // Show corresponding tab content
+                        const tabContent = document.getElementById(this.dataset.tab);
+                        tabContent.classList.add('active');
+                    });
+                });
+
+                // Form submission loading indicator
+                document.getElementById('profileForm').addEventListener('submit', function() {
+                    document.getElementById('loadingOverlay').classList.add('active');
+                    document.getElementById('saveBtn').disabled = true;
+                    document.getElementById('saveBtn').innerHTML = 'Saving...';
+                });
+
+                // Alert auto-dismiss
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        alert.classList.add('animate__animated', 'animate__fadeOut');
+                        setTimeout(() => {
+                            alert.style.display = 'none';
+                        }, 500);
+                    });
+                }, 5000);
+            </script>
+        </form>
+    </div>
 </body>
+
 </html>
