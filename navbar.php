@@ -266,7 +266,6 @@ $unread_count = $unread_data['count'];
     }
 
     .nav-link.active::after {
-        width: 100%;
         background: var(--accent);
         height: 3px;
     }
@@ -394,7 +393,7 @@ $unread_count = $unread_data['count'];
         background: white;
         border-radius: 0.5rem;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        animation: dropdownFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: dropdownFadeIn 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         transform-origin: top center;
         overflow: hidden;
     }

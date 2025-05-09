@@ -990,7 +990,7 @@ try {
 
     <div class="container">
         <h2>
-            <i class="fas fa-calendar-alt header-icon"></i>
+
             Appointments Calendar
         </h2>
 

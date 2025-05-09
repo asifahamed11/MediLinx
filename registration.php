@@ -175,10 +175,10 @@ try {
 
         $user_id = $conn->insert_id;
     } else if ($role === 'doctor') {
-        $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, years_of_experience, medical_license_number, work_address, available_consultation_hours, languages_spoken, profile_image, professional_biography, email_verification_pin, degrees_and_certifications) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, years_of_experience, medical_license_number, languages_spoken, profile_image, professional_biography, email_verification_pin, degrees_and_certifications) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         $stmt->bind_param(
-            "ssssssssissssssss",
+            "ssssssssissssss",
             $role,
             $username,
             $email,
@@ -189,8 +189,6 @@ try {
             $specialty,
             $years_of_experience,
             $medical_license_number,
-            $work_address,
-            $available_consultation_hours,
             $languages_spoken,
             $profile_image_path,
             $professional_biography,

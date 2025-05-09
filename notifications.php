@@ -455,9 +455,9 @@ $type_counts['all'] = array_sum($type_counts);
         <?php endif; ?>
 
         <h2>
-            <i class="fas fa-bell header-icon"></i>
+
             Notifications
-            <span class="notification-badge" id="notification-badge"><?= $unread_count ?></span>
+
         </h2>
 
         <div class="filter-container">

@@ -372,7 +372,6 @@ require_once 'config.php';
             <div class="progress-step active">1</div>
             <div class="progress-step">2</div>
             <div class="progress-step">3</div>
-            <div class="progress-step">4</div>
             <div class="progress-bar">
                 <div class="progress-fill"></div>
             </div>
@@ -448,14 +447,6 @@ require_once 'config.php';
                         <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
                     </div>
                     <div class="input-group">
-                        <input type="text" id="work_address" name="work_address" required placeholder=" ">
-                        <label for="work_address"><i class="fas fa-hospital"></i> Work Address</label>
-                    </div>
-                    <div class="input-group">
-                        <textarea id="available_consultation_hours" name="available_consultation_hours" required placeholder=" "></textarea>
-                        <label for="available_consultation_hours"><i class="fas fa-clock"></i> Consultation Hours</label>
-                    </div>
-                    <div class="input-group">
                         <textarea id="professional_biography" name="professional_biography" required placeholder=" "></textarea>
                         <label for="professional_biography"><i class="fas fa-file-medical"></i> Professional Bio</label>
                     </div>
@@ -470,21 +461,7 @@ require_once 'config.php';
             </div>
 
             <!-- Section 4: Availability -->
-            <div class="form-section" data-step="4" style="display: none;">
-                <h3><i class="fas fa-calendar-alt"></i> Set Initial Availability</h3>
-                <div class="time-slots-container">
-                    <div class="time-slot-entry">
-                        <input type="date" name="slot_date[]" required min="<?= date('Y-m-d') ?>">
-                        <input type="time" name="start_time[]" required>
-                        <input type="time" name="end_time[]" required>
-                        <input type="text" name="location[]" placeholder="Clinic Address" required>
-                        <button type="button" class="btn-remove" onclick="removeTimeSlot(this)" style="visibility: hidden;">×</button>
-                    </div>
-                </div>
-                <button type="button" class="btn-add-slot" onclick="addTimeSlot()">
-                    <i class="fas fa-plus"></i> Add Time Slot
-                </button>
-            </div>
+            <!-- This section has been removed -->
 
             <div class="buttons-container">
                 <button type="button" class="btn-back" onclick="previousStep()" style="display: none;">
@@ -499,7 +476,7 @@ require_once 'config.php';
 
     <script>
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 3;
 
         function nextStep() {
             if (!validateCurrentStep()) {
@@ -603,48 +580,7 @@ require_once 'config.php';
             }
         }
 
-        // Time slot management
-        let timeSlotCounter = 1;
-
-        function addTimeSlot() {
-            const container = document.querySelector('.time-slots-container');
-            const newEntry = document.createElement('div');
-            newEntry.className = 'time-slot-entry';
-            newEntry.innerHTML = `
-                <input type="date" name="slot_date[]" required min="${formatDate(new Date())}">
-                <input type="time" name="start_time[]" required>
-                <input type="time" name="end_time[]" required>
-                <input type="text" name="location[]" placeholder="Clinic Address" required>
-                <button type="button" class="btn-remove" onclick="removeTimeSlot(this)">×</button>
-            `;
-            container.appendChild(newEntry);
-            timeSlotCounter++;
-
-
-            if (timeSlotCounter === 2) {
-                document.querySelector('.time-slots-container .btn-remove').style.visibility = 'visible';
-            }
-        }
-
-        function removeTimeSlot(button) {
-            if (timeSlotCounter > 1) {
-                button.parentElement.remove();
-                timeSlotCounter--;
-
-
-                if (timeSlotCounter === 1) {
-                    document.querySelector('.time-slots-container .btn-remove').style.visibility = 'hidden';
-                }
-            }
-        }
-
-
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
+        // Time slot management functions have been removed
 
         // Form validation function
         function validateCurrentStep() {
@@ -674,21 +610,7 @@ require_once 'config.php';
                 }
             }
 
-            // Special validation for time slots on step 4
-            if (currentStep === 4) {
-                const startTimes = document.querySelectorAll('input[name="start_time[]"]');
-                const endTimes = document.querySelectorAll('input[name="end_time[]"]');
-
-                for (let i = 0; i < startTimes.length; i++) {
-                    if (startTimes[i].value >= endTimes[i].value) {
-                        startTimes[i].style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
-                        endTimes[i].style.boxShadow = 'inset 5px 5px 10px #d9d9d9, inset -5px -5px 10px #ffffff, 0 0 5px red';
-                        alert('End time must be after start time!');
-                        isValid = false;
-                    }
-                }
-            }
-
+            // Special validation for time slots on step 4 has been removed
             return isValid;
         }
 

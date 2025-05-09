@@ -35,7 +35,6 @@ $user = $user_result->fetch_assoc();
 $specialty = isset($_GET['specialty']) ? sanitizeInput($_GET['specialty']) : '';
 $location = isset($_GET['location']) ? sanitizeInput($_GET['location']) : '';
 $experience = isset($_GET['experience']) ? (int)$_GET['experience'] : '';
-$languages = isset($_GET['languages']) ? array_map('sanitizeInput', (array)$_GET['languages']) : [];
 $rating = isset($_GET['rating']) ? (float)$_GET['rating'] : '';
 
 // Get available specialties
@@ -47,11 +46,13 @@ while ($row = $specialties_result->fetch_assoc()) {
 }
 
 // Build doctor query
-$query = "SELECT u.*, 
-          COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
-          (SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count
-          FROM users u 
-          WHERE u.role = 'doctor'";
+$query = "SELECT u.*,
+COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
+(SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count,
+GROUP_CONCAT(DISTINCT d.degree_name SEPARATOR ', ') as degrees
+FROM users u
+LEFT JOIN degrees d ON u.id = d.doctor_id
+WHERE u.role = 'doctor'";
 
 $params = [];
 $types = '';
@@ -74,6 +75,8 @@ if (!empty($experience)) {
     $types .= 'i';
 }
 
+$query .= " GROUP BY u.id";
+
 if (!empty($rating)) {
     $query .= " HAVING avg_rating >= ?";
     $params[] = $rating;
@@ -88,7 +91,8 @@ if (!empty($params)) {
     $stmt->bind_param($types, ...$params);
 }
 $stmt->execute();
-$doctors = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$result = $stmt->get_result();
+$doctors = $result->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();
 ?>
@@ -900,6 +904,7 @@ $conn->close();
             }
         }
     </style>
+
 </head>
 
 <body>
@@ -949,9 +954,7 @@ $conn->close();
                 <div class="search-group">
                     <select name="rating" class="search-input">
                         <option value="">Minimum Rating</option>
-                        <option value="4.5" <?= $rating == 4.5 ?
-                                                'selected' : '' ?>>4.5 Stars</option>
-                        <option value="4.5" <?= $rating == 4.5 ? 'selected' : '' ?>>★★★★½ & Up</option>
+                        <option value="4.5" <?= $rating == 4.5 ? 'selected' : '' ?>>4.5 Stars</option>
                         <option value="4" <?= $rating == 4 ? 'selected' : '' ?>>★★★★ & Up</option>
                         <option value="3.5" <?= $rating == 3.5 ? 'selected' : '' ?>>★★★½ & Up</option>
                         <option value="3" <?= $rating == 3 ? 'selected' : '' ?>>★★★ & Up</option>
@@ -1045,15 +1048,14 @@ $conn->close();
                                 </div>
                             </div>
 
-                            <?php if (!empty($doctor['languages_spoken'])): ?>
+                            <?php if (!empty($doctor['degrees'])): ?>
                                 <div class="doctor-languages">
                                     <?php
-                                    $languages = explode(',', $doctor['languages_spoken']);
-                                    foreach ($languages as $language):
-                                        $language = trim($language);
-                                        if (!empty($language)):
+                                    $degreeList = explode(', ', $doctor['degrees']);
+                                    foreach ($degreeList as $degree):
+                                        if (!empty(trim($degree))):
                                     ?>
-                                            <span class="language-tag"><?= htmlspecialchars($language) ?></span>
+                                            <span class="language-tag"><?= htmlspecialchars($degree) ?></span>
                                     <?php endif;
                                     endforeach; ?>
                                 </div>
@@ -1096,6 +1098,25 @@ $conn->close();
                     </svg>
                     <h3>No Doctors Found</h3>
                     <p>We couldn't find any healthcare professionals matching your criteria.</p>
+                    <?php if (!empty($specialty) || !empty($location) || !empty($experience) || !empty($rating)): ?>
+                        <div class="applied-filters">
+                            <p>Applied filters:</p>
+                            <ul>
+                                <?php if (!empty($specialty)): ?>
+                                    <li>Specialty: <?= htmlspecialchars($specialty) ?></li>
+                                <?php endif; ?>
+                                <?php if (!empty($location)): ?>
+                                    <li>Location: <?= htmlspecialchars($location) ?></li>
+                                <?php endif; ?>
+                                <?php if (!empty($experience)): ?>
+                                    <li>Minimum Experience: <?= htmlspecialchars($experience) ?>+ years</li>
+                                <?php endif; ?>
+                                <?php if (!empty($rating)): ?>
+                                    <li>Minimum Rating: <?= htmlspecialchars($rating) ?>+ stars</li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
                     <a href="find-doctors.php" class="reset-search-btn">
                         <i class="fas fa-redo"></i>
                         Reset Search
@@ -1114,92 +1135,89 @@ $conn->close();
                 <div class="loading-text">Searching for doctors...</div>
             </div>
         </div>
+    </div>
 
-        <script>
-            // Show loading overlay on form submit
-            document.querySelector('form').addEventListener('submit', function() {
-                document.querySelector('.loading-overlay').style.display = 'flex';
-            });
+    <script>
+        // Show loading overlay on form submit
+        document.getElementById('doctorSearchForm').addEventListener('submit', function() {
+            document.querySelector('.loading-overlay').style.display = 'flex';
+        });
 
-            // Handle specialty autocomplete
-            const specialtyInput = document.getElementById('specialtyInput');
-            const specialtySuggestions = document.getElementById('specialtySuggestions');
-            const specialties = <?= json_encode($specialties) ?>;
+        // Handle specialty autocomplete
+        const specialtyInput = document.getElementById('specialtyInput');
+        const specialtySuggestions = document.getElementById('specialtySuggestions');
+        const specialties = <?= json_encode($specialties) ?>;
 
-            specialtyInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                if (searchTerm.length < 2) {
-                    specialtySuggestions.style.display = 'none';
-                    return;
-                }
+        specialtyInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            if (searchTerm.length < 2) {
+                specialtySuggestions.style.display = 'none';
+                return;
+            }
 
-                const matchingSpecialties = specialties.filter(specialty =>
-                    specialty.toLowerCase().includes(searchTerm)
-                );
+            const matchingSpecialties = specialties.filter(specialty =>
+                specialty.toLowerCase().includes(searchTerm)
+            );
 
-                if (matchingSpecialties.length > 0) {
-                    specialtySuggestions.innerHTML = '';
-                    matchingSpecialties.forEach(specialty => {
-                        const div = document.createElement('div');
-                        div.className = 'suggestion-item';
-                        div.textContent = specialty;
-                        div.addEventListener('click', function() {
-                            specialtyInput.value = specialty;
-                            specialtySuggestions.style.display = 'none';
-                        });
-                        specialtySuggestions.appendChild(div);
+            if (matchingSpecialties.length > 0) {
+                specialtySuggestions.innerHTML = '';
+                matchingSpecialties.forEach(specialty => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = specialty;
+                    div.addEventListener('click', function() {
+                        specialtyInput.value = specialty;
+                        specialtySuggestions.style.display = 'none';
+                        document.getElementById('doctorSearchForm').submit();
                     });
-                    specialtySuggestions.style.display = 'block';
-                } else {
-                    specialtySuggestions.style.display = 'none';
+                    specialtySuggestions.appendChild(div);
+                });
+                specialtySuggestions.style.display = 'block';
+            } else {
+                specialtySuggestions.style.display = 'none';
+            }
+        });
+
+        // Close suggestions on click outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== specialtyInput && !specialtySuggestions.contains(e.target)) {
+                specialtySuggestions.style.display = 'none';
+            }
+        });
+
+        // Handle removing filters
+        document.querySelectorAll('.remove-filter').forEach(filter => {
+            filter.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default action
+                const filterName = this.getAttribute('data-filter');
+                document.querySelector(`[name="${filterName}"]`).value = '';
+                document.getElementById('doctorSearchForm').submit();
+            });
+        });
+
+        // Animation for doctor cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                    observer.unobserve(entry.target);
                 }
             });
+        }, observerOptions);
 
-            // Close suggestions on click outside
-            document.addEventListener('click', function(e) {
-                if (e.target !== specialtyInput && e.target !== specialtySuggestions) {
-                    specialtySuggestions.style.display = 'none';
-                }
-            });
+        document.querySelectorAll('.animate-card').forEach(card => {
+            observer.observe(card);
+        });
 
-            // Handle removing filters
-            document.querySelectorAll('.remove-filter').forEach(filter => {
-                filter.addEventListener('click', function() {
-                    const filterName = this.getAttribute('data-filter');
-                    document.querySelector(`[name="${filterName}"]`).value = '';
-                    document.getElementById('doctorSearchForm').submit();
-                });
-            });
+        // Back to top button
+        const backToTopButton = document.getElementById('backToTop');
 
-            // Handle image loading errors
-            document.querySelectorAll('.doctor-image').forEach(img => {
-                img.addEventListener('error', function() {
-                    this.src = 'uploads/default_profile.png';
-                    this.classList.add('image-error');
-                });
-            });
-
-            // Animation for doctor cards
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate__animated', 'animate__fadeInUp');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.doctor-card').forEach(card => {
-                observer.observe(card);
-            });
-
-            // Back to top button
-            const backToTopButton = document.getElementById('backToTop');
+        if (backToTopButton) {
             window.addEventListener('scroll', () => {
                 if (window.pageYOffset > 300) {
                     backToTopButton.classList.add('visible');
@@ -1214,7 +1232,8 @@ $conn->close();
                     behavior: 'smooth'
                 });
             });
-        </script>
+        }
+    </script>
 </body>
 
 </html>
