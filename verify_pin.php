@@ -249,12 +249,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container">
         <h2>Verify Email</h2>
-        <?php if (isset($_SESSION['error'])): ?>
+        <?php if (isset($error)): ?>
             <div class="alert alert-error">
-                <?php
-                echo htmlspecialchars($_SESSION['error']);
-                unset($_SESSION['error']);
-                ?>
+                <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
         <?php if (isset($_SESSION['success'])): ?>

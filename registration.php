@@ -135,6 +135,11 @@ try {
             }
         }
 
+        // Validate upload directory is writable
+        if (!is_writable($target_dir)) {
+            throw new Exception("Upload directory is not writable. Please check permissions.");
+        }
+
         // Extract and validate file extension
         $extension = strtolower(pathinfo($profile_image['name'], PATHINFO_EXTENSION));
         $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
@@ -149,6 +154,8 @@ try {
 
         if (validateImage($profile_image) && move_uploaded_file($profile_image['tmp_name'], $target_file)) {
             $profile_image_path = $target_file;
+            // Set proper file permissions after upload
+            chmod($target_file, 0644);
         } else {
             throw new Exception("Invalid file or upload failed.");
         }

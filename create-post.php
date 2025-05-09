@@ -28,39 +28,114 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
     $doctor_id = $_SESSION['user_id'];
-    
+
     // Handle image upload
     $image_path = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $upload_dir = 'uploads/post_images/';
-        
+
         // Create directory if it doesn't exist
         if (!file_exists($upload_dir)) {
             mkdir($upload_dir, 0777, true);
         }
-        
+
         $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
         $file_type = $_FILES['image']['type'];
-        
+
         if (in_array($file_type, $allowed_types)) {
             $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
             $file_name = uniqid() . '_post.' . $file_extension;
             $target_path = $upload_dir . $file_name;
-            
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $target_path)) {
-                $image_path = $target_path;
+
+            // Check if GD extension is available for image resizing
+            if (extension_loaded('gd')) {
+                // Create an image resource from the uploaded file
+                switch ($file_type) {
+                    case 'image/jpeg':
+                        $image = imagecreatefromjpeg($_FILES['image']['tmp_name']);
+                        break;
+                    case 'image/png':
+                        $image = imagecreatefrompng($_FILES['image']['tmp_name']);
+                        break;
+                    case 'image/gif':
+                        $image = imagecreatefromgif($_FILES['image']['tmp_name']);
+                        break;
+                    default:
+                        $image = null;
+                }
+
+                if ($image) {
+                    // Get original dimensions
+                    $width = imagesx($image);
+                    $height = imagesy($image);
+
+                    // Set maximum dimensions
+                    $max_width = 1200;
+                    $max_height = 800;
+
+                    // Calculate new dimensions while maintaining aspect ratio
+                    if ($width > $max_width || $height > $max_height) {
+                        $ratio = min($max_width / $width, $max_height / $height);
+                        $new_width = round($width * $ratio);
+                        $new_height = round($height * $ratio);
+
+                        // Create a new image with the new dimensions
+                        $new_image = imagecreatetruecolor($new_width, $new_height);
+
+                        // Handle transparency for PNG images
+                        if ($file_type === 'image/png') {
+                            imagealphablending($new_image, false);
+                            imagesavealpha($new_image, true);
+                            $transparent = imagecolorallocatealpha($new_image, 255, 255, 255, 127);
+                            imagefilledrectangle($new_image, 0, 0, $new_width, $new_height, $transparent);
+                        }
+
+                        // Resize the image
+                        imagecopyresampled($new_image, $image, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
+
+                        // Save the resized image
+                        switch ($file_type) {
+                            case 'image/jpeg':
+                                imagejpeg($new_image, $target_path, 90); // 90% quality
+                                break;
+                            case 'image/png':
+                                imagepng($new_image, $target_path, 8); // Compression level 8
+                                break;
+                            case 'image/gif':
+                                imagegif($new_image, $target_path);
+                                break;
+                        }
+
+                        // Free up memory
+                        imagedestroy($image);
+                        imagedestroy($new_image);
+
+                        $image_path = $target_path;
+                    } else {
+                        // Image is already within size limits, simply save it
+                        move_uploaded_file($_FILES['image']['tmp_name'], $target_path);
+                        $image_path = $target_path;
+                    }
+                } else {
+                    $error = "Failed to process image.";
+                }
             } else {
-                $error = "Failed to upload image.";
+                // GD library not available, fallback to simple move
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $target_path)) {
+                    $image_path = $target_path;
+                } else {
+                    $error = "Failed to upload image.";
+                }
             }
         } else {
             $error = "Invalid file type. Only JPG, PNG and GIF are allowed.";
         }
     }
-    
+
     if (!isset($error)) {
         $stmt = $conn->prepare("INSERT INTO posts (doctor_id, title, content, image) VALUES (?, ?, ?, ?)");
         $stmt->bind_param("isss", $doctor_id, $title, $content, $image_path);
-        
+
         if ($stmt->execute()) {
             $success = "Post created successfully!";
             // Optionally redirect after short delay
@@ -73,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -145,8 +221,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+
 <body>
-<?php include 'navbar.php'; ?>
+    <?php include 'navbar.php'; ?>
     <div class="post-form-container">
         <h2>Create New Post</h2>
         <?php if (isset($success)): ?>
@@ -154,24 +231,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php echo $success; ?>
             </div>
         <?php endif; ?>
-        
+
         <?php if (isset($error)): ?>
             <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
                 <?php echo $error; ?>
             </div>
         <?php endif; ?>
-        
+
         <form action="create-post.php" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="title">Title</label>
                 <input type="text" id="title" name="title" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="content">Content</label>
                 <textarea id="content" name="content" required></textarea>
             </div>
-            
+
             <div class="form-group">
                 <label for="image">Image (optional)</label>
                 <input type="file" id="image" name="image" accept="image/*">
@@ -179,9 +256,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     Supported formats: JPG, PNG, GIF
                 </small>
             </div>
-            
+
             <button type="submit" class="submit-button">Create Post</button>
         </form>
     </div>
 </body>
+
 </html>

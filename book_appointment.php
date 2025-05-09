@@ -44,10 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Check slot availability and capacity
+        // Check slot availability and capacity with row locking to prevent race conditions
         $slotStmt = $conn->prepare("
             SELECT ts.*, 
-                   (SELECT COUNT(*) FROM appointments WHERE slot_id = ts.id) as current_bookings 
+                   (SELECT COUNT(*) FROM appointments WHERE slot_id = ts.id AND status != 'cancelled') as current_bookings 
             FROM time_slots ts
             WHERE ts.id = ? AND ts.status = 'available' 
             FOR UPDATE
@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slot = $slotStmt->get_result()->fetch_assoc();
 
         if (!$slot) {
+            $conn->rollback();
             $_SESSION['error'] = "Time slot no longer available";
             header("Location: calendar_booking.php");
             exit;
@@ -64,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Check if slot is at capacity
         if (isset($slot['capacity']) && $slot['current_bookings'] >= $slot['capacity']) {
+            $conn->rollback();
             $_SESSION['error'] = "This appointment slot is full";
             header("Location: calendar_booking.php");
             exit;
@@ -74,34 +76,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (patient_id, slot_id, reason, doctor_id, start_time, end_time, location) 
             VALUES (?, ?, ?, ?, ?, ?, ?)");
         $apptStmt->bind_param("iisisss", $patient_id, $slot_id, $reason, $slot['doctor_id'], $slot['start_time'], $slot['end_time'], $slot['location']);
-        $apptStmt->execute();
 
-        // Update booked_count
-        $updateStmt = $conn->prepare("
-            UPDATE time_slots 
-            SET booked_count = booked_count + 1,
-                status = CASE WHEN (booked_count + 1) >= capacity THEN 'booked' ELSE 'available' END
-            WHERE id = ?
-        ");
-        $updateStmt->bind_param("i", $slot_id);
-        $updateStmt->execute();
+        if (!$apptStmt->execute()) {
+            $conn->rollback();
+            $_SESSION['error'] = "Failed to create appointment: " . $conn->error;
+            header("Location: calendar_booking.php");
+            exit;
+        }
 
-        // Create notification with prepared statement
-        $message = "New booking: " . date('M j, Y g:i A', strtotime($slot['start_time']));
-        $notif_stmt = $conn->prepare("INSERT INTO notifications 
-            (user_id, message, type) 
-            VALUES (?, ?, 'appointment')");
-        $notif_stmt->bind_param("is", $slot['doctor_id'], $message);
-        $notif_stmt->execute();
+        // Update booked_count in the time slot
+        $updateSlotStmt = $conn->prepare("UPDATE time_slots SET booked_count = booked_count + 1 WHERE id = ?");
+        $updateSlotStmt->bind_param("i", $slot_id);
 
+        if (!$updateSlotStmt->execute()) {
+            $conn->rollback();
+            $_SESSION['error'] = "Failed to update slot booking count: " . $conn->error;
+            header("Location: calendar_booking.php");
+            exit;
+        }
+
+        // If the slot is now at capacity, update its status
+        if ($slot['current_bookings'] + 1 >= $slot['capacity']) {
+            $updateStatusStmt = $conn->prepare("UPDATE time_slots SET status = 'booked' WHERE id = ?");
+            $updateStatusStmt->bind_param("i", $slot_id);
+            $updateStatusStmt->execute();
+        }
+
+        // Commit the transaction
         $conn->commit();
-        $_SESSION['success'] = "Appointment booked successfully!";
+
+        // Create notification for the doctor
+        $doctorId = $slot['doctor_id'];
+        $notificationMessage = "New appointment scheduled with patient #$patient_id for " . date('M j, Y g:i A', strtotime($slot['start_time']));
+        $notifStmt = $conn->prepare("INSERT INTO notifications (user_id, message, type) VALUES (?, ?, 'appointment')");
+        $notifStmt->bind_param("is", $doctorId, $notificationMessage);
+        $notifStmt->execute();
+
+        $_SESSION['success'] = "Appointment booked successfully";
+        header("Location: appointments.php");
+        exit;
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['error'] = $e->getMessage();
+        $_SESSION['error'] = "An error occurred: " . $e->getMessage();
+        header("Location: calendar_booking.php");
+        exit;
     }
-
-    // Redirect to appointments page
-    header("Location: appointments.php");
-    exit;
 }

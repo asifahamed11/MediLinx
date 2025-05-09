@@ -8,16 +8,15 @@ require_once 'vendor/autoload.php'; // Make sure PHPMailer is installed via Comp
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Configuration settings - In a production environment, these should be in a separate env file or config
-// that is not committed to version control
+// Use configuration from config.php instead of hardcoded values
 $email_config = [
-    'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
-    'username' => getenv('SMTP_USERNAME') ?: 'notifications@medilinx.com',
-    'password' => getenv('SMTP_PASSWORD') ?: 'your_password',
-    'from_email' => getenv('FROM_EMAIL') ?: 'notifications@medilinx.com',
+    'host' => SMTP_HOST,
+    'username' => SMTP_USERNAME,
+    'password' => SMTP_PASSWORD,
+    'from_email' => SMTP_USERNAME,
     'from_name' => 'MediLinx Notifications',
-    'port' => 587,
-    'encryption' => 'tls' // Will use PHPMailer::ENCRYPTION_STARTTLS inside the function
+    'port' => SMTP_PORT,
+    'encryption' => 'ssl' // Will use PHPMailer::ENCRYPTION_SMTPS
 ];
 
 // Get database connection
