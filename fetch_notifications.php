@@ -15,8 +15,9 @@ $user_id = $_SESSION['user_id'];
 // Get last notification ID if provided
 $last_id = isset($_GET['last_id']) ? (int)$_GET['last_id'] : 0;
 
-// Get filter if provided
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+// Get filter if provided and validate it
+$valid_filters = ['all', 'appointment', 'system', 'reminder'];
+$filter = isset($_GET['filter']) && in_array($_GET['filter'], $valid_filters) ? $_GET['filter'] : 'all';
 $filter_clause = "";
 
 if ($filter !== 'all') {
@@ -48,8 +49,8 @@ try {
 
         $notifications[] = [
             'id' => $row['id'],
-            'message' => $row['message'],
-            'type' => $row['type'],
+            'message' => htmlspecialchars($row['message']),
+            'type' => htmlspecialchars($row['type']),
             'is_read' => $row['is_read'],
             'created_at' => date('M j, Y g:i A', strtotime($row['created_at'])),
             'time_ago' => time_elapsed_string($row['created_at'])

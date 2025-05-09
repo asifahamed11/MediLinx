@@ -8,11 +8,33 @@ require_once 'vendor/autoload.php'; // Make sure PHPMailer is installed via Comp
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Configuration settings - In a production environment, these should be in a separate env file or config
+// that is not committed to version control
+$email_config = [
+    'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
+    'username' => getenv('SMTP_USERNAME') ?: 'notifications@medilinx.com',
+    'password' => getenv('SMTP_PASSWORD') ?: 'your_password',
+    'from_email' => getenv('FROM_EMAIL') ?: 'notifications@medilinx.com',
+    'from_name' => 'MediLinx Notifications',
+    'port' => 587,
+    'encryption' => 'tls' // Will use PHPMailer::ENCRYPTION_STARTTLS inside the function
+];
+
 // Get database connection
 $conn = connectDB();
 
-// Set timezone
-date_default_timezone_set('UTC'); // Adjust to your timezone
+// Set timezone based on config or default to UTC
+$timezone = getenv('TIMEZONE') ?: 'UTC';
+date_default_timezone_set($timezone);
+
+// Log error/info messages
+function log_message($message, $type = 'info')
+{
+    $log_file = 'email_log.txt';
+    $timestamp = date('Y-m-d H:i:s');
+    $log_line = "[$timestamp] [$type] $message\n";
+    file_put_contents($log_file, $log_line, FILE_APPEND);
+}
 
 // Get users who have enabled email notifications and have unread notifications
 $stmt = $conn->prepare("
@@ -53,15 +75,15 @@ while ($user = $users->fetch_assoc()) {
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.example.com'; // Replace with your SMTP server
+        $mail->Host       = $email_config['host'];
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'notifications@medilinx.com'; // Replace with your email
-        $mail->Password   = 'your_password'; // Replace with your password
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $mail->Username   = $email_config['username'];
+        $mail->Password   = $email_config['password'];
+        $mail->SMTPSecure = $email_config['encryption'] === 'tls' ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port       = $email_config['port'];
 
         // Recipients
-        $mail->setFrom('notifications@medilinx.com', 'MediLinx Notifications');
+        $mail->setFrom($email_config['from_email'], $email_config['from_name']);
         $mail->addAddress($user['email'], $user['username']);
 
         // Content
@@ -101,8 +123,11 @@ while ($user = $users->fetch_assoc()) {
             $body .= "<p>...and " . ($user['unread_count'] - 5) . " more notifications.</p>";
         }
 
+        // Use dynamic site URL from config or environment variable if available
+        $site_url = getenv('SITE_URL') ?: 'http://yourdomain.com';
+
         $body .= "
-                <p><a href='http://yourdomain.com/notifications.php' class='button'>View All Notifications</a></p>
+                <p><a href='" . $site_url . "/notifications.php' class='button'>View All Notifications</a></p>
                 <p>Thank you for using MediLinx!</p>
             </div>
         </body>
@@ -115,15 +140,14 @@ while ($user = $users->fetch_assoc()) {
         $emails_sent++;
 
         // Log success
-        file_put_contents('email_log.txt', date('Y-m-d H:i:s') . " - Email sent to " . $user['email'] . "\n", FILE_APPEND);
+        log_message("Email sent to " . $user['email'], 'success');
     } catch (Exception $e) {
         // Log error
-        file_put_contents('email_log.txt', date('Y-m-d H:i:s') . " - Failed to send email to " . $user['email'] . ": " . $mail->ErrorInfo . "\n", FILE_APPEND);
+        log_message("Failed to send email to " . $user['email'] . ": " . $mail->ErrorInfo, 'error');
     }
 }
 
 // Log the result
-$log_message = date('Y-m-d H:i:s') . " - Sent $emails_sent email notifications\n";
-file_put_contents('email_log.txt', $log_message, FILE_APPEND);
+log_message("Sent $emails_sent email notifications");
 
 echo "Completed. Sent $emails_sent email notifications.";

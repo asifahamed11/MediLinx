@@ -7,8 +7,9 @@ require_once 'config.php';
 // Get database connection
 $conn = connectDB();
 
-// Set timezone
-date_default_timezone_set('UTC'); // Adjust to your timezone
+// Set timezone based on config or default to UTC
+$timezone = getenv('TIMEZONE') ?: 'UTC';
+date_default_timezone_set($timezone);
 
 // Current date and time
 $now = new DateTime();
@@ -17,6 +18,15 @@ $now = new DateTime();
 $tomorrow = clone $now;
 $tomorrow->modify('+1 day');
 $tomorrow_date = $tomorrow->format('Y-m-d');
+
+// Log function for consistent logging
+function log_message($message, $type = 'info')
+{
+    $log_file = 'reminder_log.txt';
+    $timestamp = date('Y-m-d H:i:s');
+    $log_line = "[$timestamp] [$type] $message\n";
+    file_put_contents($log_file, $log_line, FILE_APPEND);
+}
 
 // Fetch appointments for tomorrow
 $stmt = $conn->prepare("
@@ -39,16 +49,20 @@ $reminders_sent = 0;
 
 // Process each appointment
 while ($appointment = $result->fetch_assoc()) {
+    // Format appointment time according to the set timezone
+    $appointment_time = new DateTime($appointment['start_time']);
+    $formatted_time = $appointment_time->format('g:i A');
+
     // Create reminder for patient
     $patient_message = "REMINDER: You have an appointment with Dr. " .
         $appointment['doctor_name'] . " tomorrow at " .
-        date('g:i A', strtotime($appointment['start_time'])) .
+        $formatted_time .
         " at " . $appointment['location'];
 
     // Create reminder for doctor
     $doctor_message = "REMINDER: You have an appointment with " .
         $appointment['patient_name'] . " tomorrow at " .
-        date('g:i A', strtotime($appointment['start_time'])) .
+        $formatted_time .
         " at " . $appointment['location'];
 
     try {
@@ -68,13 +82,13 @@ while ($appointment = $result->fetch_assoc()) {
         $doctor_stmt->execute();
 
         $reminders_sent += 2;
+        log_message("Created reminder notifications for appointment ID " . $appointment['id'], 'success');
     } catch (Exception $e) {
-        error_log("Error sending reminder for appointment ID " . $appointment['id'] . ": " . $e->getMessage());
+        log_message("Error sending reminder for appointment ID " . $appointment['id'] . ": " . $e->getMessage(), 'error');
     }
 }
 
 // Log the result
-$log_message = date('Y-m-d H:i:s') . " - Generated $reminders_sent reminder notifications\n";
-file_put_contents('reminder_log.txt', $log_message, FILE_APPEND);
+log_message("Generated $reminders_sent reminder notifications");
 
 echo "Completed. Generated $reminders_sent reminder notifications.";

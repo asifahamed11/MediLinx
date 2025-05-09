@@ -15,17 +15,30 @@ $role = $_SESSION['role'];
 $error_message = "";
 $has_error = false;
 
+// Add CSRF token
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
 // Handle marking notifications as read
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_read'])) {
-    $stmt = $conn->prepare("UPDATE notifications 
-        SET is_read = 1 
-        WHERE user_id = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
+    // Verify CSRF token
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $error_message = "Invalid form submission.";
+        $has_error = true;
+    } else {
+        $stmt = $conn->prepare("UPDATE notifications 
+            SET is_read = 1 
+            WHERE user_id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+    }
 }
 
 // Get filter from URL
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$valid_filters = ['all', 'appointment', 'system', 'reminder'];
+$filter = isset($_GET['filter']) && in_array($_GET['filter'], $valid_filters) ? $_GET['filter'] : 'all';
 $filter_clause = "";
 if ($filter !== 'all') {
     $filter_clause = " AND type = ?";
@@ -82,15 +95,18 @@ if ($unread_result && $row = $unread_result->fetch_row()) {
     $unread_count = $row[0];
 }
 
-// Get counts for each notification type
-$type_counts = [];
-$types = ['appointment', 'system', 'reminder'];
-foreach ($types as $type) {
-    $count_stmt = $conn->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = ?");
-    $count_stmt->bind_param("is", $user_id, $type);
-    $count_stmt->execute();
-    $count_result = $count_stmt->get_result();
-    $type_counts[$type] = $count_result->fetch_row()[0];
+// Get counts for each notification type with a single query
+$type_counts = ['appointment' => 0, 'system' => 0, 'reminder' => 0];
+$count_query = "SELECT type, COUNT(*) as count FROM notifications WHERE user_id = ? GROUP BY type";
+$count_stmt = $conn->prepare($count_query);
+$count_stmt->bind_param("i", $user_id);
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
+
+while ($row = $count_result->fetch_assoc()) {
+    if (isset($type_counts[$row['type']])) {
+        $type_counts[$row['type']] = $row['count'];
+    }
 }
 $type_counts['all'] = array_sum($type_counts);
 ?>
@@ -469,6 +485,7 @@ $type_counts['all'] = array_sum($type_counts);
 
         <div class="notification-actions">
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 <input type="hidden" name="mark_read" value="1">
                 <button type="submit" class="btn-mark-read">
                     <i class="fas fa-check-double"></i>
@@ -526,13 +543,15 @@ $type_counts['all'] = array_sum($type_counts);
                     </div>
                 <?php endwhile; ?>
 
-                <div class="pagination">
-                    <?php for ($i = 1; $i <= $total_notification_pages; $i++): ?>
-                        <a href="?filter=<?= $filter ?>&notification_page=<?= $i ?>" <?= $i === $notification_page ? 'class="active"' : '' ?>>
-                            <?= $i ?>
-                        </a>
-                    <?php endfor; ?>
-                </div>
+                <?php if ($total_notification_pages > 1): ?>
+                    <div class="pagination">
+                        <?php for ($i = 1; $i <= $total_notification_pages; $i++): ?>
+                            <a href="?filter=<?= htmlspecialchars($filter) ?>&notification_page=<?= $i ?>" <?= $i === $notification_page ? 'class="active"' : '' ?>>
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -552,7 +571,7 @@ $type_counts['all'] = array_sum($type_counts);
 
         // Variables for real-time notification updates
         let lastNotificationId = <?= $max_notification_id ?? 0 ?>;
-        const currentFilter = '<?= $filter ?>';
+        const currentFilter = '<?= htmlspecialchars($filter) ?>';
 
         // Function to mark individual notification as read
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
@@ -601,6 +620,26 @@ $type_counts['all'] = array_sum($type_counts);
                         // Update unread count
                         document.getElementById('notification-badge').textContent = data.unread_count;
 
+                        // Make badge visible again if there are unread notifications
+                        if (data.unread_count > 0) {
+                            document.getElementById('notification-badge').style.display = '';
+                        }
+
+                        // Update notification counters for each filter
+                        fetch(`notifications.php?ajax=1`)
+                            .then(response => response.json())
+                            .then(countData => {
+                                if (countData.type_counts) {
+                                    // Update all count elements
+                                    for (const type in countData.type_counts) {
+                                        const countEl = document.querySelector(`.filter-btn[href="?filter=${type}"] .count`);
+                                        if (countEl) {
+                                            countEl.textContent = countData.type_counts[type];
+                                        }
+                                    }
+                                }
+                            });
+
                         // Add new notifications to the container
                         const container = document.getElementById('notifications-container');
 
@@ -610,74 +649,82 @@ $type_counts['all'] = array_sum($type_counts);
                             emptyState.remove();
                         }
 
-                        // Prepend new notifications
+                        // Prepend new notifications that match the current filter
                         data.notifications.forEach(note => {
-                            const card = document.createElement('div');
-                            card.className = `notification-card new ${note.is_read ? '' : 'unread'}`;
-                            card.dataset.id = note.id;
+                            // Check if this notification matches our current filter
+                            if (currentFilter === 'all' || note.type === currentFilter) {
+                                const card = document.createElement('div');
+                                card.className = `notification-card new ${note.is_read ? '' : 'unread'}`;
+                                card.dataset.id = note.id;
 
-                            // Create notification type badge
-                            let typeIcon = '';
-                            switch (note.type) {
-                                case 'appointment':
-                                    typeIcon = '<i class="fas fa-calendar-alt"></i>';
-                                    break;
-                                case 'system':
-                                    typeIcon = '<i class="fas fa-cog"></i>';
-                                    break;
-                                case 'reminder':
-                                    typeIcon = '<i class="fas fa-clock"></i>';
-                                    break;
-                            }
+                                // Create notification type badge
+                                let typeIcon = '';
+                                switch (note.type) {
+                                    case 'appointment':
+                                        typeIcon = '<i class="fas fa-calendar-alt"></i>';
+                                        break;
+                                    case 'system':
+                                        typeIcon = '<i class="fas fa-cog"></i>';
+                                        break;
+                                    case 'reminder':
+                                        typeIcon = '<i class="fas fa-clock"></i>';
+                                        break;
+                                }
 
-                            // Build card content
-                            card.innerHTML = `
-                                <div class="notification-message">${note.message}</div>
-                                <small class="notification-time">${note.time_ago}</small>
-                                <span class="notification-type ${note.type}">
-                                    ${typeIcon} ${note.type.charAt(0).toUpperCase() + note.type.slice(1)}
-                                </span>
-                                ${note.is_read ? '' : `
-                                <button class="mark-read-btn" data-id="${note.id}">
-                                    <i class="fas fa-check"></i> Mark as read
-                                </button>`}
-                            `;
+                                // Build card content
+                                card.innerHTML = `
+                                    <div class="notification-message">${note.message}</div>
+                                    <small class="notification-time">${note.time_ago}</small>
+                                    <span class="notification-type ${note.type}">
+                                        ${typeIcon} ${note.type.charAt(0).toUpperCase() + note.type.slice(1)}
+                                    </span>
+                                    ${note.is_read ? '' : `
+                                    <button class="mark-read-btn" data-id="${note.id}">
+                                        <i class="fas fa-check"></i> Mark as read
+                                    </button>`}
+                                `;
 
-                            // Add to container
-                            const pagination = container.querySelector('.pagination');
-                            if (pagination) {
-                                container.insertBefore(card, pagination);
-                            } else {
-                                container.appendChild(card);
-                            }
+                                // Add to container
+                                const firstCard = container.querySelector('.notification-card');
+                                if (firstCard) {
+                                    container.insertBefore(card, firstCard);
+                                } else {
+                                    const pagination = container.querySelector('.pagination');
+                                    if (pagination) {
+                                        container.insertBefore(card, pagination);
+                                    } else {
+                                        container.appendChild(card);
+                                    }
+                                }
 
-                            // Add event listener to mark-read button
-                            if (!note.is_read) {
-                                const btn = card.querySelector('.mark-read-btn');
-                                btn.addEventListener('click', function() {
-                                    const formData = new FormData();
-                                    formData.append('notification_id', note.id);
+                                // Add event listener to mark-read button
+                                if (!note.is_read) {
+                                    const btn = card.querySelector('.mark-read-btn');
+                                    btn.addEventListener('click', function() {
+                                        const formData = new FormData();
+                                        formData.append('notification_id', note.id);
 
-                                    fetch('mark_notification_read.php', {
-                                            method: 'POST',
-                                            body: formData
-                                        })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            if (data.success) {
-                                                card.classList.remove('unread');
-                                                btn.remove();
+                                        fetch('mark_notification_read.php', {
+                                                method: 'POST',
+                                                body: formData
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.success) {
+                                                    card.classList.remove('unread');
+                                                    btn.remove();
 
-                                                const badge = document.getElementById('notification-badge');
-                                                badge.textContent = data.unread_count;
+                                                    const badge = document.getElementById('notification-badge');
+                                                    badge.textContent = data.unread_count;
 
-                                                if (data.unread_count === 0) {
-                                                    badge.style.display = 'none';
+                                                    if (data.unread_count === 0) {
+                                                        badge.style.display = 'none';
+                                                    }
                                                 }
-                                            }
-                                        })
-                                        .catch(error => console.error('Error:', error));
-                                });
+                                            })
+                                            .catch(error => console.error('Error:', error));
+                                    });
+                                }
                             }
                         });
                     }

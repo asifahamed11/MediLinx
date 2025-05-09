@@ -12,21 +12,34 @@ $user_id = $_SESSION['user_id'];
 $success_message = "";
 $error_message = "";
 
+// Generate CSRF token if it doesn't exist
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
 // Check if the notification_settings table exists, if not create it
 $check_table = $conn->query("SHOW TABLES LIKE 'notification_settings'");
 if ($check_table->num_rows == 0) {
-    $create_table = "CREATE TABLE notification_settings (
-        id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        user_id INT(11) NOT NULL,
-        email_notifications BOOLEAN DEFAULT 1,
-        appointment_notifications BOOLEAN DEFAULT 1,
-        system_notifications BOOLEAN DEFAULT 1,
-        reminder_notifications BOOLEAN DEFAULT 1,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_user (user_id)
-    )";
-    $conn->query($create_table);
+    try {
+        $create_table = "CREATE TABLE notification_settings (
+            id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            user_id INT(11) NOT NULL,
+            email_notifications BOOLEAN DEFAULT 1,
+            appointment_notifications BOOLEAN DEFAULT 1,
+            system_notifications BOOLEAN DEFAULT 1,
+            reminder_notifications BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_user (user_id)
+        )";
+
+        if (!$conn->query($create_table)) {
+            throw new Exception("Error creating notification_settings table: " . $conn->error);
+        }
+    } catch (Exception $e) {
+        $error_message = $e->getMessage();
+    }
 }
 
 // Get user notification settings
@@ -51,34 +64,39 @@ $settings = $result->fetch_assoc();
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email_notifications = isset($_POST['email_notifications']) ? 1 : 0;
-    $appointment_notifications = isset($_POST['appointment_notifications']) ? 1 : 0;
-    $system_notifications = isset($_POST['system_notifications']) ? 1 : 0;
-    $reminder_notifications = isset($_POST['reminder_notifications']) ? 1 : 0;
-
-    $update = $conn->prepare("UPDATE notification_settings 
-        SET email_notifications = ?, 
-            appointment_notifications = ?, 
-            system_notifications = ?, 
-            reminder_notifications = ? 
-        WHERE user_id = ?");
-    $update->bind_param(
-        "iiiii",
-        $email_notifications,
-        $appointment_notifications,
-        $system_notifications,
-        $reminder_notifications,
-        $user_id
-    );
-
-    if ($update->execute()) {
-        $success_message = "Notification preferences updated successfully!";
-        // Update the settings to reflect changes
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $settings = $result->fetch_assoc();
+    // Verify CSRF token
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $error_message = "Invalid form submission.";
     } else {
-        $error_message = "Failed to update preferences. Please try again.";
+        $email_notifications = isset($_POST['email_notifications']) ? 1 : 0;
+        $appointment_notifications = isset($_POST['appointment_notifications']) ? 1 : 0;
+        $system_notifications = isset($_POST['system_notifications']) ? 1 : 0;
+        $reminder_notifications = isset($_POST['reminder_notifications']) ? 1 : 0;
+
+        $update = $conn->prepare("UPDATE notification_settings 
+            SET email_notifications = ?, 
+                appointment_notifications = ?, 
+                system_notifications = ?, 
+                reminder_notifications = ? 
+            WHERE user_id = ?");
+        $update->bind_param(
+            "iiiii",
+            $email_notifications,
+            $appointment_notifications,
+            $system_notifications,
+            $reminder_notifications,
+            $user_id
+        );
+
+        if ($update->execute()) {
+            $success_message = "Notification preferences updated successfully!";
+            // Update the settings to reflect changes
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $settings = $result->fetch_assoc();
+        } else {
+            $error_message = "Failed to update preferences. Please try again.";
+        }
     }
 }
 ?>
@@ -276,6 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="settings-card">
                 <div class="form-group">
                     <div class="option-container">

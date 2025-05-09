@@ -71,9 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Create appointment
         $apptStmt = $conn->prepare("INSERT INTO appointments 
-            (patient_id, slot_id, reason) 
-            VALUES (?, ?, ?)");
-        $apptStmt->bind_param("iis", $patient_id, $slot_id, $reason);
+            (patient_id, slot_id, reason, doctor_id, start_time, end_time, location) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $apptStmt->bind_param("iisisss", $patient_id, $slot_id, $reason, $slot['doctor_id'], $slot['start_time'], $slot['end_time'], $slot['location']);
         $apptStmt->execute();
 
         // Update booked_count

@@ -1,10 +1,16 @@
 CREATE TABLE `appointments` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `patient_id` int(11) NOT NULL,
+  `doctor_id` int(11) DEFAULT NULL,
   `slot_id` int(11) NOT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
   `reason` text DEFAULT NULL,
   `status` enum('confirmed','completed','cancelled') DEFAULT 'confirmed',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `degrees` (
@@ -51,12 +57,16 @@ CREATE TABLE `reviews` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `time_slots` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `doctor_id` int(11) NOT NULL,
   `start_time` datetime NOT NULL,
   `end_time` datetime NOT NULL,
   `location` varchar(255) NOT NULL,
-  `status` enum('available','booked','cancelled') DEFAULT 'available'
+  `status` enum('available','booked','cancelled') DEFAULT 'available',
+  `capacity` int(11) DEFAULT 20,
+  `booked_count` int(11) DEFAULT 0,
+  `slot_duration` int(11) DEFAULT 30 COMMENT 'Duration of each appointment slot in minutes',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `users` (
