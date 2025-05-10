@@ -5,6 +5,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 session_start();
 
+require_once 'config.php';  // Include database configuration
+
 // Include PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -13,10 +15,10 @@ use PHPMailer\PHPMailer\Exception;
 require 'vendor/autoload.php';
 
 
-$servername = "localhost";
-$username_db = "root";
-$password_db = "";
-$dbname = "medilinx";
+$servername = DB_HOST;
+$username_db = DB_USER;
+$password_db = DB_PASS;
+$dbname = DB_NAME;
 
 // Create connection
 $conn = new mysqli($servername, $username_db, $password_db, $dbname);
