@@ -161,13 +161,24 @@ try {
         }
     }
 
-    // Generate 6-digit PIN
-    $pin = sprintf("%06d", mt_rand(0, 999999));
+    // Generate 6-digit PIN (avoiding common patterns)
+    do {
+        $pin = sprintf("%06d", mt_rand(0, 999999));
+    } while (
+        // Avoid sequential numbers
+        preg_match('/^(\d)\1{5}$/', $pin) || // e.g., 111111
+        preg_match('/^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/', $pin) ||
+        $pin === '123123' ||
+        $pin === '000000'
+    );
 
-    // Insert user into database with PIN
+    // Set PIN expiration to 24 hours from now
+    $pin_expiry = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+    // Insert user into database with PIN        
     if ($role === 'patient') {
-        $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image_path, $pin);
+        $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, address, medical_history, profile_image, email_verification_pin, email_verification_pin_expiry) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssssssss", $role, $username, $email, $hashed_password, $phone, $date_of_birth, $gender, $address, $medical_history, $profile_image_path, $pin, $pin_expiry);
 
         if (!$stmt->execute()) {
             throw new Exception("Error in patient registration: " . $stmt->error);
@@ -175,10 +186,10 @@ try {
 
         $user_id = $conn->insert_id;
     } else if ($role === 'doctor') {
-        $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, years_of_experience, medical_license_number, languages_spoken, profile_image, professional_biography, email_verification_pin, degrees_and_certifications) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO users (role, username, email, password, phone, date_of_birth, gender, specialty, years_of_experience, medical_license_number, languages_spoken, profile_image, professional_biography, email_verification_pin, email_verification_pin_expiry, degrees_and_certifications) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         $stmt->bind_param(
-            "ssssssssissssss",
+            "ssssssssississss",
             $role,
             $username,
             $email,
@@ -193,6 +204,7 @@ try {
             $profile_image_path,
             $professional_biography,
             $pin,
+            $pin_expiry,
             $degrees_and_certifications
         );
 

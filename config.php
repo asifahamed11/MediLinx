@@ -1,6 +1,23 @@
 <?php
 // config.php
-// At the top of config.php
+
+// Configure secure session settings before any session operations
+if (session_status() == PHP_SESSION_NONE) {
+    // Set secure session parameters
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_secure', 1);
+    ini_set('session.cookie_samesite', 'Strict');
+
+    // Set session garbage collection
+    ini_set('session.gc_maxlifetime', 3600); // 1 hour
+    ini_set('session.gc_probability', 1);
+    ini_set('session.gc_divisor', 100);
+
+    session_start();
+}
+
+// Generate CSRF token if not exists
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }

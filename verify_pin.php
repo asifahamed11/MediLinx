@@ -1,23 +1,18 @@
 <?php
-session_start();
 require_once 'config.php';
+
+require_once 'config.php';
+
+// Redirect if already verified
+if (isset($_SESSION['user_id']) && !isset($_SESSION['needs_verification'])) {
+    header("Location: dashboard.php");
+    exit;
+}
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Database configuration
-    $servername = "localhost";
-    $username_db = "root";
-    $password_db = "";
-    $dbname = "medilinx";
-
     try {
-        // Create connection
-        $conn = new mysqli($servername, $username_db, $password_db, $dbname);
-
-        // Check connection
-        if ($conn->connect_error) {
-            throw new Exception("Connection failed");
-        }
+        $conn = connectDB();
 
         // Get and validate PIN
         $pin = trim($_POST['pin'] ?? '');
@@ -26,12 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Invalid PIN format");
         }
 
-        // Set timezone
-        date_default_timezone_set('Asia/Dhaka');
-        $current_time = date("Y-m-d H:i:s");
+        // Check for brute force attempts
+        if (isset($_SESSION['pin_attempts'])) {
+            if ($_SESSION['pin_attempts'] >= 5) {
+                $last_attempt = strtotime($_SESSION['last_pin_attempt']);
+                $cooldown = 300; // 5 minutes cooldown
+                if (time() - $last_attempt < $cooldown) {
+                    throw new Exception("Too many attempts. Please try again in " . ceil(($cooldown - (time() - $last_attempt)) / 60) . " minutes.");
+                } else {
+                    $_SESSION['pin_attempts'] = 0;
+                }
+            }
+        } else {
+            $_SESSION['pin_attempts'] = 0;
+        }
+        $_SESSION['pin_attempts']++;
+        $_SESSION['last_pin_attempt'] = date('Y-m-d H:i:s');
 
-        // Check PIN validity
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email_verification_pin = ? AND email_verified_at IS NULL");
+        // Check PIN validity, expiration, and get complete user data
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email_verification_pin = ? AND email_verified_at IS NULL AND (email_verification_pin_expiry > NOW())");
         if (!$stmt) {
             throw new Exception("Database error");
         }
@@ -42,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($row = $result->fetch_assoc()) {
             // Update verification status
-            $update_stmt = $conn->prepare("UPDATE users SET email_verified_at = NOW(), email_verification_pin = NULL WHERE id = ?");
+            $update_stmt = $conn->prepare("UPDATE users SET email_verified_at = NOW(), email_verification_pin = NULL, email_verification_pin_expiry = NULL WHERE id = ?");
             if (!$update_stmt) {
                 throw new Exception("Database error");
             }
@@ -50,14 +58,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $update_stmt->bind_param("i", $row['id']);
 
             if ($update_stmt->execute()) {
-                $_SESSION['success'] = ""; //Email verified successfully
+                // Reset verification attempts on success
+                unset($_SESSION['pin_attempts']);
+                unset($_SESSION['last_pin_attempt']);
+                unset($_SESSION['needs_verification']);
+
+                // Set complete session data
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['role'] = $row['role'];
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['email'] = $row['email'];
+                $_SESSION['email_verified'] = true;
+                $_SESSION['profile_image'] = $row['profile_image'];
+
+                // Add role-specific data to session
+                if ($row['role'] === 'doctor') {
+                    $_SESSION['specialty'] = $row['specialty'];
+                    $_SESSION['medical_license_number'] = $row['medical_license_number'];
+                }                // Regenerate session ID for security
+                session_regenerate_id(true);
+
+                $_SESSION['success'] = "Email verified successfully! Welcome to MediLinx.";
+
+                // Log successful verification
+                error_log("User ID: {$row['id']} successfully verified their email.");
+
+                // Ensure proper role-based redirection
+                if ($row['role'] === 'doctor') {
+                    $_SESSION['doctor_id'] = $row['id'];
+                } else if ($row['role'] === 'patient') {
+                    $_SESSION['patient_id'] = $row['id'];
+                }
+
+                // Clear any leftover session data from previous attempts
+                if (isset($_SESSION['verification_email'])) {
+                    unset($_SESSION['verification_email']);
+                }
+
                 header("Location: dashboard.php");
                 exit;
             } else {
                 throw new Exception("Error updating verification status");
             }
         } else {
-            throw new Exception("Invalid verification PIN");
+            throw new Exception("Invalid or expired verification PIN");
         }
     } catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
