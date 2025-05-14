@@ -20,6 +20,8 @@ $unread_result = $unread_query->get_result();
 $unread_data = $unread_result->fetch_assoc();
 $unread_count = $unread_data['count'];
 ?>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
     :root {
         --navbar-height: 70px;
@@ -37,8 +39,22 @@ $unread_count = $unread_data['count'];
         position: sticky;
         top: 0;
         z-index: 1000;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
+            0 8px 30px rgba(0, 0, 0, 0.12);
         animation: navbarSlideDown 0.8s var(--transition-bounce);
+    }
+
+    /* Add subtle texture to navbar */
+    .navbar::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.4;
+        pointer-events: none;
     }
 
     @keyframes navbarSlideDown {
@@ -75,6 +91,13 @@ $unread_count = $unread_data['count'];
         padding: 0.5rem 1rem;
         border-radius: 8px;
         overflow: hidden;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-brand svg {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        transition: all 0.4s var(--transition-bounce);
     }
 
     .nav-brand::before {
@@ -82,7 +105,7 @@ $unread_count = $unread_data['count'];
         position: absolute;
         top: 0;
         left: -100%;
-        width: 100%;
+        width: 97%;
         height: 100%;
         background: rgba(255, 255, 255, 0.1);
         transition: transform 0.6s var(--transition-smooth);
@@ -91,7 +114,12 @@ $unread_count = $unread_data['count'];
 
     .nav-brand:hover {
         transform: translateX(3px) scale(1.05);
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+    }
+
+    .nav-brand:hover svg {
+        transform: rotate(-10deg) scale(1.1);
+        filter: drop-shadow(0 2px 8px rgba(42, 157, 143, 0.5));
     }
 
     .nav-brand:hover::before {
@@ -114,14 +142,18 @@ $unread_count = $unread_data['count'];
         align-items: center;
         gap: 0.5rem;
         opacity: 0.85;
+        font-weight: 500;
+        letter-spacing: 0.01em;
     }
 
     .nav-link svg {
         transition: transform 0.4s var(--transition-bounce);
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
     }
 
     .nav-link span {
         position: relative;
+        transition: all 0.3s var(--transition-bounce);
     }
 
     .nav-link::after {
@@ -135,6 +167,7 @@ $unread_count = $unread_data['count'];
         transition: width 0.4s var(--transition-bounce);
         transform-origin: left center;
         border-radius: 2px;
+        box-shadow: 0 0 8px rgba(42, 157, 143, 0.5);
     }
 
     .nav-link:hover {
@@ -142,26 +175,53 @@ $unread_count = $unread_data['count'];
         color: var(--light);
     }
 
+    .nav-link:hover span {
+        transform: translateY(-2px);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+    }
+
     .nav-link:hover svg {
         transform: translateY(-3px) scale(1.15);
+        filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
     }
 
     .nav-link:hover::after {
         width: 100%;
     }
 
-    @keyframes pulse {
-        0% {
-            box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.6);
-        }
+    /* Profile icon container */
+    .profile-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px;
+        position: relative;
+        transition: all 0.4s var(--transition-bounce);
+        border-radius: 50%;
+    }
 
-        70% {
-            box-shadow: 0 0 0 10px rgba(42, 157, 143, 0);
-        }
+    .profile-icon-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(42, 157, 143, 0.2);
+        border-radius: 50%;
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.3s var(--transition-smooth);
+    }
 
-        100% {
-            box-shadow: 0 0 0 0 rgba(42, 157, 143, 0);
-        }
+    .dropdown-toggle:hover .profile-icon-container {
+        transform: translateY(-2px);
+    }
+
+    .dropdown-toggle:hover .profile-icon-container::after,
+    .dropdown-toggle.active .profile-icon-container::after {
+        opacity: 1;
+        transform: scale(1.2);
     }
 
     .nav-button {
@@ -225,7 +285,6 @@ $unread_count = $unread_data['count'];
         background-color: var(--accent);
         color: white;
         border-radius: 50%;
-
         font-size: 0.7rem;
         font-weight: bold;
         display: flex;
@@ -234,20 +293,23 @@ $unread_count = $unread_data['count'];
         min-width: 18px;
         height: 18px;
         animation: badgePulse 2s infinite;
-        box-shadow: 0 0 0 rgba(231, 111, 81, 0.4);
+        box-shadow: 0 2px 6px rgba(231, 111, 81, 0.5);
     }
 
     @keyframes badgePulse {
         0% {
             box-shadow: 0 0 0 0 rgba(231, 111, 81, 0.7);
+            transform: scale(0.95);
         }
 
         70% {
             box-shadow: 0 0 0 8px rgba(231, 111, 81, 0);
+            transform: scale(1.05);
         }
 
         100% {
             box-shadow: 0 0 0 0 rgba(231, 111, 81, 0);
+            transform: scale(0.95);
         }
     }
 
@@ -263,15 +325,21 @@ $unread_count = $unread_data['count'];
     /* Current page indicator */
     .nav-link.active {
         opacity: 1;
+        font-weight: 600;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .nav-link.active::after {
-        background: var(--accent);
+        background: linear-gradient(90deg, var(--accent), #F8A27A);
         height: 3px;
+        width: 100%;
+        box-shadow: 0 0 10px rgba(231, 111, 81, 0.7);
     }
 
     .nav-link.active svg {
         color: var(--accent);
+        filter: drop-shadow(0 2px 4px rgba(231, 111, 81, 0.3));
+        transform: translateY(-2px);
     }
 
     /* Mobile Menu */
@@ -282,12 +350,23 @@ $unread_count = $unread_data['count'];
         color: white;
         cursor: pointer;
         padding: 0.5rem;
+        transition: all 0.3s var(--transition-bounce);
+    }
+
+    .mobile-menu-toggle svg {
+        transition: all 0.3s var(--transition-bounce);
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+
+    .mobile-menu-toggle:hover svg {
+        transform: scale(1.1);
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
     /* Mobile Responsive */
     @media (max-width: 768px) {
         .navbar {
-            padding: 0 1rem;
+            padding: 0 1.25rem;
         }
 
         .nav-container {
@@ -303,20 +382,46 @@ $unread_count = $unread_data['count'];
             position: fixed;
             top: 0;
             right: -100%;
-            width: 70%;
+            width: 75%;
             height: 100vh;
             background: linear-gradient(135deg, #1a2f38 0%, var(--secondary) 100%);
             flex-direction: column;
             justify-content: center;
-            padding: 2rem;
+            padding: 2.5rem 2rem;
             transition: right 0.5s var(--transition-smooth);
             gap: 2rem;
             box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-links::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+            pointer-events: none;
         }
 
         .nav-links.active {
             right: 0;
+            animation: mobileMenuSlideIn 0.5s var(--transition-bounce);
+        }
+
+        @keyframes mobileMenuSlideIn {
+            from {
+                transform: translateX(20px);
+                opacity: 0.8;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .nav-link {
@@ -369,16 +474,23 @@ $unread_count = $unread_data['count'];
     }
 
     .dropdown-toggle::after {
-        content: '';
+        content: '\f078';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
         display: inline-block;
         margin-left: 0.3em;
-        vertical-align: middle;
-        border-top: 0.3em solid;
-        border-right: 0.3em solid transparent;
-        border-bottom: 0;
-        border-left: 0.3em solid transparent;
+        font-size: 0.75em;
+        transition: all 0.3s var(--transition-bounce);
         position: relative;
-        top: 0.1em;
+        top: 0;
+        opacity: 0.7;
+    }
+
+    .dropdown-toggle.active::after,
+    .dropdown-toggle:hover::after {
+        transform: translateY(3px);
+        opacity: 1;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
     }
 
     .dropdown-menu {
@@ -388,25 +500,51 @@ $unread_count = $unread_data['count'];
         z-index: 1000;
         display: none;
         min-width: 220px;
-        padding: 0.5rem 0;
+        padding: 0.75rem 0;
         margin: 0.125rem 0 0;
         background: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        animation: dropdownFadeIn 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15),
+            0 5px 15px rgba(0, 0, 0, 0.08),
+            0 0 0 1px rgba(0, 0, 0, 0.03);
+        animation: dropdownFadeIn 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.3);
         transform-origin: top center;
         overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @supports (backdrop-filter: blur(10px)) {
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
     }
 
     @keyframes dropdownFadeIn {
         from {
             opacity: 0;
-            transform: translateY(-10px) scale(0.95);
+            transform: translateY(-15px) scale(0.98);
         }
 
         to {
             opacity: 1;
             transform: translateY(0) scale(1);
+        }
+    }
+
+    @supports (filter: blur(5px)) {
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-15px) scale(0.98);
+                filter: blur(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
         }
     }
 
@@ -423,19 +561,71 @@ $unread_count = $unread_data['count'];
         font-weight: 500;
         color: var(--secondary);
         text-decoration: none;
-        transition: all 0.2s ease;
+        transition: all 0.3s var(--transition-bounce);
+        opacity: 0;
+        transform: translateY(-8px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dropdown-item::before {
+        content: '';
+        position: absolute;
+        left: -100%;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(42, 157, 143, 0.08), transparent);
+        transition: left 0.5s var(--transition-smooth);
+    }
+
+    .dropdown-menu.show .dropdown-item {
+        animation: dropdownItemFadeIn 0.4s forwards;
+    }
+
+    .dropdown-menu.show .dropdown-item:nth-child(1) {
+        animation-delay: 0.05s;
+    }
+
+    .dropdown-menu.show .dropdown-item:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .dropdown-menu.show .dropdown-item:nth-child(3) {
+        animation-delay: 0.15s;
+    }
+
+    .dropdown-menu.show .dropdown-item:nth-child(4) {
+        animation-delay: 0.2s;
+    }
+
+    .dropdown-menu.show .dropdown-item:nth-child(5) {
+        animation-delay: 0.25s;
+    }
+
+    @keyframes dropdownItemFadeIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .dropdown-item:hover {
         background-color: rgba(42, 157, 143, 0.08);
         color: var(--primary);
-        transform: translateX(3px);
+        transform: translateX(5px);
+        box-shadow: inset 3px 0 0 var(--primary);
     }
 
     .dropdown-item.active {
         background-color: rgba(42, 157, 143, 0.12);
         color: var(--primary);
         font-weight: 600;
+        box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .dropdown-item:hover::before {
+        left: 100%;
     }
 
     .dropdown-item i {
@@ -445,7 +635,8 @@ $unread_count = $unread_data['count'];
     }
 
     .dropdown-item:hover i {
-        transform: scale(1.1);
+        transform: scale(1.15);
+        color: var(--primary);
     }
 
     @media (max-width: 768px) {
@@ -457,25 +648,59 @@ $unread_count = $unread_data['count'];
             border-radius: 0.75rem;
             margin-top: 0.5rem;
             padding: 0.5rem;
+            backdrop-filter: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: mobileDropdownFadeIn 0.3s ease;
+        }
+
+        @keyframes mobileDropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .dropdown-item {
             color: white;
             padding: 0.75rem 1rem;
+            opacity: 1;
+            transform: none;
+        }
+
+        .dropdown-menu.show .dropdown-item {
+            animation: none;
+            opacity: 1;
+            transform: none;
         }
 
         .dropdown-item:hover {
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .dropdown-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: none;
         }
 
         .dropdown-item i {
             color: rgba(255, 255, 255, 0.8);
         }
 
-        .dropdown-item.active {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: white;
+        .dropdown-toggle::after {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .profile-icon-container {
+            padding: 0;
         }
     }
 </style>
@@ -520,11 +745,13 @@ $unread_count = $unread_data['count'];
             </a>
 
             <div class="dropdown">
-                <a href="javascript:void(0)" class="nav-link dropdown-toggle <?php echo in_array(basename($_SERVER['PHP_SELF']), ['profile.php', 'appointments.php', 'manage_time_slots.php', 'create_post.php']) ? 'active' : ''; ?>" onclick="toggleProfileDropdown()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+                <a href="javascript:void(0)" class="nav-link dropdown-toggle <?php echo in_array(basename($_SERVER['PHP_SELF']), ['profile.php', 'appointments.php', 'manage_time_slots.php', 'create_post.php']) ? 'active' : ''; ?>" onclick="toggleProfileDropdown(event)">
+                    <div class="profile-icon-container">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
                     <span>Profile</span>
                 </a>
                 <div class="dropdown-menu" id="profileDropdown">
@@ -596,16 +823,37 @@ $unread_count = $unread_data['count'];
             });
         }
 
+        // Initialize dropdowns
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        // Set initial state to ensure CSS works properly
+        if (profileDropdown && profileDropdown.classList.contains('show')) {
+            dropdownToggle.classList.add('active');
+        }
+
         // Close profile dropdown when clicking outside
         document.addEventListener('click', function(event) {
             if (!event.target.closest('.dropdown')) {
-                document.getElementById('profileDropdown').classList.remove('show');
+                const dropdown = document.getElementById('profileDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                    const toggle = document.querySelector('.dropdown-toggle');
+                    if (toggle) toggle.classList.remove('active');
+                }
             }
         });
     });
 
     // Profile dropdown toggle
-    function toggleProfileDropdown() {
-        document.getElementById('profileDropdown').classList.toggle('show');
+    function toggleProfileDropdown(event) {
+        if (event) event.preventDefault();
+        const dropdown = document.getElementById('profileDropdown');
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+
+        if (dropdown && dropdownToggle) {
+            dropdown.classList.toggle('show');
+            dropdownToggle.classList.toggle('active');
+        }
     }
 </script>
