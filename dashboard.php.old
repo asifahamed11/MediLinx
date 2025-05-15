@@ -832,6 +832,16 @@ $conn->close();
             --radius-md: 1rem;
             --radius-lg: 1.5rem;
             --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+            /* NEW AI THEME COLORS */
+            --ai-primary: #6a3093;
+            --ai-secondary: #a044ff;
+            --ai-gradient: linear-gradient(135deg, var(--ai-primary) 0%, var(--ai-secondary) 100%);
+            --ai-light: rgba(106, 48, 147, 0.1);
+            --emergency: #e53935;
+            --emergency-light: #ff5252;
+            --urgent: #ff9800;
+            --urgent-light: #ffb74d;
         }
 
         body {
@@ -917,64 +927,40 @@ $conn->close();
             color: var(--secondary);
             margin-bottom: 2rem;
             position: relative;
+            display: inline-block;
             font-weight: 700;
             letter-spacing: -0.02em;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary-light) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            padding-bottom: 8px;
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
-            max-width: 1100px;
         }
 
         .page-title:after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
+            bottom: -5px;
+            left: 0;
+            width: 60%;
             height: 4px;
             background: var(--primary-gradient);
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(29, 122, 140, 0.3);
         }
 
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 1.6rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .page-title:after {
-                width: 80px;
-            }
-        }
-
         .search-section {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 2rem;
+            padding: 3rem;
             border-radius: var(--radius-lg);
             box-shadow:
                 0 10px 30px rgba(29, 122, 140, 0.1),
                 0 1px 1px rgba(255, 255, 255, 0.5) inset,
                 0 -1px 1px rgba(255, 255, 255, 0.3) inset;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
             position: relative;
             overflow: hidden;
             transform: translateZ(0);
             transition: var(--transition);
             border: 1px solid rgba(255, 255, 255, 0.5);
-            max-width: 1100px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .search-section:hover {
@@ -1024,7 +1010,7 @@ $conn->close();
 
         .search-header h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             background: var(--primary-gradient);
             -webkit-background-clip: text;
             background-clip: text;
@@ -1051,98 +1037,19 @@ $conn->close();
 
         .search-header p {
             color: var(--text-light);
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             max-width: 600px;
-            margin: 0.75rem auto 0;
+            margin: 1rem auto 0;
             line-height: 1.5;
         }
 
-        /* Modern tabbed interface for search types */
-        .search-tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 5;
-        }
-
-        .search-tab {
-            padding: 0.85rem 1.5rem;
-            border: none;
-            background: transparent;
-            color: var(--text-light);
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .search-tab.active {
-            color: var(--primary);
-        }
-
-        .search-tab:hover {
-            color: var(--primary-dark);
-            background: rgba(29, 122, 140, 0.05);
-        }
-
-        .search-tab i {
-            font-size: 1.1rem;
-        }
-
-        .search-tab::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%) scaleX(0);
-            width: 30px;
-            height: 3px;
-            background: var(--primary-gradient);
-            transition: transform 0.3s var(--transition-bounce);
-            transform-origin: center;
-            border-radius: 3px;
-        }
-
-        .search-tab.active::after {
-            transform: translateX(-50%) scaleX(1);
-        }
-
-        .tab-indicator {
-            position: absolute;
-            bottom: 0;
-            height: 3px;
-            border-radius: 3px;
-            background: var(--primary-gradient);
-            transition: all 0.3s var(--transition-bounce);
-        }
-
-        .search-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .search-panel {
-            display: none;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .search-panel.active {
-            display: block;
-        }
-
-        /* Redesigned search forms */
         .search-form {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
             position: relative;
             z-index: 1;
+            margin-top: 1.5rem;
         }
 
         .search-group {
@@ -1151,10 +1058,10 @@ $conn->close();
 
         .search-input {
             width: 100%;
-            padding: 1rem 1.25rem;
+            padding: 1.25rem 1.5rem;
             border: 2px solid var(--border);
             border-radius: var(--radius-md);
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-family: 'Poppins', sans-serif;
             transition: all 0.3s var(--transition-bounce);
             background: rgba(255, 255, 255, 0.8);
@@ -1164,11 +1071,24 @@ $conn->close();
             -webkit-backdrop-filter: blur(5px);
         }
 
+        .search-input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(29, 122, 140, 0.2), 0 1px 2px rgba(255, 255, 255, 0.5) inset;
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-lighter);
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
         .search-button {
             background: var(--primary-gradient);
             color: white;
             border: none;
-            padding: 1rem 1.5rem;
+            padding: 1.15rem 2rem;
             border-radius: var(--radius-md);
             font-weight: 600;
             cursor: pointer;
@@ -1178,110 +1098,87 @@ $conn->close();
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             letter-spacing: 0.3px;
             position: relative;
             overflow: hidden;
             z-index: 1;
             text-transform: uppercase;
-            min-width: 180px;
         }
 
-        /* Redesigned search divider */
-        .search-divider {
-            display: none;
-            /* Hide in tabbed layout */
-        }
-
-        /* Enhanced AI search section */
-        .ai-search-section {
-            text-align: center;
-            padding: 0.5rem 0 0;
-            animation: fadeIn 0.6s ease-out 0.3s both;
-        }
-
-        .ai-search-form {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 1rem;
-            max-width: 750px;
-            margin: 0 auto;
-        }
-
-        .ai-search-input-container {
-            flex: 1;
-            position: relative;
-            padding-right: 45px;
-            /* Add space for the microphone button */
-        }
-
-        .ai-search-input {
-            padding: 1rem 2.8rem;
-            font-size: 0.95rem;
-            border-width: 2px;
-            transition: all 0.4s var(--transition-bounce);
-            animation: soft-pulse 3s infinite;
-            width: 100%;
-        }
-
-        .multilingual-badge {
+        .search-button::before {
+            content: '';
             position: absolute;
-            right: auto;
-            left: 2.8rem;
-            top: -8px;
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            z-index: 2;
-            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.3);
-            letter-spacing: 0.5px;
-            transform: translateY(0);
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
         }
 
-        .multilingual-badge i {
-            font-size: 0.9rem;
+        .search-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s var(--transition-bounce);
+            z-index: -1;
         }
 
-        .ai-search-input-container:hover .multilingual-badge {
+        .search-button:hover {
             transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(29, 122, 140, 0.4), 0 1px 2px rgba(255, 255, 255, 0.3) inset;
+            background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
         }
 
-        /* Results section spacing */
+        .search-button:hover::before {
+            opacity: 1;
+        }
+
+        .search-button:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .search-button:active {
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(29, 122, 140, 0.3);
+        }
+
+        .search-button i {
+            font-size: 1.1rem;
+            transition: all 0.4s var(--transition-bounce);
+        }
+
+        .search-button:hover i {
+            transform: translateX(3px) scale(1.1) rotate(10deg);
+            color: rgba(255, 255, 255, 0.95);
+        }
+
         .results-info {
-            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .search-section {
-                padding: 1.5rem;
-            }
+        .results-count {
+            color: var(--text);
+            font-size: 1.1rem;
+        }
 
-            .search-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .search-tab {
-                padding: 0.75rem 1rem;
-                font-size: 0.85rem;
-            }
-
-            .ai-search-form {
-                flex-direction: column;
-            }
-
-            .search-button,
-            .ai-search-button {
-                width: 100%;
-            }
+        .results-count span {
+            color: var(--primary);
+            font-weight: 600;
         }
 
         .doctors-grid {
@@ -2147,12 +2044,12 @@ $conn->close();
             }
         }
 
-        /* AI Doctor Search Styles */
+        /* AI Doctor Search Styles - Modernized & Compact */
         .search-divider {
             position: relative;
             text-align: center;
-            margin: 1.5rem 0;
-            height: 15px;
+            margin: 0.75rem 0;
+            height: 12px;
         }
 
         .search-divider::before {
@@ -2162,7 +2059,7 @@ $conn->close();
             left: 0;
             right: 0;
             height: 1px;
-            background: rgba(29, 122, 140, 0.15);
+            background: rgba(29, 122, 140, 0.1);
             z-index: 1;
         }
 
@@ -2171,759 +2068,140 @@ $conn->close();
             display: inline-block;
             padding: 0 1rem;
             background: white;
-            color: var(--text-light);
-            font-weight: 600;
-            font-size: 0.85rem;
+            color: var(--text-lighter);
+            font-weight: 500;
+            font-size: 0.8rem;
             z-index: 2;
             border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             background: rgba(255, 255, 255, 0.9);
         }
 
         .ai-search-section {
-            text-align: center;
-            padding: 0.75rem 0 0;
-            animation: fadeIn 0.6s ease-out 0.3s both;
-        }
-
-        .ai-search-section h3 {
-            color: var(--primary);
-            font-size: 1.25rem;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .ai-search-section h3 i {
-            font-size: 1.1rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .ai-search-section p {
-            color: var(--text-light);
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
+            margin: 0.5rem 0;
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
         }
 
         .ai-search-form {
             display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 1rem;
-            max-width: 750px;
-            margin: 0 auto;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            max-width: 100%;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50px;
+            padding: 0.35rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(106, 48, 147, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .ai-search-form:hover,
+        .ai-search-form:focus-within {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(106, 48, 147, 0.15);
         }
 
         .ai-search-input-container {
             flex: 1;
             position: relative;
-            padding-right: 45px;
-            /* Add space for the microphone button */
+            margin: 0;
         }
 
         .ai-search-input {
-            font-size: 1rem;
-            border-width: 2px;
-            transition: all 0.4s var(--transition-bounce);
-            animation: soft-pulse 3s infinite;
-            padding: 1rem 1.25rem 1rem 2.8rem;
-            width: 100%;
-        }
-
-        .ai-search-input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            transition: all 0.3s ease;
-        }
-
-        .ai-search-input:focus+.ai-search-input-icon {
-            color: var(--primary-dark);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .multilingual-badge {
-            position: absolute;
-            right: auto;
-            left: 2.8rem;
-            top: -8px;
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            z-index: 2;
-            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.3);
-            letter-spacing: 0.5px;
-            transform: translateY(0);
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .multilingual-badge i {
-            font-size: 0.9rem;
-        }
-
-        .ai-search-input-container:hover .multilingual-badge {
-            transform: translateY(-3px);
-        }
-
-        @keyframes soft-pulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 rgba(29, 122, 140, 0);
-            }
-
-            50% {
-                box-shadow: 0 0 15px rgba(29, 122, 140, 0.15);
-            }
-        }
-
-        .ai-search-button {
-            margin: 0;
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            min-width: 180px;
-            padding: 1rem 1.25rem;
-            white-space: nowrap;
-            align-self: flex-start;
-        }
-
-        @media (max-width: 650px) {
-            .ai-search-form {
-                flex-direction: column;
-            }
-
-            .ai-search-button {
-                margin: 0 auto;
-                min-width: 250px;
-            }
-        }
-
-        /* AI Results Section */
-        .ai-results-section {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        .ai-recommendation {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .ai-recommendation-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .ai-recommendation-header i {
-            font-size: 1.2rem;
-            color: white;
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            box-shadow: 0 5px 15px rgba(106, 48, 147, 0.3);
-        }
-
-        .ai-recommendation-header h3 {
-            font-size: 1.3rem;
-            color: var(--secondary);
-            margin: 0;
-        }
-
-        .ai-recommendation p {
-            color: var(--text-light);
-            font-size: 1rem;
-            margin: 0;
-        }
-
-        .ai-specialties {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        .ai-specialty {
-            background: rgba(29, 122, 140, 0.1);
-            color: var(--primary-dark);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
             font-size: 0.95rem;
             transition: all 0.3s ease;
-            border: 1px solid rgba(29, 122, 140, 0.1);
-        }
-
-        .ai-specialty:hover {
-            background: rgba(29, 122, 140, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(29, 122, 140, 0.1);
-        }
-
-        .ai-specialty i {
-            color: var(--primary);
-            font-size: 1rem;
-        }
-
-        .ai-doctors-section {
-            margin-top: 1.5rem;
-        }
-
-        .ai-doctors-title {
-            color: var(--primary);
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .ai-doctors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            padding: 0.5rem 0;
-        }
-
-        .ai-doctor-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow:
-                0 15px 25px rgba(0, 0, 0, 0.05),
-                0 1px 1px rgba(255, 255, 255, 0.7) inset;
-            transition: all 0.4s var(--transition-bounce);
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            height: 100%;
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
-
-        .ai-doctor-image-container {
-            position: relative;
+            padding: 0.65rem 0.5rem 0.65rem 2.4rem;
             width: 100%;
-            height: 220px;
-            overflow: hidden;
-        }
-
-        .ai-doctor-content {
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            height: calc(100% - 220px);
-            position: relative;
-            z-index: 2;
-        }
-
-        .ai-doctor-specialty {
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            font-size: 0.95rem;
-            position: relative;
-            display: inline-block;
-            padding-bottom: 4px;
-        }
-
-        .ai-doctor-name {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin: 0.25rem 0;
-            color: var(--secondary);
-            letter-spacing: -0.5px;
-            transition: all 0.3s var(--transition-bounce);
-        }
-
-        .ai-doctor-rating {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            margin-bottom: 1rem;
-        }
-
-        .ai-doctor-rating i {
-            color: #FFB400;
-            text-shadow: 0 1px 3px rgba(255, 180, 0, 0.3);
-            font-size: 0.9rem;
-        }
-
-        .ai-doctor-rating span {
-            color: var(--text-light);
-            font-size: 0.85rem;
-            margin-left: 0.35rem;
-            font-weight: 500;
-        }
-
-        .ai-doctor-review-count {
-            color: var(--text-light);
-            font-size: 0.8rem;
-            margin-left: auto;
-            opacity: 0.8;
-            background: rgba(29, 122, 140, 0.08);
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-        }
-
-        .ai-doctor-details {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
-            flex-grow: 1;
-            padding-top: 0.25rem;
-        }
-
-        .ai-doctor-detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: var(--text-light);
-            font-size: 0.85rem;
-            transition: all 0.3s var(--transition-bounce);
-            padding: 0.35rem 0;
-            border-bottom: 1px dashed rgba(29, 122, 140, 0.1);
-        }
-
-        .ai-doctor-detail-item i {
-            color: var(--primary);
-            font-size: 0.9rem;
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            opacity: 0.9;
-            transition: all 0.3s var(--transition-bounce);
-            background: rgba(29, 122, 140, 0.1);
-            border-radius: 50%;
-            padding: 0.85rem;
-        }
-
-        .ai-doctor-view-profile-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            width: 100%;
-            padding: 0.9rem;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.4s var(--transition-bounce);
-            text-decoration: none;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-            font-size: 0.9rem;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(29, 122, 140, 0.3);
-        }
-
-        .ai-no-doctors {
-            text-align: center;
-            padding: 2.5rem 1.5rem;
-            grid-column: 1 / -1;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: var(--radius-lg);
-            box-shadow:
-                0 20px 30px rgba(0, 0, 0, 0.05),
-                0 1px 1px rgba(255, 255, 255, 0.7) inset;
-            animation: fadeIn 0.8s ease-out;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-        }
-
-        .ai-no-doctors p {
-            color: var(--text-light);
-            max-width: 500px;
-            margin: 0 auto;
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-
-        .fallback-notice {
-            font-size: 0.85rem;
-            font-weight: normal;
-            color: var(--text-light);
-            margin-top: 0.25rem;
-            padding: 0.5rem 0.75rem;
-            background-color: rgba(255, 248, 225, 0.8);
-            border-radius: var(--radius-md);
-            border-left: 3px solid #FFB400;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .fallback-notice i {
-            color: #FFB400;
-            font-size: 1rem;
-        }
-
-        .translation-info {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-left: 0.5rem;
-            display: inline-block;
-        }
-
-        .emergency-badge,
-        .urgent-badge {
-            background: linear-gradient(135deg, #e53935 0%, #ff5252 100%);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-left: 10px;
-            display: inline-flex;
-            align-items: center;
-            animation: pulse 2s infinite;
-            box-shadow: 0 4px 10px rgba(229, 57, 53, 0.3);
-        }
-
-        .urgent-badge {
-            background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
-            animation: pulse 3s infinite;
-            box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
-        }
-
-        .emergency-alert,
-        .urgent-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            background: rgba(229, 57, 53, 0.1);
-            border-left: 4px solid #e53935;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            animation: fadeIn 0.5s ease-out;
-            box-shadow: 0 5px 15px rgba(229, 57, 53, 0.1);
-        }
-
-        .urgent-alert {
-            background: rgba(255, 152, 0, 0.1);
-            border-left: 4px solid #ff9800;
-            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.1);
-        }
-
-        .emergency-alert i,
-        .urgent-alert i {
-            font-size: 1.5rem;
-            color: #e53935;
-        }
-
-        .urgent-alert i {
-            color: #ff9800;
-        }
-
-        .emergency-alert strong,
-        .urgent-alert strong {
-            display: block;
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-            color: #e53935;
-        }
-
-        .urgent-alert strong {
-            color: #ff9800;
-        }
-
-        .emergency-alert p,
-        .urgent-alert p {
-            margin: 0;
-            font-size: 0.9rem;
+            border: none !important;
+            border-radius: 50px;
+            background: transparent !important;
+            box-shadow: none !important;
             color: var(--text);
         }
 
-        /* Enhanced specialty tags */
-        .ai-specialty {
-            background: rgba(29, 122, 140, 0.1);
-            color: var(--primary-dark);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(29, 122, 140, 0.1);
-        }
-
-        .ai-specialty.primary-specialty {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 10px rgba(29, 122, 140, 0.2);
-            transform: scale(1.05);
-            border: none;
-        }
-
-        .ai-specialty.primary-specialty i {
-            color: white;
-        }
-
-        .ai-specialty:hover {
-            background: rgba(29, 122, 140, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(29, 122, 140, 0.1);
-        }
-
-        .ai-specialty.primary-specialty:hover {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(29, 122, 140, 0.25);
-        }
-
-        /* Enhanced AI Search Input */
-        .ai-search-input-container {
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .ai-search-input {
-            font-size: 1rem;
-            border-width: 2px;
-            transition: all 0.4s var(--transition-bounce);
-            animation: soft-pulse 3s infinite;
-            padding: 1rem 1.25rem 1rem 2.8rem;
-            width: 100%;
-        }
-
         .ai-search-input:focus {
-            border-color: #6a3093;
-            box-shadow: 0 0 0 4px rgba(106, 48, 147, 0.2), 0 1px 2px rgba(255, 255, 255, 0.5) inset;
+            outline: none;
+        }
+
+        .ai-search-input::placeholder {
+            color: var(--text-lighter);
+            opacity: 0.7;
         }
 
         .ai-search-input-icon {
             position: absolute;
-            left: 1rem;
+            left: 0.9rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--primary);
+            color: var(--ai-primary);
+            font-size: 0.9rem;
+            opacity: 0.8;
             transition: all 0.3s ease;
         }
 
         .ai-search-input:focus+.ai-search-input-icon {
-            color: #6a3093;
+            color: var(--ai-secondary);
+            opacity: 1;
             transform: translateY(-50%) scale(1.1);
         }
 
-        .multilingual-badge {
-            position: absolute;
-            right: auto;
-            left: 2.8rem;
-            top: -8px;
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
+        .ai-search-button {
+            background: var(--ai-gradient);
             color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            z-index: 2;
-            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.3);
-            letter-spacing: 0.5px;
-            transform: translateY(0);
-            transition: transform 0.3s ease;
+            padding: 0.65rem 1.2rem;
+            border-radius: 50px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 4px;
-        }
-
-        .multilingual-badge i {
-            font-size: 0.9rem;
-        }
-
-        .ai-search-input-container:hover .multilingual-badge {
-            transform: translateY(-3px);
-        }
-
-        .ai-search-button {
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            min-width: 180px;
-            padding: 1rem 1.25rem;
+            gap: 0.4rem;
+            transition: all 0.3s var(--transition-bounce);
+            box-shadow: 0 4px 12px rgba(106, 48, 147, 0.2);
+            margin: 0;
             white-space: nowrap;
-            align-self: flex-start;
-            box-shadow: 0 4px 15px rgba(106, 48, 147, 0.3);
         }
 
         .ai-search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(106, 48, 147, 0.3);
             background: linear-gradient(135deg, #5d2884 0%, #8e3de0 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(106, 48, 147, 0.4);
         }
 
-        /* Improved AI results section */
+        .ai-search-button i {
+            font-size: 0.85rem;
+        }
+
+        .ai-badge {
+            position: absolute;
+            left: 0.65rem;
+            top: -10px;
+            background: var(--ai-gradient);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            z-index: 3;
+            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .ai-badge i {
+            font-size: 0.65rem;
+        }
+
+        /* Enhanced AI Results Display */
         .ai-results-section {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            animation: fadeIn 0.8s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ai-results-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(to bottom, #6a3093, #a044ff);
-        }
-
-        .ai-recommendation-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 5px;
-        }
-
-        .ai-recommendation-header i {
-            font-size: 1.2rem;
-            color: white;
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            box-shadow: 0 5px 15px rgba(106, 48, 147, 0.3);
-        }
-
-        /* Speech input button */
-        .speech-input-button {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.3);
-            z-index: 5;
-            overflow: visible;
-        }
-
-        .speech-input-button:hover {
-            background: linear-gradient(135deg, #5d2884 0%, #8e3de0 100%);
-        }
-
-        .speech-input-button.listening {
-            background: #e53935;
-            box-shadow: 0 0 0 5px rgba(229, 57, 53, 0.3);
-        }
-
-        .recording-indicator {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: red;
-            top: -2px;
-            right: -2px;
-            z-index: 6;
-        }
-
-        /* Additional dynamic styles */
-        @keyframes shake-error {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            10%,
-            30%,
-            50%,
-            70%,
-            90% {
-                transform: translateX(-5px);
-            }
-
-            20%,
-            40%,
-            60%,
-            80% {
-                transform: translateX(5px);
-            }
-        }
-
-        .shake-error {
-            animation: shake-error 0.6s cubic-bezier(.36, .07, .19, .97) both;
-            border-color: #e53935 !important;
-        }
-
-        .ai-input-error {
-            position: absolute;
-            bottom: -30px;
-            left: 10px;
-            background: #e53935;
-            color: white;
-            font-size: 0.8rem;
-            padding: 5px 10px;
-            border-radius: 4px;
-            animation: fadeIn 0.3s;
-            z-index: 10;
-        }
-
-        /* Speech error tooltip */
-        .speech-error-tooltip {
-            position: absolute;
-            right: 0;
-            top: -40px;
-            background: rgba(229, 57, 53, 0.9);
-            color: white;
             font-size: 0.8rem;
             padding: 5px 10px;
             border-radius: 4px;
@@ -2932,414 +2210,305 @@ $conn->close();
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Ensure page title is properly styled */
-        .page-title {
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
+        /* Emergency attention highlight */
+        @keyframes attention-highlight {
+
+            0%,
+            100% {
+                box-shadow: 0 5px 15px rgba(229, 57, 53, 0.1);
+            }
+
+            50% {
+                box-shadow: 0 5px 25px rgba(229, 57, 53, 0.5);
+            }
         }
 
-        /* Make sure AI search input container properly handles the mic button */
-        .ai-search-input-container {
-            flex: 1;
-            position: relative;
-            padding-right: 45px;
-            /* Add space for the microphone button */
+        .attention-highlight {
+            animation: attention-highlight 1s ease 3;
+        }
+
+        /* Loading text animation */
+        .loading-text::after {
+            content: '';
+            animation: ellipsis 1.5s infinite;
+        }
+
+        @keyframes ellipsis {
+            0% {
+                content: '.';
+            }
+
+            33% {
+                content: '..';
+            }
+
+            66% {
+                content: '...';
+            }
+
+            100% {
+                content: '.';
+            }
         }
     </style>
-
 </head>
 
 <body>
     <?php include 'navbar.php'; ?>
 
     <div class="dashboard-container">
-        <h1 class="page-title">Find Your Doctor</h1>
+        <h1 class="page-title">Find Doctors</h1>
+        <p>Welcome to the MediLinx doctor search page. Use the filters below to find the right healthcare provider for your needs.</p>
+    </div>
 
-        <div class="search-section">
-            <div class="wave-bg"></div>
-
-            <div class="search-header animate__animated animate__fadeIn">
-                <h1>Find Your Healthcare Specialist</h1>
-                <p>Connect with trusted medical professionals tailored to your healthcare needs</p>
-            </div>
-
-            <div class="search-tabs">
-                <button type="button" class="search-tab active" data-tab="regular-search">
-                    <i class="fas fa-search"></i> Regular Search
-                </button>
-                <button type="button" class="search-tab" data-tab="ai-search">
-                    <i class="fas fa-robot"></i> AI Doctor Finder
-                </button>
-            </div>
-
-            <div class="search-content">
-                <div class="search-panel active" id="regular-search">
-                    <form class="search-form" method="GET" id="doctorSearchForm">
-                        <div class="search-group">
-                            <input type="text"
-                                name="specialty"
-                                id="specialtyInput"
-                                placeholder="Search by specialty (e.g., Cardiologist)"
-                                class="search-input"
-                                value="<?= htmlspecialchars($specialty) ?>"
-                                autocomplete="off">
-                            <div class="suggestions-dropdown" id="specialtySuggestions"></div>
-                        </div>
-
-                        <div class="search-group">
-                            <input type="text"
-                                name="location"
-                                placeholder="Location (City or ZIP)"
-                                class="search-input"
-                                value="<?= htmlspecialchars($location) ?>">
-                        </div>
-
-                        <div class="search-group">
-                            <select name="experience" class="search-input">
-                                <option value="">Years of Experience</option>
-                                <option value="5" <?= $experience == 5 ? 'selected' : '' ?>>5+ Years</option>
-                                <option value="10" <?= $experience == 10 ? 'selected' : '' ?>>10+ Years</option>
-                                <option value="15" <?= $experience == 15 ? 'selected' : '' ?>>15+ Years</option>
-                                <option value="20" <?= $experience == 20 ? 'selected' : '' ?>>20+ Years</option>
-                            </select>
-                        </div>
-
-                        <div class="search-group">
-                            <select name="rating" class="search-input">
-                                <option value="">Minimum Rating</option>
-                                <option value="4.5" <?= $rating == 4.5 ? 'selected' : '' ?>>4.5 Stars</option>
-                                <option value="4" <?= $rating == 4 ? 'selected' : '' ?>>★★★★ & Up</option>
-                                <option value="3.5" <?= $rating == 3.5 ? 'selected' : '' ?>>★★★½ & Up</option>
-                                <option value="3" <?= $rating == 3 ? 'selected' : '' ?>>★★★ & Up</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="search-button">
-                            <i class="fas fa-search"></i>
-                            Find Doctors
-                        </button>
-                    </form>
-                </div>
-
-                <div class="search-panel" id="ai-search">
-                    <div class="ai-search-section">
-                        <form class="ai-search-form" method="GET" id="aiDoctorSearchForm">
-                            <div class="search-group ai-search-input-container">
-                                <input type="text"
-                                    name="ai_symptom"
-                                    id="aiSymptomInput"
-                                    placeholder="Describe your symptoms in any language"
-                                    class="search-input ai-search-input"
-                                    value="<?= htmlspecialchars($symptom) ?>">
-                                <span class="ai-search-input-icon fas fa-language"></span>
-                                <span class="multilingual-badge"><i class="fas fa-globe"></i> Multilingual</span>
-                            </div>
-                            <button type="submit" class="search-button ai-search-button">
-                                <i class="fas fa-stethoscope"></i>
-                                Find AI Doctor
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <?php if ($ai_search_results && !empty($ai_search_results['specialties'])): ?>
-                <div class="ai-results-section">
-                    <div class="ai-recommendation">
-                        <div class="ai-recommendation-header">
-                            <i class="fas fa-robot"></i>
-                            <h3>AI Recommendation</h3>
-                            <?php if ($ai_search_results['urgency'] == 'emergency'): ?>
-                                <div class="emergency-badge">Emergency</div>
-                            <?php elseif ($ai_search_results['urgency'] == 'urgent'): ?>
-                                <div class="urgent-badge">Urgent Care</div>
-                            <?php endif; ?>
-                        </div>
-                        <p>Based on your symptoms
-                            <?php if (isset($ai_search_results['translated_symptom']) && $ai_search_results['translated_symptom'] !== null): ?>
-                                "<strong><?= htmlspecialchars($ai_search_results['original_symptom']) ?></strong>"
-                                <span class="translation-info">
-                                    <i class="fas fa-language"></i>
-                                    Translated from <?= htmlspecialchars(getLanguageName($ai_search_results['detected_language'])) ?> to English:
-                                    "<em><?= htmlspecialchars($ai_search_results['translated_symptom']) ?></em>"
-                                </span>
-                            <?php else: ?>
-                                "<strong><?= htmlspecialchars($symptom) ?></strong>"
-                            <?php endif; ?>
-                            , AI recommends:
-                        </p>
-
-                        <?php if ($ai_search_results['urgency'] == 'emergency'): ?>
-                            <div class="emergency-alert">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <div>
-                                    <strong>This may be a medical emergency.</strong>
-                                    <p>If you're experiencing a life-threatening condition, please call emergency services (911) or go to your nearest emergency room immediately.</p>
-                                </div>
-                            </div>
-                        <?php elseif ($ai_search_results['urgency'] == 'urgent'): ?>
-                            <div class="urgent-alert">
-                                <i class="fas fa-clock"></i>
-                                <div>
-                                    <strong>This condition may require prompt attention.</strong>
-                                    <p>Consider visiting an urgent care facility or scheduling a same-day appointment.</p>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="ai-specialties">
-                            <?php foreach ($ai_search_results['specialties'] as $index => $aiSpecialty): ?>
-                                <div class="ai-specialty <?= $index === 0 ? 'primary-specialty' : '' ?>">
-                                    <i class="fas fa-user-md"></i>
-                                    <span><?= htmlspecialchars(ucfirst($aiSpecialty)) ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <?php if (!empty($ai_search_results['doctors'])): ?>
-                        <div class="ai-doctors-section">
-                            <h3 class="ai-doctors-title">
-                                <?php if ($ai_search_results['using_fallback']): ?>
-                                    Top Rated Doctors
-                                    <div class="fallback-notice">
-                                        <i class="fas fa-info-circle"></i>
-                                        We couldn't find doctors matching the exact specialties. Showing our best doctors instead.
-                                    </div>
-                                <?php else: ?>
-                                    Recommended Doctors
-                                <?php endif; ?>
-                            </h3>
-                            <div class="doctors-grid ai-doctors-grid">
-                                <?php foreach ($ai_search_results['doctors'] as $index => $doctor): ?>
-                                    <div class="doctor-card ai-doctor-card animate-card" style="animation-delay: <?= $index * 0.1 ?>s">
-                                        <?php if (($doctor['avg_rating'] ?? 0) >= 4.5): ?>
-                                            <div class="doctor-badge">Top Rated</div>
-                                        <?php endif; ?>
-
-                                        <div class="doctor-image-container">
-                                            <img src="<?= htmlspecialchars($doctor['profile_image'] ?: 'uploads/default_profile.png') ?>"
-                                                class="doctor-image"
-                                                alt="<?= htmlspecialchars($doctor['username']) ?>"
-                                                onerror="this.src='uploads/default_profile.png'">
-                                        </div>
-
-                                        <div class="doctor-content">
-                                            <div class="doctor-specialty">
-                                                <?= htmlspecialchars($doctor['specialty'] ?? 'General Practitioner') ?>
-                                            </div>
-
-                                            <h3 class="doctor-name"><?= htmlspecialchars($doctor['username']) ?></h3>
-
-                                            <div class="doctor-rating">
-                                                <?php
-                                                $rating = $doctor['avg_rating'] ?? 0;
-                                                for ($i = 1; $i <= 5; $i++):
-                                                    if ($rating >= $i):
-                                                        echo '<i class="fas fa-star"></i>';
-                                                    elseif ($rating >= $i - 0.5):
-                                                        echo '<i class="fas fa-star-half-alt"></i>';
-                                                    else:
-                                                        echo '<i class="far fa-star"></i>';
-                                                    endif;
-                                                endfor;
-                                                ?>
-                                                <span><?= number_format($doctor['avg_rating'] ?? 0, 1) ?></span>
-
-                                                <div class="doctor-review-count">
-                                                    <?= $doctor['review_count'] ?? 0 ?> reviews
-                                                </div>
-                                            </div>
-
-                                            <?php if (!empty($doctor['degrees'])): ?>
-                                                <div class="doctor-languages">
-                                                    <?php
-                                                    $degreeList = explode(', ', $doctor['degrees']);
-                                                    foreach ($degreeList as $degree):
-                                                        if (!empty(trim($degree))):
-                                                    ?>
-                                                            <span class="language-tag"><?= htmlspecialchars($degree) ?></span>
-                                                    <?php endif;
-                                                    endforeach; ?>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <div class="doctor-details">
-                                                <?php if (!empty($doctor['work_address'])): ?>
-                                                    <div class="doctor-detail-item">
-                                                        <i class="fas fa-map-marker-alt"></i>
-                                                        <span><?= htmlspecialchars($doctor['work_address']) ?></span>
-                                                    </div>
-                                                <?php endif; ?>
-
-                                                <?php if (!empty($doctor['years_of_experience'])): ?>
-                                                    <div class="doctor-detail-item">
-                                                        <i class="fas fa-briefcase-medical"></i>
-                                                        <span><?= htmlspecialchars($doctor['years_of_experience']) ?> Years Experience</span>
-                                                    </div>
-                                                <?php endif; ?>
-
-                                                <?php if (!empty($doctor['education'])): ?>
-                                                    <div class="doctor-detail-item">
-                                                        <i class="fas fa-graduation-cap"></i>
-                                                        <span><?= htmlspecialchars($doctor['education']) ?></span>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-
-                                            <a href="doctor-profile.php?id=<?= $doctor['id'] ?>" class="view-profile-btn ai-doctor-view-profile-btn">
-                                                View Profile
-                                                <i class="fas fa-arrow-right"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="ai-no-doctors">
-                            <p>Sorry, we couldn't find any doctors matching the specialties recommended by AI. Please try using different symptoms or search by specialty directly.</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!empty($specialty) || !empty($location) || !empty($experience) || !empty($rating)): ?>
-                <div class="active-filters">
-                    <?php if (!empty($specialty)): ?>
-                        <div class="filter-pill">
-                            <span>Specialty: <?= htmlspecialchars($specialty) ?></span>
-                            <i class="fas fa-times remove-filter" data-filter="specialty"></i>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($location)): ?>
-                        <div class="filter-pill">
-                            <span>Location: <?= htmlspecialchars($location) ?></span>
-                            <i class="fas fa-times remove-filter" data-filter="location"></i>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($experience)): ?>
-                        <div class="filter-pill">
-                            <span><?= htmlspecialchars($experience) ?>+ Years Experience</span>
-                            <i class="fas fa-times remove-filter" data-filter="experience"></i>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($rating)): ?>
-                        <div class="filter-pill">
-                            <span>Rating: <?= htmlspecialchars($rating) ?>+</span>
-                            <i class="fas fa-times remove-filter" data-filter="rating"></i>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-header">
+            <h1>Find the Right Healthcare Provider</h1>
+            <p>Search for doctors who meet your specific needs using our intelligent search filters</p>
         </div>
 
-        <?php if (!empty($doctors)): ?>
-            <div class="results-info">
-                <div class="results-count">Found <span><?= count($doctors) ?></span> healthcare professionals</div>
+        <!-- Regular Search Form -->
+        <form action="dashboard.php" method="GET" id="doctorSearchForm" class="search-form">
+            <div class="search-group">
+                <select name="specialty" class="search-input">
+                    <option value="">All Specialties</option>
+                    <?php foreach ($specialties as $s): ?>
+                        <option value="<?= htmlspecialchars($s) ?>" <?= ($specialty == $s) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($s) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-        <?php endif; ?>
+
+            <div class="search-group">
+                <input type="text" name="location" placeholder="Location" class="search-input" value="<?= htmlspecialchars($location) ?>">
+            </div>
+
+            <div class="search-group">
+                <select name="experience" class="search-input">
+                    <option value="">Any Experience</option>
+                    <option value="1" <?= ($experience == 1) ? 'selected' : '' ?>>1+ Years</option>
+                    <option value="3" <?= ($experience == 3) ? 'selected' : '' ?>>3+ Years</option>
+                    <option value="5" <?= ($experience == 5) ? 'selected' : '' ?>>5+ Years</option>
+                    <option value="10" <?= ($experience == 10) ? 'selected' : '' ?>>10+ Years</option>
+                </select>
+            </div>
+
+            <div class="search-group">
+                <select name="rating" class="search-input">
+                    <option value="">Any Rating</option>
+                    <option value="3" <?= ($rating == 3) ? 'selected' : '' ?>>3+ Stars</option>
+                    <option value="4" <?= ($rating == 4) ? 'selected' : '' ?>>4+ Stars</option>
+                    <option value="4.5" <?= ($rating == 4.5) ? 'selected' : '' ?>>4.5+ Stars</option>
+                </select>
+            </div>
+
+            <button type="submit" class="search-button">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+
+        <!-- AI Symptom Search -->
+        <div class="search-divider">
+            <span>OR</span>
+        </div>
+
+        <div class="ai-search-section">
+            <form action="dashboard.php" method="GET" id="aiDoctorSearchForm">
+                <div class="ai-badge">
+                    <i class="fas fa-robot"></i> AI
+                </div>
+                <div class="ai-search-form">
+                    <div class="ai-search-input-container">
+                        <input type="text" name="ai_symptom" id="aiSymptomInput" class="ai-search-input" placeholder="Describe your symptoms or health concern..." value="<?= htmlspecialchars($symptom) ?>">
+                        <i class="fas fa-heartbeat ai-search-input-icon"></i>
+                    </div>
+                    <button type="submit" class="ai-search-button">
+                        <i class="fas fa-stethoscope"></i> Find Specialist
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- AI Search Results -->
+    <?php if (isset($ai_search_results) && !empty($ai_search_results)): ?>
+        <div class="search-section">
+            <div class="search-header">
+                <h1>
+                    <?php if ($ai_search_results['urgency'] === 'emergency'): ?>
+                        <span style="color: var(--emergency);">⚠️ Emergency Assessment</span>
+                    <?php elseif ($ai_search_results['urgency'] === 'urgent'): ?>
+                        <span style="color: var(--urgent);">⚠️ Urgent Assessment</span>
+                    <?php else: ?>
+                        AI Specialist Recommendations
+                    <?php endif; ?>
+                </h1>
+
+                <?php if (!empty($ai_search_results['specialties'])): ?>
+                    <p>Based on your symptoms, our AI recommends these medical specialties:
+                        <strong><?= htmlspecialchars(implode(', ', $ai_search_results['specialties'])) ?></strong>
+                    </p>
+                <?php endif; ?>
+
+                <?php if ($ai_search_results['translated_symptom']): ?>
+                    <div class="translation-info">
+                        <i class="fas fa-language"></i> Detected <em><?= htmlspecialchars(getLanguageName($ai_search_results['detected_language'])) ?></em>.
+                        Translated: "<?= htmlspecialchars($ai_search_results['translated_symptom']) ?>"
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Doctors Grid for AI Results -->
+            <div class="doctors-grid">
+                <?php if (!empty($ai_search_results['doctors'])): ?>
+                    <?php foreach ($ai_search_results['doctors'] as $index => $doctor): ?>
+                        <div class="doctor-card animate-card" style="animation-delay: <?= ($index * 0.1) ?>s">
+                            <?php if ($ai_search_results['urgency'] === 'emergency'): ?>
+                                <div class="doctor-badge" style="background: var(--emergency-gradient);">EMERGENCY CARE</div>
+                            <?php elseif ($ai_search_results['urgency'] === 'urgent'): ?>
+                                <div class="doctor-badge" style="background: var(--urgent-gradient);">URGENT CARE</div>
+                            <?php elseif ($index === 0): ?>
+                                <div class="doctor-badge">BEST MATCH</div>
+                            <?php endif; ?>
+
+                            <div class="doctor-image-container">
+                                <img class="doctor-image" src="<?= !empty($doctor['profile_image']) ? 'uploads/' . htmlspecialchars($doctor['profile_image']) : 'assets/img/default-avatar.png' ?>" alt="<?= htmlspecialchars($doctor['username']) ?>">
+                            </div>
+
+                            <div class="doctor-content">
+                                <div class="doctor-specialty"><?= htmlspecialchars($doctor['specialty'] ?? 'General Practitioner') ?></div>
+                                <h3 class="doctor-name">Dr. <?= htmlspecialchars($doctor['username']) ?></h3>
+
+                                <div class="doctor-rating">
+                                    <?php
+                                    $rating = round($doctor['avg_rating'] * 2) / 2;
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        if ($i <= $rating) {
+                                            echo '<i class="fas fa-star"></i>';
+                                        } elseif ($i - 0.5 == $rating) {
+                                            echo '<i class="fas fa-star-half-alt"></i>';
+                                        } else {
+                                            echo '<i class="far fa-star"></i>';
+                                        }
+                                    }
+                                    ?>
+                                    <span><?= number_format($doctor['avg_rating'], 1) ?></span>
+                                    <div class="doctor-review-count"><?= $doctor['review_count'] ?> reviews</div>
+                                </div>
+
+                                <div class="doctor-details">
+                                    <div class="doctor-detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span><?= !empty($doctor['degrees']) ? htmlspecialchars($doctor['degrees']) : 'Medical Degree' ?></span>
+                                    </div>
+
+                                    <div class="doctor-detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span><?= !empty($doctor['years_of_experience']) ? htmlspecialchars($doctor['years_of_experience']) . ' years experience' : 'Experience not specified' ?></span>
+                                    </div>
+
+                                    <div class="doctor-detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span><?= !empty($doctor['work_address']) ? htmlspecialchars($doctor['work_address']) : 'Location not specified' ?></span>
+                                    </div>
+                                </div>
+
+                                <a href="doctor-profile.php?id=<?= $doctor['id'] ?>" class="view-profile-btn">
+                                    View Profile <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="no-results">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <h3>No doctors found</h3>
+                        <p>We couldn't find any doctors matching your symptoms. Please try a different description or use the filters above.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Regular Search Results -->
+    <?php if (isset($doctors) && (!isset($ai_search_results))): ?>
+        <div class="results-info">
+            <div class="results-count">
+                Found <span><?= count($doctors) ?></span> doctors
+            </div>
+        </div>
 
         <div class="doctors-grid">
             <?php if (!empty($doctors)): ?>
                 <?php foreach ($doctors as $index => $doctor): ?>
-                    <div class="doctor-card animate-card" style="animation-delay: <?= $index * 0.1 ?>s">
-                        <?php if (($doctor['avg_rating'] ?? 0) >= 4.5): ?>
-                            <div class="doctor-badge">Top Rated</div>
-                        <?php endif; ?>
-
+                    <div class="doctor-card animate-card" style="animation-delay: <?= ($index * 0.1) ?>s">
                         <div class="doctor-image-container">
-                            <img src="<?= htmlspecialchars($doctor['profile_image'] ?: 'uploads/default_profile.png') ?>"
-                                class="doctor-image"
-                                alt="<?= htmlspecialchars($doctor['username']) ?>"
-                                onerror="this.src='uploads/default_profile.png'">
+                            <img class="doctor-image" src="<?= !empty($doctor['profile_image']) ? 'uploads/' . htmlspecialchars($doctor['profile_image']) : 'assets/img/default-avatar.png' ?>" alt="<?= htmlspecialchars($doctor['username']) ?>">
                         </div>
 
                         <div class="doctor-content">
-                            <div class="doctor-specialty">
-                                <?= htmlspecialchars($doctor['specialty'] ?? 'General Practitioner') ?>
-                            </div>
-
-                            <h3 class="doctor-name"><?= htmlspecialchars($doctor['username']) ?></h3>
+                            <div class="doctor-specialty"><?= htmlspecialchars($doctor['specialty'] ?? 'General Practitioner') ?></div>
+                            <h3 class="doctor-name">Dr. <?= htmlspecialchars($doctor['username']) ?></h3>
 
                             <div class="doctor-rating">
                                 <?php
-                                $rating = $doctor['avg_rating'] ?? 0;
-                                for ($i = 1; $i <= 5; $i++):
-                                    if ($rating >= $i):
+                                $rating = round($doctor['avg_rating'] * 2) / 2;
+                                for ($i = 1; $i <= 5; $i++) {
+                                    if ($i <= $rating) {
                                         echo '<i class="fas fa-star"></i>';
-                                    elseif ($rating >= $i - 0.5):
+                                    } elseif ($i - 0.5 == $rating) {
                                         echo '<i class="fas fa-star-half-alt"></i>';
-                                    else:
+                                    } else {
                                         echo '<i class="far fa-star"></i>';
-                                    endif;
-                                endfor;
+                                    }
+                                }
                                 ?>
-                                <span><?= number_format($doctor['avg_rating'] ?? 0, 1) ?></span>
-
-                                <div class="doctor-review-count">
-                                    <?= $doctor['review_count'] ?? 0 ?> reviews
-                                </div>
+                                <span><?= number_format($doctor['avg_rating'], 1) ?></span>
+                                <div class="doctor-review-count"><?= $doctor['review_count'] ?> reviews</div>
                             </div>
 
-                            <?php if (!empty($doctor['degrees'])): ?>
-                                <div class="doctor-languages">
-                                    <?php
-                                    $degreeList = explode(', ', $doctor['degrees']);
-                                    foreach ($degreeList as $degree):
-                                        if (!empty(trim($degree))):
-                                    ?>
-                                            <span class="language-tag"><?= htmlspecialchars($degree) ?></span>
-                                    <?php endif;
-                                    endforeach; ?>
-                                </div>
-                            <?php endif; ?>
-
                             <div class="doctor-details">
-                                <?php if (!empty($doctor['work_address'])): ?>
-                                    <div class="doctor-detail-item">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span><?= htmlspecialchars($doctor['work_address']) ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="doctor-detail-item">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <span><?= !empty($doctor['degrees']) ? htmlspecialchars($doctor['degrees']) : 'Medical Degree' ?></span>
+                                </div>
 
-                                <?php if (!empty($doctor['years_of_experience'])): ?>
-                                    <div class="doctor-detail-item">
-                                        <i class="fas fa-briefcase-medical"></i>
-                                        <span><?= htmlspecialchars($doctor['years_of_experience']) ?> Years Experience</span>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="doctor-detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span><?= !empty($doctor['years_of_experience']) ? htmlspecialchars($doctor['years_of_experience']) . ' years experience' : 'Experience not specified' ?></span>
+                                </div>
 
-                                <?php if (!empty($doctor['education'])): ?>
-                                    <div class="doctor-detail-item">
-                                        <i class="fas fa-graduation-cap"></i>
-                                        <span><?= htmlspecialchars($doctor['education']) ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="doctor-detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span><?= !empty($doctor['work_address']) ? htmlspecialchars($doctor['work_address']) : 'Location not specified' ?></span>
+                                </div>
                             </div>
 
                             <a href="doctor-profile.php?id=<?= $doctor['id'] ?>" class="view-profile-btn">
-                                View Profile
-                                <i class="fas fa-arrow-right"></i>
+                                View Profile <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="no-results">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
                     </svg>
-                    <h3>No Doctors Found</h3>
-                    <p>We couldn't find any healthcare professionals matching your criteria.</p>
+                    <h3>No doctors found</h3>
+                    <p>We couldn't find any doctors matching your criteria. Please try adjusting your filters.</p>
+
                     <?php if (!empty($specialty) || !empty($location) || !empty($experience) || !empty($rating)): ?>
                         <div class="applied-filters">
-                            <p>Applied filters:</p>
+                            <p>You searched with these filters:</p>
                             <ul>
                                 <?php if (!empty($specialty)): ?>
                                     <li>Specialty: <?= htmlspecialchars($specialty) ?></li>
@@ -3348,32 +2517,33 @@ $conn->close();
                                     <li>Location: <?= htmlspecialchars($location) ?></li>
                                 <?php endif; ?>
                                 <?php if (!empty($experience)): ?>
-                                    <li>Minimum Experience: <?= htmlspecialchars($experience) ?>+ years</li>
+                                    <li>Experience: <?= htmlspecialchars($experience) ?>+ years</li>
                                 <?php endif; ?>
                                 <?php if (!empty($rating)): ?>
-                                    <li>Minimum Rating: <?= htmlspecialchars($rating) ?>+ stars</li>
+                                    <li>Rating: <?= htmlspecialchars($rating) ?>+ stars</li>
                                 <?php endif; ?>
                             </ul>
                         </div>
+                        <a href="dashboard.php" class="reset-search-btn">
+                            <i class="fas fa-redo"></i> Reset Filters
+                        </a>
                     <?php endif; ?>
-                    <a href="find-doctors.php" class="reset-search-btn">
-                        <i class="fas fa-redo"></i>
-                        Reset Search
-                    </a>
                 </div>
             <?php endif; ?>
         </div>
+    <?php endif; ?>
 
-        <div class="back-to-top" id="backToTop">
-            <i class="fas fa-arrow-up"></i>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Searching</div>
         </div>
+    </div>
 
-        <div class="loading-overlay">
-            <div class="loading-content">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">Searching for doctors...</div>
-            </div>
-        </div>
+    <!-- Back to top button -->
+    <div class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
     </div>
 
     <script>
@@ -3435,442 +2605,7 @@ $conn->close();
             // Start the loading text animation
             animateLoadingText();
         });
-
-        // Function to animate the loading text with more interesting messages
-        function animateLoadingText() {
-            const loadingText = document.querySelector('.loading-text');
-            const baseText = loadingText.dataset.text || 'AI is analyzing your symptoms';
-
-            // Define interesting messages to display during loading
-            const messages = [
-                'Matching symptoms to specialties...',
-                'Finding the right doctors for you...',
-                'Analyzing healthcare options...',
-                'Consulting medical knowledge...',
-                'Reviewing specialist database...',
-                'Evaluating your health concerns...'
-            ];
-
-            let currentMessage = 0;
-
-            // Start with base text
-            loadingText.textContent = baseText + '...';
-
-            // Set interval to change messages
-            const messageInterval = setInterval(() => {
-                loadingText.textContent = messages[currentMessage];
-                currentMessage = (currentMessage + 1) % messages.length;
-            }, 2500);
-
-            // Store the interval ID in a dataset attribute so we can clear it later
-            loadingText.dataset.intervalId = messageInterval;
-        }
-
-        // Clear animation interval when page loads
-        window.addEventListener('load', function() {
-            const loadingText = document.querySelector('.loading-text');
-            if (loadingText && loadingText.dataset.intervalId) {
-                clearInterval(parseInt(loadingText.dataset.intervalId));
-            }
-        });
-
-        // Handle specialty autocomplete
-        const specialtyInput = document.getElementById('specialtyInput');
-        const specialtySuggestions = document.getElementById('specialtySuggestions');
-        const specialties = <?= json_encode($specialties) ?>;
-
-        specialtyInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            if (searchTerm.length < 2) {
-                specialtySuggestions.style.display = 'none';
-                return;
-            }
-
-            const matchingSpecialties = specialties.filter(specialty =>
-                specialty.toLowerCase().includes(searchTerm)
-            );
-
-            if (matchingSpecialties.length > 0) {
-                specialtySuggestions.innerHTML = '';
-                matchingSpecialties.forEach(specialty => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.textContent = specialty;
-                    div.addEventListener('click', function() {
-                        specialtyInput.value = specialty;
-                        specialtySuggestions.style.display = 'none';
-                        document.getElementById('doctorSearchForm').submit();
-                    });
-                    specialtySuggestions.appendChild(div);
-                });
-                specialtySuggestions.style.display = 'block';
-            } else {
-                specialtySuggestions.style.display = 'none';
-            }
-        });
-
-        // Close suggestions on click outside
-        document.addEventListener('click', function(e) {
-            if (e.target !== specialtyInput && !specialtySuggestions.contains(e.target)) {
-                specialtySuggestions.style.display = 'none';
-            }
-        });
-
-        // Handle removing filters
-        document.querySelectorAll('.remove-filter').forEach(filter => {
-            filter.addEventListener('click', function(e) {
-                e.preventDefault(); // Prevent default action
-                const filterName = this.getAttribute('data-filter');
-                document.querySelector(`[name="${filterName}"]`).value = '';
-                document.getElementById('doctorSearchForm').submit();
-            });
-        });
-
-        // Animation for doctor cards
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate__animated', 'animate__fadeInUp');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.animate-card').forEach(card => {
-            observer.observe(card);
-        });
-
-        // Back to top button
-        const backToTopButton = document.getElementById('backToTop');
-
-        if (backToTopButton) {
-            window.addEventListener('scroll', () => {
-                if (window.pageYOffset > 300) {
-                    backToTopButton.classList.add('visible');
-                } else {
-                    backToTopButton.classList.remove('visible');
-                }
-            });
-
-            backToTopButton.addEventListener('click', () => {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-        }
-
-        // AI search input enhancements
-        const aiSymptomInput = document.getElementById('aiSymptomInput');
-
-        // Smart example symptoms with multilingual examples
-        const placeholderExamples = [
-            'chest pain with shortness of breath',
-            'severe headache and dizziness',
-            'sudden vision changes',
-            'persistent cough with fever',
-            'lower back pain when bending',
-            'dolor en el pecho (Spanish for chest pain)',
-            'mal de tête sévère (French for severe headache)',
-            'Bauchschmerzen (German for stomach pain)',
-            'كحة مستمرة (Arabic for persistent cough)',
-            'пульсирующая головная боль (Russian for throbbing headache)',
-            '喉咙痛和发烧 (Chinese for sore throat and fever)',
-            'मसल्स दर्द और थकान (Hindi for muscle pain and fatigue)',
-            'dor nas articulações (Portuguese for joint pain)'
-        ];
-
-        let currentExample = 0;
-        let placeholderInterval;
-
-        // Start with default placeholder
-        aiSymptomInput.placeholder = "Describe your symptoms in any language";
-
-        // Focus event - change placeholder to rotating examples when focusing on input
-        aiSymptomInput.addEventListener('focus', function() {
-            if (this.value === '') {
-                startPlaceholderRotation();
-            }
-        });
-
-        // Blur event - stop rotation when leaving input
-        aiSymptomInput.addEventListener('blur', function() {
-            stopPlaceholderRotation();
-            if (this.value === '') {
-                this.placeholder = "Describe your symptoms in any language";
-            }
-        });
-
-        // Input event - stop rotation when typing
-        aiSymptomInput.addEventListener('input', function() {
-            stopPlaceholderRotation();
-        });
-
-        function startPlaceholderRotation() {
-            if (placeholderInterval) return;
-
-            placeholderInterval = setInterval(() => {
-                aiSymptomInput.placeholder = placeholderExamples[currentExample];
-                currentExample = (currentExample + 1) % placeholderExamples.length;
-            }, 2500);
-
-            // Set first example immediately
-            aiSymptomInput.placeholder = placeholderExamples[currentExample];
-            currentExample = (currentExample + 1) % placeholderExamples.length;
-        }
-
-        function stopPlaceholderRotation() {
-            if (placeholderInterval) {
-                clearInterval(placeholderInterval);
-                placeholderInterval = null;
-            }
-        }
-
-        // Speech recognition for symptom input if supported
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            // Create speech button
-            const speechButton = document.createElement('button');
-            speechButton.type = 'button';
-            speechButton.className = 'speech-input-button';
-            speechButton.innerHTML = '<i class="fas fa-microphone"></i>';
-            speechButton.title = 'Describe your symptoms by voice';
-
-            // Add it after the input
-            aiSymptomInput.parentNode.appendChild(speechButton);
-
-            // Set up speech recognition
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-
-            // Auto detect language
-            recognition.lang = '';
-
-            // Handle speech recognition
-            speechButton.addEventListener('click', function() {
-                // Toggle active state
-                if (this.classList.contains('listening')) {
-                    recognition.stop();
-                    this.classList.remove('listening');
-                } else {
-                    this.classList.add('listening');
-                    recognition.start();
-
-                    // Show recording indicator
-                    const indicator = document.createElement('div');
-                    indicator.className = 'recording-indicator';
-                    this.appendChild(indicator);
-                }
-            });
-
-            recognition.onresult = function(event) {
-                const transcript = Array.from(event.results)
-                    .map(result => result[0])
-                    .map(result => result.transcript)
-                    .join('');
-
-                aiSymptomInput.value = transcript;
-            };
-
-            recognition.onend = function() {
-                speechButton.classList.remove('listening');
-                const indicator = speechButton.querySelector('.recording-indicator');
-                if (indicator) indicator.remove();
-            };
-
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error', event.error);
-                speechButton.classList.remove('listening');
-                const indicator = speechButton.querySelector('.recording-indicator');
-                if (indicator) indicator.remove();
-
-                // Show error message
-                const errorTooltip = document.createElement('div');
-                errorTooltip.className = 'speech-error-tooltip';
-                errorTooltip.textContent = 'Could not recognize speech. Please try again.';
-                speechButton.appendChild(errorTooltip);
-
-                setTimeout(() => {
-                    errorTooltip.remove();
-                }, 3000);
-            };
-        }
-
-        // Highlight emergency warnings
-        document.addEventListener('DOMContentLoaded', function() {
-            const emergencyAlerts = document.querySelectorAll('.emergency-alert');
-            if (emergencyAlerts.length > 0) {
-                // Scroll to the emergency alert
-                setTimeout(() => {
-                    emergencyAlerts[0].scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-
-                    // Add attention animation
-                    emergencyAlerts[0].classList.add('attention-highlight');
-                    setTimeout(() => {
-                        emergencyAlerts[0].classList.remove('attention-highlight');
-                    }, 2000);
-                }, 500);
-            }
-        });
-
-        // Tab functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.search-tab');
-            const panels = document.querySelectorAll('.search-panel');
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    tabs.forEach(t => t.classList.remove('active'));
-
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-
-                    // Hide all panels
-                    panels.forEach(panel => panel.classList.remove('active'));
-
-                    // Show the corresponding panel
-                    const panelId = this.getAttribute('data-tab');
-                    document.getElementById(panelId).classList.add('active');
-                });
-            });
-        });
     </script>
-
-    <style>
-        /* Additional dynamic styles */
-        @keyframes shake-error {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            10%,
-            30%,
-            50%,
-            70%,
-            90% {
-                transform: translateX(-5px);
-            }
-
-            20%,
-            40%,
-            60%,
-            80% {
-                transform: translateX(5px);
-            }
-        }
-
-        .shake-error {
-            animation: shake-error 0.6s cubic-bezier(.36, .07, .19, .97) both;
-            border-color: #e53935 !important;
-        }
-
-        .ai-input-error {
-            position: absolute;
-            bottom: -30px;
-            left: 10px;
-            background: #e53935;
-            color: white;
-            font-size: 0.8rem;
-            padding: 5px 10px;
-            border-radius: 4px;
-            animation: fadeIn 0.3s;
-            z-index: 10;
-        }
-
-        /* Speech input button */
-        .speech-input-button {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.3);
-            z-index: 5;
-            overflow: visible;
-        }
-
-        .speech-input-button:hover {
-            background: linear-gradient(135deg, #5d2884 0%, #8e3de0 100%);
-        }
-
-        .speech-input-button.listening {
-            background: #e53935;
-            box-shadow: 0 0 0 5px rgba(229, 57, 53, 0.3);
-        }
-
-        .recording-indicator {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: red;
-            top: -2px;
-            right: -2px;
-            z-index: 6;
-        }
-
-        /* Emergency attention highlight */
-        @keyframes attention-highlight {
-
-            0%,
-            100% {
-                box-shadow: 0 5px 15px rgba(229, 57, 53, 0.1);
-            }
-
-            50% {
-                box-shadow: 0 5px 25px rgba(229, 57, 53, 0.5);
-            }
-        }
-
-        .attention-highlight {
-            animation: attention-highlight 1s ease 3;
-        }
-
-        /* Loading text animation */
-        .loading-text::after {
-            content: '';
-            animation: ellipsis 1.5s infinite;
-        }
-
-        @keyframes ellipsis {
-            0% {
-                content: '.';
-            }
-
-            33% {
-                content: '..';
-            }
-
-            66% {
-                content: '...';
-            }
-
-            100% {
-                content: '.';
-            }
-        }
-    </style>
 </body>
 
 </html>
