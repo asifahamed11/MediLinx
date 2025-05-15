@@ -20,36 +20,38 @@ VALUES
 
 ('doctor', 'Dr Nafisa Hossain', 'nafisa@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345607', '1988-01-30', 'Female', 'Barishal City', NULL, 'Ophthalmology', 'BMDC-O-1207', 'Sher-e-Bangla Medical College Hospital, Barishal', '10 AM - 6 PM', 'uploads/profile_images/(female) (7).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, FCPS (Ophthalmology), Fellowship (Malaysia)', 9, '10 AM - 1 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Nafisa is an expert in retinal surgery and comprehensive eye care with special interest in pediatric ophthalmology.'),
 
--- Male Doctors
-('doctor', 'Dr Karim Uddin', 'karim@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345608', '1975-07-12', 'Male', 'Dhanmondi 27, Dhaka', NULL, 'Cardiology', 'BMDC-C-1208', 'Ibrahim Cardiac Hospital, Dhaka', '9 AM - 5 PM', 'uploads/profile_images/(male) (2).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, FCPS (Cardiology), Fellowship (USA)', 20, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Karim is a pioneer in interventional cardiology with expertise in complex cardiac procedures.'),
+-- Male Doctors (23 doctors using remaining profile images)
+('doctor', 'Dr Karim Uddin', 'karim@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345608', '1975-07-12', 'Male', 'Dhanmondi 27, Dhaka', NULL, 'Cardiology', 'BMDC-C-1208', 'Ibrahim Cardiac Hospital, Dhaka', '9 AM - 5 PM', 'uploads/profile_images/(male).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, FCPS (Cardiology), Fellowship (USA)', 20, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Karim is a pioneer in interventional cardiology with expertise in complex cardiac procedures.'),
 
-('doctor', 'Dr Rahim Khan', 'rahim@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345609', '1978-03-25', 'Male', 'Agrabad, Chittagong', NULL, 'Neurology', 'BMDC-N-1209', 'Chittagong Medical College Hospital', '10 AM - 6 PM', 'uploads/profile_images/(male) (3).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Neurology), Fellowship (UK)', 18, '10 AM - 2 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Rahim is a leading neurologist specializing in stroke management and neurodegenerative disorders.'),
+('doctor', 'Dr Rahim Khan', 'rahim@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345609', '1978-03-25', 'Male', 'Agrabad, Chittagong', NULL, 'Neurology', 'BMDC-N-1209', 'Chittagong Medical College Hospital', '10 AM - 6 PM', 'uploads/profile_images/(male) (2).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Neurology), Fellowship (UK)', 18, '10 AM - 2 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Rahim is a leading neurologist specializing in stroke management and neurodegenerative disorders.'),
 
 -- Continuing with Male Doctors
-('doctor', 'Dr Mahbub Hassan', 'mahbub@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345610', '1980-05-15', 'Male', 'Mirpur-10, Dhaka', NULL, 'Orthopedics', 'BMDC-O-1210', 'National Institute of Traumatology & Orthopedic Rehabilitation', '9 AM - 5 PM', 'uploads/profile_images/(male) (4).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MS (Orthopedics), Fellowship (Germany)', 16, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Mahbub is an experienced orthopedic surgeon specializing in joint replacement surgeries.'),
+('doctor', 'Dr Mahbub Hassan', 'mahbub@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345610', '1980-05-15', 'Male', 'Mirpur-10, Dhaka', NULL, 'Orthopedics', 'BMDC-O-1210', 'National Institute of Traumatology & Orthopedic Rehabilitation', '9 AM - 5 PM', 'uploads/profile_images/(male) (3).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MS (Orthopedics), Fellowship (Germany)', 16, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Mahbub is an experienced orthopedic surgeon specializing in joint replacement surgeries.'),
 
-('doctor', 'Dr Zahid Hasan', 'zahid@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345611', '1979-08-20', 'Male', 'Medical College Road, Mymensingh', NULL, 'Pulmonology', 'BMDC-P-1211', 'Mymensingh Medical College Hospital', '10 AM - 6 PM', 'uploads/profile_images/(male) (10).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Chest Diseases), Fellowship (India)', 17, '10 AM - 2 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Zahid is a renowned pulmonologist with expertise in respiratory diseases and sleep disorders.'),
+('doctor', 'Dr Zahid Hasan', 'zahid@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345611', '1979-08-20', 'Male', 'Medical College Road, Mymensingh', NULL, 'Pulmonology', 'BMDC-P-1211', 'Mymensingh Medical College Hospital', '10 AM - 6 PM', 'uploads/profile_images/(male) (4).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Chest Diseases), Fellowship (India)', 17, '10 AM - 2 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Zahid is a renowned pulmonologist with expertise in respiratory diseases and sleep disorders.'),
 
-('doctor', 'Dr Masud Rahman', 'masud@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345612', '1982-11-08', 'Male', 'Rangpur City', NULL, 'Urology', 'BMDC-U-1212', 'Rangpur Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (11).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MS (Urology), Fellowship (Thailand)', 14, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Masud specializes in minimally invasive urological surgeries and kidney disorders.'),
+('doctor', 'Dr Masud Rahman', 'masud@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345612', '1982-11-08', 'Male', 'Rangpur City', NULL, 'Urology', 'BMDC-U-1212', 'Rangpur Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (5).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MS (Urology), Fellowship (Thailand)', 14, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Masud specializes in minimally invasive urological surgeries and kidney disorders.'),
 
-('doctor', 'Dr Faisal Ahmed', 'faisal.ahmed@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345613', '1984-03-20', 'Male', 'Sylhet City', NULL, 'Gastroenterology', 'BMDC-G-1213', 'North East Medical College Hospital', '10 AM - 6 PM', 'uploads/profile_images/(male) (12).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Gastroenterology), Fellowship (Japan)', 12, '10 AM - 2 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Faisal is an expert in advanced endoscopy and liver diseases.'),
+('doctor', 'Dr Faisal Ahmed', 'faisal@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345613', '1984-03-20', 'Male', 'Sylhet City', NULL, 'Gastroenterology', 'BMDC-G-1213', 'North East Medical College Hospital', '10 AM - 6 PM', 'uploads/profile_images/(male) (6).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Gastroenterology), Fellowship (Japan)', 12, '10 AM - 2 PM, 3 PM - 6 PM', 'Bangla, English', 'Dr. Faisal is an expert in advanced endoscopy and liver diseases.'),
 
-('doctor', 'Dr Anwar Hossain', 'anwar@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345614', '1977-07-15', 'Male', 'Khulna City', NULL, 'Oncology', 'BMDC-O-1214', 'Khulna Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (13).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Medical Oncology), Fellowship (Singapore)', 19, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Anwar specializes in cancer treatment and chemotherapy protocols.'),
+('doctor', 'Dr Anwar Hossain', 'anwar@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345614', '1977-07-15', 'Male', 'Khulna City', NULL, 'Oncology', 'BMDC-O-1214', 'Khulna Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (7).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Medical Oncology)', 'Fellowship (Singapore)', 19, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Anwar specializes in cancer treatment and chemotherapy protocols.'),
 
-('doctor', 'Dr Shahriar Islam', 'shahriar@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345615', '1983-09-28', 'Male', 'Central Road, Bogura', NULL, 'ENT', 'BMDC-E-1215', 'Shaheed Ziaur Rahman Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (14).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MS (Otolaryngology), Fellowship (Malaysia)', 15, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Shahriar is an ENT specialist with expertise in microsurgery and cochlear implants.'),
+('doctor', 'Dr Shahriar Islam', 'shahriar@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345615', '1983-09-28', 'Male', 'Central Road, Bogura', NULL, 'ENT', 'BMDC-E-1215', 'Shaheed Ziaur Rahman Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (8).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MS (Otolaryngology), Fellowship (Malaysia)', 15, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Shahriar is an ENT specialist with expertise in microsurgery and cochlear implants.'),
 
-('doctor', 'Dr Mohsin Ali', 'mohsin@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345616', '1981-12-05', 'Male', 'Station Road, Comilla', NULL, 'Nephrology', 'BMDC-N-1216', 'Comilla Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (15).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Nephrology), Fellowship (India)', 16, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Mohsin is a kidney specialist focusing on dialysis and transplant care.');
+('doctor', 'Dr Mohsin Ali', 'mohsin@example.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345616', '1981-12-05', 'Male', 'Station Road, Comilla', NULL, 'Nephrology', 'BMDC-N-1216', 'Comilla Medical College Hospital', '9 AM - 5 PM', 'uploads/profile_images/(male) (9).jpg', '2024-01-01 12:00:00', NULL, 'MBBS, MD (Nephrology), Fellowship (India)', 16, '9 AM - 1 PM, 2 PM - 5 PM', 'Bangla, English', 'Dr. Mohsin is a kidney specialist focusing on dialysis and transplant care.'),
+
+
 
 -- Adding patients
 INSERT INTO `users` (`role`, `username`, `email`, `password`, `phone`, `date_of_birth`, `gender`, `address`, `medical_history`, `specialty`, `medical_license_number`, `work_address`, `consultation_hours`, `profile_image`, `email_verified_at`, `email_verification_pin`, `degrees_and_certifications`, `years_of_experience`, `available_consultation_hours`, `languages_spoken`, `professional_biography`)
 VALUES
-('patient', 'Asif Ahmed', 'asif@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01770396222', '1990-05-15', 'Male', 'Mohammadpur, Dhaka', 'No major health issues', NULL, NULL, NULL, NULL, 'uploads/profile_images/(male) (16).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL),
+('patient', 'Asif Ahmed', 'asif@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01770396222', '1990-05-15', 'Male', 'Mohammadpur, Dhaka', 'No major health issues', NULL, NULL, NULL, NULL, NULL, 'uploads/profile_images/(male) (24).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL),
 
-('patient', 'Maliha Rahman', 'maliha@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345631', '1988-08-20', 'Female', 'Uttara, Dhaka', 'Mild asthma', NULL, NULL, NULL, NULL, 'uploads/profile_images/(female) (4).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL),
+('patient', 'Maliha Rahman', 'maliha@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345631', '1988-08-20', 'Female', 'Uttara, Dhaka', 'Mild asthma', NULL, NULL, NULL, NULL, NULL, 'uploads/profile_images/(female) (4).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL),
 
-('patient', 'Imran Khan', 'imran@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345632', '1992-03-10', 'Male', 'Gulshan, Dhaka', 'Type 1 Diabetes', NULL, NULL, NULL, NULL, 'uploads/profile_images/(male) (17).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL),
+('patient', 'Imran Khan', 'imran@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345632', '1992-03-10', 'Male', 'Gulshan, Dhaka', 'Type 1 Diabetes', NULL, NULL, NULL, NULL, NULL, 'uploads/profile_images/(male) (25).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL),
 
-('patient', 'Nabila Haque', 'nabila@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345633', '1995-11-25', 'Female', 'Banani, Dhaka', 'No major health issues', NULL, NULL, NULL, NULL, 'uploads/profile_images/(female) (5).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL);
+('patient', 'Nabila Haque', 'nabila@gmail.com', '$2y$10$YPkBGw1fH3qzHnagz52pveBYpOV736ek2WFmpXJBaG7QVjays77Hy', '01712345633', '1995-11-25', 'Female', 'Banani, Dhaka', 'No major health issues', NULL, NULL, NULL, NULL, NULL, 'uploads/profile_images/(female) (5).jpg', '2024-01-01 12:00:00', NULL, NULL, NULL, NULL, 'Bangla, English', NULL);
 
 -- Adding degrees for doctors
 INSERT INTO `degrees` (`doctor_id`, `degree_name`, `institution`, `passing_year`)
@@ -72,7 +74,7 @@ VALUES
 -- Dr. Samira Ahmed (Pediatrics)
 (4, 'MBBS', 'Sylhet MAG Osmani Medical College', 2004),
 (4, 'FCPS (Pediatrics)', 'Bangladesh College of Physicians and Surgeons', 2011),
-(4, 'Fellowship in Pediatric Critical Care', 'Boston Children\'s Hospital', 2013),
+(4, 'Fellowship in Pediatric Critical Care', 'Boston Childrens Hospital', 2013),
 
 -- Dr. Tasnim Haque (Psychiatry)
 (5, 'MBBS', 'Rajshahi Medical College', 2006),
@@ -109,11 +111,7 @@ VALUES
 (11, 'MD (Chest Diseases)', 'National Institute of Diseases of Chest & Hospital', 2008),
 (11, 'Fellowship in Respiratory Medicine', 'All India Institute of Medical Sciences', 2010),
 
--- Dr. Masud Rahman (Urology)
-(12, 'MBBS', 'Rangpur Medical College', 2003),
-(12, 'MS (Urology)', 'Bangabandhu Sheikh Mujib Medical University', 2010),
-(12, 'Fellowship in Urological Surgery', 'Chulalongkorn University, Thailand', 2012),
-
+-- Degrees for recently added doctors
 -- Dr. Faisal Ahmed (Gastroenterology)
 (13, 'MBBS', 'Sylhet MAG Osmani Medical College', 2007),
 (13, 'MD (Gastroenterology)', 'Bangabandhu Sheikh Mujib Medical University', 2014),

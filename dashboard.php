@@ -14,6 +14,464 @@ function sanitizeInput($input)
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
+// Helper function to convert language code to language name
+function getLanguageName($languageCode)
+{
+    $languageMap = [
+        'af' => 'Afrikaans',
+        'ar' => 'Arabic',
+        'bg' => 'Bulgarian',
+        'bn' => 'Bengali',
+        'ca' => 'Catalan',
+        'cs' => 'Czech',
+        'da' => 'Danish',
+        'de' => 'German',
+        'el' => 'Greek',
+        'en' => 'English',
+        'es' => 'Spanish',
+        'et' => 'Estonian',
+        'fa' => 'Persian',
+        'fi' => 'Finnish',
+        'fil' => 'Filipino',
+        'fr' => 'French',
+        'gu' => 'Gujarati',
+        'he' => 'Hebrew',
+        'hi' => 'Hindi',
+        'hr' => 'Croatian',
+        'hu' => 'Hungarian',
+        'id' => 'Indonesian',
+        'it' => 'Italian',
+        'ja' => 'Japanese',
+        'kn' => 'Kannada',
+        'ko' => 'Korean',
+        'lt' => 'Lithuanian',
+        'lv' => 'Latvian',
+        'ml' => 'Malayalam',
+        'mr' => 'Marathi',
+        'ms' => 'Malay',
+        'nl' => 'Dutch',
+        'no' => 'Norwegian',
+        'pl' => 'Polish',
+        'pt' => 'Portuguese',
+        'ro' => 'Romanian',
+        'ru' => 'Russian',
+        'sk' => 'Slovak',
+        'sl' => 'Slovenian',
+        'sr' => 'Serbian',
+        'sv' => 'Swedish',
+        'sw' => 'Swahili',
+        'ta' => 'Tamil',
+        'te' => 'Telugu',
+        'th' => 'Thai',
+        'tr' => 'Turkish',
+        'uk' => 'Ukrainian',
+        'ur' => 'Urdu',
+        'vi' => 'Vietnamese',
+        'zh' => 'Chinese'
+    ];
+
+    return $languageMap[$languageCode] ?? $languageCode;
+}
+
+// Function to search for AI-recommended doctors based on symptoms
+function getAIRecommendedDoctors($symptom, $conn)
+{
+    // Define the API key - we'll use the same key from health_tips.php
+    $GEMINI_API_KEY = 'AIzaSyA-SczyTDGunUSkDCQL_6kDsSGV1JNvWrY';
+
+    // Detect language and translate if not in English
+    $originalSymptom = $symptom;
+    $detectedLanguage = null;
+    $translatedSymptom = null;
+
+    // Check if symptom might not be in English
+    if (!preg_match('/^[a-zA-Z0-9\s\.,\-\(\)]+$/', $symptom)) {
+        error_log("Detected potentially non-English symptom: $symptom");
+
+        try {
+            // Call Google Translate API to detect language and translate to English
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => 'https://translation.googleapis.com/language/translate/v2/detect?key=' . $GEMINI_API_KEY,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode([
+                    'q' => $symptom
+                ]),
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json'
+                ],
+                CURLOPT_TIMEOUT => 10
+            ]);
+
+            $detectResponse = curl_exec($ch);
+            if (curl_errno($ch)) {
+                throw new Exception('Language detection failed: ' . curl_error($ch));
+            }
+            curl_close($ch);
+
+            $detectData = json_decode($detectResponse, true);
+            if (isset($detectData['data']['detections'][0][0]['language'])) {
+                $detectedLanguage = $detectData['data']['detections'][0][0]['language'];
+                error_log("Detected language: $detectedLanguage");
+
+                // Only translate if not English
+                if ($detectedLanguage != 'en') {
+                    // Translate to English
+                    $ch = curl_init();
+                    curl_setopt_array($ch, [
+                        CURLOPT_URL => 'https://translation.googleapis.com/language/translate/v2?key=' . $GEMINI_API_KEY,
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST => true,
+                        CURLOPT_POSTFIELDS => json_encode([
+                            'q' => $symptom,
+                            'source' => $detectedLanguage,
+                            'target' => 'en',
+                            'format' => 'text'
+                        ]),
+                        CURLOPT_HTTPHEADER => [
+                            'Content-Type: application/json'
+                        ],
+                        CURLOPT_TIMEOUT => 10
+                    ]);
+
+                    $translateResponse = curl_exec($ch);
+                    if (curl_errno($ch)) {
+                        throw new Exception('Translation failed: ' . curl_error($ch));
+                    }
+                    curl_close($ch);
+
+                    $translateData = json_decode($translateResponse, true);
+                    if (isset($translateData['data']['translations'][0]['translatedText'])) {
+                        $translatedSymptom = $translateData['data']['translations'][0]['translatedText'];
+                        $symptom = $translatedSymptom;
+                        error_log("Translated symptom: $symptom");
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Translation error: " . $e->getMessage());
+            // Continue with original symptom if translation fails
+        }
+    }
+
+    // Build prompt that will help the AI suggest doctor specialties based on symptoms
+    $prompt = "As a medical AI assistant, suggest the most appropriate medical specialist type(s) for the following symptom or health concern: \"$symptom\". 
+    Respond with ONLY the specialist type(s), for example: Cardiologist, Neurologist, etc. 
+    If multiple specialists could be appropriate, list the 2-3 most relevant ones separated by a comma.
+    Use standard medical specialty names that would be commonly found in healthcare databases.
+    For skin issues, use 'Dermatologist' rather than 'Esthetician'.
+    For eye issues, use 'Ophthalmologist' rather than 'Optometrist'.
+    For mental health, use 'Psychiatrist' rather than 'Therapist'.
+    Do not include any explanation or additional information in your response.";
+
+    // Special handling for common symptoms with known specialist mappings
+    $directMapping = false;
+    if (
+        stripos($symptom, 'chest pain') !== false ||
+        stripos($symptom, 'heart') !== false ||
+        stripos($symptom, 'cardiac') !== false ||
+        stripos($symptom, 'palpitations') !== false
+    ) {
+
+        // For chest pain, we know we need a cardiologist
+        $specialties = "Cardiologist, Emergency Medicine Physician";
+        $directMapping = true;
+        error_log("Using direct mapping for chest pain to: $specialties");
+    }
+
+    try {
+        // Call Gemini API to get suggested specialties if we don't have a direct mapping
+        if (!$directMapping) {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode([
+                    'contents' => [['parts' => [['text' => $prompt]]]]
+                ]),
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'x-goog-api-key: ' . $GEMINI_API_KEY
+                ],
+                CURLOPT_TIMEOUT => 15
+            ]);
+
+            $response = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (curl_errno($ch)) {
+                throw new Exception('API request failed: ' . curl_error($ch));
+            }
+
+            if ($http_code !== 200) {
+                throw new Exception("API returned error code: $http_code");
+            }
+
+            curl_close($ch);
+
+            // Parse the API response
+            $data = json_decode($response, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Failed to parse API response: ' . json_last_error_msg());
+            }
+
+            $specialties = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        }
+
+        // Clean up the response and split by comma if there are multiple specialties
+        $specialties = str_replace([".", ":", "-"], "", $specialties);
+        $specialtyArray = array_map('trim', explode(',', $specialties));
+
+        // Store original specialty names for display purposes
+        $displaySpecialties = $specialtyArray;
+
+        // Prepare array to store doctors
+        $doctors = [];
+
+        // Create a query to find doctors with these specialties
+        if (!empty($specialtyArray)) {
+            // Check for common specialty names and include alternatives
+            $expandedSpecialties = [];
+            foreach ($specialtyArray as $specialty) {
+                $expandedSpecialties[] = $specialty;
+
+                // Add common variations
+                if (strtolower($specialty) == 'cardiologist') {
+                    $expandedSpecialties[] = 'Cardiology';
+                    $expandedSpecialties[] = 'Heart Specialist';
+                } else if (strtolower($specialty) == 'dermatologist') {
+                    $expandedSpecialties[] = 'Dermatology';
+                    $expandedSpecialties[] = 'Skin Specialist';
+                } else if (strtolower($specialty) == 'orthopedist' || strtolower($specialty) == 'orthopedic surgeon') {
+                    $expandedSpecialties[] = 'Orthopedics';
+                    $expandedSpecialties[] = 'Orthopaedic';
+                }
+            }
+
+            // Log what we're searching for (debugging)
+            error_log("Searching for specialties: " . implode(", ", $expandedSpecialties));
+
+            $placeholders = implode(',', array_fill(0, count($expandedSpecialties), '?'));
+            $types = str_repeat('s', count($expandedSpecialties));
+
+            $query = "SELECT u.*,
+                    COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
+                    (SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count,
+                    GROUP_CONCAT(DISTINCT d.degree_name SEPARATOR ', ') as degrees
+                    FROM users u
+                    LEFT JOIN degrees d ON u.id = d.doctor_id
+                    WHERE u.role = 'doctor' AND (";
+
+            $conditions = [];
+            $searchTerms = [];
+
+            // First try exact match (case insensitive)
+            foreach ($expandedSpecialties as $specialty) {
+                $conditions[] = "LOWER(u.specialty) = LOWER(?)";
+                $searchTerms[] = trim($specialty);
+            }
+
+            // Then try LIKE matches
+            foreach ($expandedSpecialties as $specialty) {
+                $conditions[] = "LOWER(u.specialty) LIKE ?";
+                $searchTerms[] = "%" . strtolower(trim($specialty)) . "%";
+            }
+
+            // Add conditions for matching word boundaries
+            foreach ($expandedSpecialties as $specialty) {
+                $conditions[] = "LOWER(u.specialty) LIKE ?";
+                $searchTerms[] = "% " . strtolower(trim($specialty)) . " %";
+            }
+
+            $query .= implode(' OR ', $conditions) . ") GROUP BY u.id";
+
+            // For ordering, use only the primary specialty
+            $query .= " ORDER BY 
+                    CASE 
+                        WHEN LOWER(u.specialty) = LOWER(?) THEN 1
+                        WHEN LOWER(u.specialty) LIKE ? THEN 2
+                        ELSE 3 
+                    END,
+                    avg_rating DESC, review_count DESC LIMIT 10";
+
+            // Add the ordering parameters
+            $searchTerms[] = trim($specialtyArray[0]); // First specialty for exact match ordering
+            $searchTerms[] = "%" . strtolower(trim($specialtyArray[0])) . "%"; // First specialty for LIKE match ordering
+
+            // Set types string to match parameter count
+            $types = str_repeat('s', count($searchTerms));
+
+            // Execute the query
+            $stmt = $conn->prepare($query);
+            if (!$stmt) {
+                error_log("Query preparation failed: " . $conn->error);
+                error_log("Query was: " . $query);
+                throw new Exception("Query preparation failed: " . $conn->error);
+            }
+
+            try {
+                // Count and ensure the types string matches the number of parameters
+                if (strlen($types) !== count($searchTerms)) {
+                    error_log("Parameter count mismatch: " . strlen($types) . " types vs " . count($searchTerms) . " params");
+                    error_log("Types: " . $types);
+                    error_log("Parameters: " . print_r($searchTerms, true));
+
+                    // Fix the types string to match parameter count
+                    $types = str_repeat('s', count($searchTerms));
+                }
+
+                $stmt->bind_param($types, ...$searchTerms);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $doctors = $result->fetch_all(MYSQLI_ASSOC);
+
+                // Log the results (debugging)
+                error_log("Found " . count($doctors) . " doctors for the query");
+            } catch (Exception $e) {
+                error_log("Error executing specialty query: " . $e->getMessage());
+                error_log("Search terms: " . print_r($searchTerms, true));
+            }
+
+            // If no doctors found, try a more basic approach
+            if (empty($doctors)) {
+                error_log("No doctors found with expanded specialties, trying simpler approach");
+
+                // For chest pain, directly look for cardiologists if that's what was recommended
+                if (
+                    stripos($symptom, 'chest pain') !== false ||
+                    stripos($symptom, 'heart') !== false ||
+                    in_array('Cardiologist', $displaySpecialties)
+                ) {
+
+                    error_log("Directly searching for cardiologists for chest pain");
+                    $cardioQuery = "SELECT u.*,
+                            COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
+                            (SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count,
+                            GROUP_CONCAT(DISTINCT d.degree_name SEPARATOR ', ') as degrees
+                            FROM users u
+                            LEFT JOIN degrees d ON u.id = d.doctor_id
+                            WHERE u.role = 'doctor' AND (
+                                LOWER(u.specialty) LIKE '%cardio%' OR
+                                LOWER(u.specialty) LIKE '%heart%' OR
+                                LOWER(u.specialty) LIKE '%cardiac%'
+                            )
+                            GROUP BY u.id
+                            ORDER BY avg_rating DESC, review_count DESC
+                            LIMIT 10";
+
+                    try {
+                        $cardioResult = $conn->query($cardioQuery);
+                        if ($cardioResult && $cardioResult->num_rows > 0) {
+                            $doctors = $cardioResult->fetch_all(MYSQLI_ASSOC);
+                            error_log("Found " . count($doctors) . " cardiologists with direct query");
+                        } else {
+                            error_log("No cardiologists found with direct query: " . $conn->error);
+                        }
+                    } catch (Exception $e) {
+                        error_log("Error in cardio query: " . $e->getMessage());
+                    }
+                }
+
+                // Only do the basic approach if still no doctors found
+                if (empty($doctors)) {
+                    // Try a more basic approach with just the main keywords
+                    $query = "SELECT u.*,
+                            COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
+                            (SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count,
+                            GROUP_CONCAT(DISTINCT d.degree_name SEPARATOR ', ') as degrees
+                            FROM users u
+                            LEFT JOIN degrees d ON u.id = d.doctor_id
+                            WHERE u.role = 'doctor'";
+
+                    // Just use the core words from each specialty
+                    $basicTerms = [];
+                    $basicTypes = '';
+
+                    foreach ($specialtyArray as $specialty) {
+                        // Get the base word (without -ist, -ician, etc.)
+                        $baseWord = preg_replace('/(ologist|iatrist|ician|ist|ic|ics|y)$/i', '', strtolower(trim($specialty)));
+                        if (strlen($baseWord) >= 3) {
+                            $query .= " AND LOWER(u.specialty) LIKE ?";
+                            $basicTerms[] = "%" . $baseWord . "%";
+                            $basicTypes .= 's';
+                            error_log("Trying base word: $baseWord from $specialty");
+                        }
+                    }
+
+                    if (!empty($basicTerms)) {
+                        $query .= " GROUP BY u.id ORDER BY avg_rating DESC, review_count DESC LIMIT 10";
+
+                        try {
+                            $stmt = $conn->prepare($query);
+                            if ($stmt) {
+                                // Ensure the types string matches the parameter count
+                                if (strlen($basicTypes) !== count($basicTerms)) {
+                                    error_log("Basic query param count mismatch: " . strlen($basicTypes) . " types vs " . count($basicTerms) . " params");
+                                    $basicTypes = str_repeat('s', count($basicTerms));
+                                }
+
+                                $stmt->bind_param($basicTypes, ...$basicTerms);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
+                                $doctors = $result->fetch_all(MYSQLI_ASSOC);
+                                error_log("Found " . count($doctors) . " doctors with basic approach");
+                            }
+                        } catch (Exception $e) {
+                            error_log("Error in basic query: " . $e->getMessage());
+                        }
+                    }
+                }
+
+                // If still no doctors found, provide fallback with highest rated doctors
+                if (empty($doctors)) {
+                    error_log("No doctors found, showing fallback results");
+                    $fallbackQuery = "SELECT u.*,
+                        COALESCE((SELECT AVG(rating) FROM reviews WHERE doctor_id = u.id), 0) as avg_rating,
+                        (SELECT COUNT(*) FROM reviews WHERE doctor_id = u.id) as review_count,
+                        GROUP_CONCAT(DISTINCT d.degree_name SEPARATOR ', ') as degrees
+                        FROM users u
+                        LEFT JOIN degrees d ON u.id = d.doctor_id
+                        WHERE u.role = 'doctor'
+                        GROUP BY u.id
+                        ORDER BY avg_rating DESC, review_count DESC
+                        LIMIT 5";
+
+                    $fallbackStmt = $conn->prepare($fallbackQuery);
+                    $fallbackStmt->execute();
+                    $fallbackResult = $fallbackStmt->get_result();
+                    $doctors = $fallbackResult->fetch_all(MYSQLI_ASSOC);
+
+                    // Flag to indicate we're showing fallback results
+                    $using_fallback = true;
+                } else {
+                    $using_fallback = false;
+                }
+            }
+        }
+
+        return [
+            'specialties' => $displaySpecialties,
+            'doctors' => $doctors,
+            'using_fallback' => $using_fallback ?? false,
+            'original_symptom' => $originalSymptom,
+            'translated_symptom' => $translatedSymptom,
+            'detected_language' => $detectedLanguage
+        ];
+    } catch (Exception $e) {
+        error_log('AI Doctor Search Error: ' . $e->getMessage());
+        return [
+            'specialties' => [],
+            'doctors' => [],
+            'error' => $e->getMessage(),
+            'original_symptom' => $originalSymptom,
+            'translated_symptom' => $translatedSymptom,
+            'detected_language' => $detectedLanguage
+        ];
+    }
+}
+
 $conn = connectDB();
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
@@ -30,6 +488,47 @@ $user_stmt->bind_param("i", $user_id);
 $user_stmt->execute();
 $user_result = $user_stmt->get_result();
 $user = $user_result->fetch_assoc();
+
+// Process AI doctor search if submitted
+$ai_search_results = null;
+$symptom = '';
+$specialty_debug_info = [];
+
+if (isset($_GET['ai_symptom']) && !empty($_GET['ai_symptom'])) {
+    $symptom = sanitizeInput($_GET['ai_symptom']);
+
+    // Let's check the structure of the specialty field to better understand the data
+    $specialty_query = "SELECT DISTINCT specialty FROM users WHERE role = 'doctor' AND specialty IS NOT NULL AND specialty != '' ORDER BY specialty LIMIT 20";
+    $specialty_debug = $conn->query($specialty_query);
+    if ($specialty_debug) {
+        while ($row = $specialty_debug->fetch_assoc()) {
+            $specialty_debug_info[] = $row['specialty'];
+        }
+        // Log the specialties for debugging
+        error_log("Available specialties in database: " . implode(", ", $specialty_debug_info));
+    }
+
+    // Check specifically for cardiology-related entries
+    $cardio_query = "SELECT id, username, specialty FROM users WHERE role = 'doctor' AND (
+        specialty LIKE '%cardio%' OR 
+        specialty LIKE '%heart%' OR 
+        specialty LIKE '%cardiac%'
+    ) LIMIT 10";
+    $cardio_debug = $conn->query($cardio_query);
+    if ($cardio_debug) {
+        $cardio_doctors = [];
+        while ($row = $cardio_debug->fetch_assoc()) {
+            $cardio_doctors[] = $row['username'] . " (" . $row['specialty'] . ")";
+        }
+        if (!empty($cardio_doctors)) {
+            error_log("Found cardiology doctors: " . implode(", ", $cardio_doctors));
+        } else {
+            error_log("No cardiology doctors found in database");
+        }
+    }
+
+    $ai_search_results = getAIRecommendedDoctors($symptom, $conn);
+}
 
 // Sanitize and validate filter parameters
 $specialty = isset($_GET['specialty']) ? sanitizeInput($_GET['specialty']) : '';
@@ -153,6 +652,46 @@ $conn->close();
             box-sizing: border-box;
         }
 
+        /* Translation info styles */
+        .translation-info {
+            display: block;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: rgba(235, 245, 250, 0.7);
+            border-left: 3px solid var(--primary);
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .translation-info i {
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+        .translation-info em {
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        /* Add animated pulse highlight for translated text */
+        @keyframes pulse-highlight {
+
+            0%,
+            100% {
+                background-color: rgba(235, 245, 250, 0.7);
+            }
+
+            50% {
+                background-color: rgba(29, 122, 140, 0.1);
+            }
+        }
+
+        .translation-info {
+            animation: pulse-highlight 3s ease-in-out 1;
+        }
+
         .dashboard-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -253,19 +792,19 @@ $conn->close();
 
         .search-header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.75rem;
             position: relative;
             z-index: 1;
         }
 
         .search-header h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             background: var(--primary-gradient);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             font-weight: 700;
             letter-spacing: -0.03em;
             text-shadow: 0 2px 5px rgba(29, 122, 140, 0.1);
@@ -278,7 +817,7 @@ $conn->close();
             position: absolute;
             left: 50%;
             bottom: -5px;
-            width: 40px;
+            width: 35px;
             height: 3px;
             background: var(--primary-gradient);
             transform: translateX(-50%);
@@ -287,10 +826,10 @@ $conn->close();
 
         .search-header p {
             color: var(--text-light);
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             max-width: 600px;
-            margin: 1.5rem auto 0;
-            line-height: 1.6;
+            margin: 1rem auto 0;
+            line-height: 1.5;
         }
 
         .search-form {
@@ -299,7 +838,7 @@ $conn->close();
             gap: 1.5rem;
             position: relative;
             z-index: 1;
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
 
         .search-group {
@@ -338,17 +877,17 @@ $conn->close();
             background: var(--primary-gradient);
             color: white;
             border: none;
-            padding: 1.25rem 2.5rem;
+            padding: 1.15rem 2rem;
             border-radius: var(--radius-md);
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.4s var(--transition-bounce);
-            box-shadow: 0 4px 15px rgba(29, 122, 140, 0.3), 0 1px 2px rgba(255, 255, 255, 0.3) inset;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 15px rgba(29, 122, 140, 0.25), 0 1px 2px rgba(255, 255, 255, 0.3) inset;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             letter-spacing: 0.3px;
             position: relative;
             overflow: hidden;
@@ -362,9 +901,10 @@ $conn->close();
             top: 0;
             left: 0;
             width: 100%;
-            height: 0;
+            height: 100%;
             background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
-            transition: height 0.4s ease-in-out;
+            opacity: 0;
+            transition: opacity 0.3s ease;
             z-index: -1;
         }
 
@@ -382,8 +922,14 @@ $conn->close();
             z-index: -1;
         }
 
+        .search-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(29, 122, 140, 0.4), 0 1px 2px rgba(255, 255, 255, 0.3) inset;
+            background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+
         .search-button:hover::before {
-            height: 100%;
+            opacity: 1;
         }
 
         .search-button:hover::after {
@@ -391,24 +937,19 @@ $conn->close();
             transform-origin: left;
         }
 
-        .search-button:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(29, 122, 140, 0.4), 0 1px 2px rgba(255, 255, 255, 0.3) inset;
-            letter-spacing: 0.5px;
-        }
-
         .search-button:active {
-            transform: translateY(-2px) scale(0.98);
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(29, 122, 140, 0.3);
         }
 
         .search-button i {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition: all 0.4s var(--transition-bounce);
         }
 
         .search-button:hover i {
-            transform: translateX(4px) scale(1.1) rotate(15deg);
-            color: rgba(255, 255, 255, 0.9);
+            transform: translateX(3px) scale(1.1) rotate(10deg);
+            color: rgba(255, 255, 255, 0.95);
         }
 
         .results-info {
@@ -1291,6 +1832,443 @@ $conn->close();
                 font-size: 1rem;
             }
         }
+
+        /* AI Doctor Search Styles */
+        .search-divider {
+            position: relative;
+            text-align: center;
+            margin: 1.5rem 0;
+            height: 15px;
+        }
+
+        .search-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(29, 122, 140, 0.15);
+            z-index: 1;
+        }
+
+        .search-divider span {
+            position: relative;
+            display: inline-block;
+            padding: 0 1rem;
+            background: white;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.85rem;
+            z-index: 2;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .ai-search-section {
+            text-align: center;
+            padding: 0.75rem 0 0;
+            animation: fadeIn 0.6s ease-out 0.3s both;
+        }
+
+        .ai-search-section h3 {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .ai-search-section h3 i {
+            font-size: 1.1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .ai-search-section p {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .ai-search-form {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 1rem;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .ai-search-input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .ai-search-input {
+            font-size: 1rem;
+            border-width: 2px;
+            transition: all 0.4s var(--transition-bounce);
+            animation: soft-pulse 3s infinite;
+            padding: 1rem 1.25rem 1rem 2.8rem;
+            width: 100%;
+        }
+
+        .ai-search-input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .ai-search-input:focus+.ai-search-input-icon {
+            color: var(--primary-dark);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .multilingual-badge {
+            position: absolute;
+            right: 10px;
+            top: -10px;
+            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 1;
+            box-shadow: 0 3px 8px rgba(106, 48, 147, 0.3);
+        }
+
+        @keyframes soft-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 rgba(29, 122, 140, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 15px rgba(29, 122, 140, 0.15);
+            }
+        }
+
+        .ai-search-button {
+            margin: 0;
+            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
+            min-width: 180px;
+            padding: 1rem 1.25rem;
+            white-space: nowrap;
+            align-self: flex-start;
+        }
+
+        @media (max-width: 650px) {
+            .ai-search-form {
+                flex-direction: column;
+            }
+
+            .ai-search-button {
+                margin: 0 auto;
+                min-width: 250px;
+            }
+        }
+
+        /* AI Results Section */
+        .ai-results-section {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .ai-recommendation {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ai-recommendation-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .ai-recommendation-header i {
+            font-size: 1.2rem;
+            color: white;
+            background: linear-gradient(135deg, #6a3093 0%, #a044ff 100%);
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(106, 48, 147, 0.3);
+        }
+
+        .ai-recommendation-header h3 {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            margin: 0;
+        }
+
+        .ai-recommendation p {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .ai-specialties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .ai-specialty {
+            background: rgba(29, 122, 140, 0.1);
+            color: var(--primary-dark);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(29, 122, 140, 0.1);
+        }
+
+        .ai-specialty:hover {
+            background: rgba(29, 122, 140, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(29, 122, 140, 0.1);
+        }
+
+        .ai-specialty i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .ai-doctors-section {
+            margin-top: 1.5rem;
+        }
+
+        .ai-doctors-title {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .ai-doctors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .ai-doctor-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow:
+                0 15px 25px rgba(0, 0, 0, 0.05),
+                0 1px 1px rgba(255, 255, 255, 0.7) inset;
+            transition: all 0.4s var(--transition-bounce);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            height: 100%;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .ai-doctor-image-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+        }
+
+        .ai-doctor-content {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 220px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .ai-doctor-specialty {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+        .ai-doctor-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0.25rem 0;
+            color: var(--secondary);
+            letter-spacing: -0.5px;
+            transition: all 0.3s var(--transition-bounce);
+        }
+
+        .ai-doctor-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-doctor-rating i {
+            color: #FFB400;
+            text-shadow: 0 1px 3px rgba(255, 180, 0, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .ai-doctor-rating span {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-left: 0.35rem;
+            font-weight: 500;
+        }
+
+        .ai-doctor-review-count {
+            color: var(--text-light);
+            font-size: 0.8rem;
+            margin-left: auto;
+            opacity: 0.8;
+            background: rgba(29, 122, 140, 0.08);
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+        }
+
+        .ai-doctor-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-grow: 1;
+            padding-top: 0.25rem;
+        }
+
+        .ai-doctor-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            transition: all 0.3s var(--transition-bounce);
+            padding: 0.35rem 0;
+            border-bottom: 1px dashed rgba(29, 122, 140, 0.1);
+        }
+
+        .ai-doctor-detail-item i {
+            color: var(--primary);
+            font-size: 0.9rem;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            opacity: 0.9;
+            transition: all 0.3s var(--transition-bounce);
+            background: rgba(29, 122, 140, 0.1);
+            border-radius: 50%;
+            padding: 0.85rem;
+        }
+
+        .ai-doctor-view-profile-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s var(--transition-bounce);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            font-size: 0.9rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(29, 122, 140, 0.3);
+        }
+
+        .ai-no-doctors {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            box-shadow:
+                0 20px 30px rgba(0, 0, 0, 0.05),
+                0 1px 1px rgba(255, 255, 255, 0.7) inset;
+            animation: fadeIn 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .ai-no-doctors p {
+            color: var(--text-light);
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .fallback-notice {
+            font-size: 0.85rem;
+            font-weight: normal;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+            padding: 0.5rem 0.75rem;
+            background-color: rgba(255, 248, 225, 0.8);
+            border-radius: var(--radius-md);
+            border-left: 3px solid #FFB400;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .fallback-notice i {
+            color: #FFB400;
+            font-size: 1rem;
+        }
+
+        .translation-info {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-left: 0.5rem;
+            display: inline-block;
+        }
     </style>
 
 </head>
@@ -1354,6 +2332,168 @@ $conn->close();
                     Find Doctors
                 </button>
             </form>
+
+            <div class="search-divider">
+                <span>OR</span>
+            </div>
+
+            <div class="ai-search-section">
+                <h3><i class="fas fa-robot"></i> AI Doctor Finder</h3>
+                <p>Describe your symptoms and let AI suggest specialists for you</p>
+                <form class="ai-search-form" method="GET" id="aiDoctorSearchForm">
+                    <div class="search-group ai-search-input-container">
+                        <input type="text"
+                            name="ai_symptom"
+                            id="aiSymptomInput"
+                            placeholder="Describe your symptoms in any language"
+                            class="search-input ai-search-input"
+                            value="<?= htmlspecialchars($symptom) ?>">
+                        <span class="ai-search-input-icon fas fa-language"></span>
+                        <span class="multilingual-badge">Multilingual</span>
+                    </div>
+                    <button type="submit" class="search-button ai-search-button">
+                        <i class="fas fa-stethoscope"></i>
+                        Find AI Doctor
+                    </button>
+                </form>
+            </div>
+
+            <?php if ($ai_search_results && !empty($ai_search_results['specialties'])): ?>
+                <div class="ai-results-section">
+                    <div class="ai-recommendation">
+                        <div class="ai-recommendation-header">
+                            <i class="fas fa-robot"></i>
+                            <h3>AI Recommendation</h3>
+                        </div>
+                        <p>Based on your symptoms
+                            <?php if (isset($ai_search_results['translated_symptom']) && $ai_search_results['translated_symptom'] !== null): ?>
+                                "<strong><?= htmlspecialchars($ai_search_results['original_symptom']) ?></strong>"
+                                <span class="translation-info">
+                                    <i class="fas fa-language"></i>
+                                    Translated from <?= htmlspecialchars(getLanguageName($ai_search_results['detected_language'])) ?> to English:
+                                    "<em><?= htmlspecialchars($ai_search_results['translated_symptom']) ?></em>"
+                                </span>
+                            <?php else: ?>
+                                "<strong><?= htmlspecialchars($symptom) ?></strong>"
+                            <?php endif; ?>
+                            , AI recommends:
+                        </p>
+                        <div class="ai-specialties">
+                            <?php foreach ($ai_search_results['specialties'] as $aiSpecialty): ?>
+                                <div class="ai-specialty">
+                                    <i class="fas fa-user-md"></i>
+                                    <span><?= htmlspecialchars(ucfirst($aiSpecialty)) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <?php if (!empty($ai_search_results['doctors'])): ?>
+                        <div class="ai-doctors-section">
+                            <h3 class="ai-doctors-title">
+                                <?php if ($ai_search_results['using_fallback']): ?>
+                                    Top Rated Doctors
+                                    <div class="fallback-notice">
+                                        <i class="fas fa-info-circle"></i>
+                                        We couldn't find doctors matching the exact specialties. Showing our best doctors instead.
+                                    </div>
+                                <?php else: ?>
+                                    Recommended Doctors
+                                <?php endif; ?>
+                            </h3>
+                            <div class="doctors-grid ai-doctors-grid">
+                                <?php foreach ($ai_search_results['doctors'] as $index => $doctor): ?>
+                                    <div class="doctor-card ai-doctor-card animate-card" style="animation-delay: <?= $index * 0.1 ?>s">
+                                        <?php if (($doctor['avg_rating'] ?? 0) >= 4.5): ?>
+                                            <div class="doctor-badge">Top Rated</div>
+                                        <?php endif; ?>
+
+                                        <div class="doctor-image-container">
+                                            <img src="<?= htmlspecialchars($doctor['profile_image'] ?: 'uploads/default_profile.png') ?>"
+                                                class="doctor-image"
+                                                alt="<?= htmlspecialchars($doctor['username']) ?>"
+                                                onerror="this.src='uploads/default_profile.png'">
+                                        </div>
+
+                                        <div class="doctor-content">
+                                            <div class="doctor-specialty">
+                                                <?= htmlspecialchars($doctor['specialty'] ?? 'General Practitioner') ?>
+                                            </div>
+
+                                            <h3 class="doctor-name"><?= htmlspecialchars($doctor['username']) ?></h3>
+
+                                            <div class="doctor-rating">
+                                                <?php
+                                                $rating = $doctor['avg_rating'] ?? 0;
+                                                for ($i = 1; $i <= 5; $i++):
+                                                    if ($rating >= $i):
+                                                        echo '<i class="fas fa-star"></i>';
+                                                    elseif ($rating >= $i - 0.5):
+                                                        echo '<i class="fas fa-star-half-alt"></i>';
+                                                    else:
+                                                        echo '<i class="far fa-star"></i>';
+                                                    endif;
+                                                endfor;
+                                                ?>
+                                                <span><?= number_format($doctor['avg_rating'] ?? 0, 1) ?></span>
+
+                                                <div class="doctor-review-count">
+                                                    <?= $doctor['review_count'] ?? 0 ?> reviews
+                                                </div>
+                                            </div>
+
+                                            <?php if (!empty($doctor['degrees'])): ?>
+                                                <div class="doctor-languages">
+                                                    <?php
+                                                    $degreeList = explode(', ', $doctor['degrees']);
+                                                    foreach ($degreeList as $degree):
+                                                        if (!empty(trim($degree))):
+                                                    ?>
+                                                            <span class="language-tag"><?= htmlspecialchars($degree) ?></span>
+                                                    <?php endif;
+                                                    endforeach; ?>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <div class="doctor-details">
+                                                <?php if (!empty($doctor['work_address'])): ?>
+                                                    <div class="doctor-detail-item">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                        <span><?= htmlspecialchars($doctor['work_address']) ?></span>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <?php if (!empty($doctor['years_of_experience'])): ?>
+                                                    <div class="doctor-detail-item">
+                                                        <i class="fas fa-briefcase-medical"></i>
+                                                        <span><?= htmlspecialchars($doctor['years_of_experience']) ?> Years Experience</span>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <?php if (!empty($doctor['education'])): ?>
+                                                    <div class="doctor-detail-item">
+                                                        <i class="fas fa-graduation-cap"></i>
+                                                        <span><?= htmlspecialchars($doctor['education']) ?></span>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <a href="doctor-profile.php?id=<?= $doctor['id'] ?>" class="view-profile-btn ai-doctor-view-profile-btn">
+                                                View Profile
+                                                <i class="fas fa-arrow-right"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="ai-no-doctors">
+                            <p>Sorry, we couldn't find any doctors matching the specialties recommended by AI. Please try using different symptoms or search by specialty directly.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
             <?php if (!empty($specialty) || !empty($location) || !empty($experience) || !empty($rating)): ?>
                 <div class="active-filters">
@@ -1539,6 +2679,24 @@ $conn->close();
             loadingOverlay.style.opacity = '1';
         });
 
+        // Also handle loading for AI search form
+        document.getElementById('aiDoctorSearchForm').addEventListener('submit', function() {
+            const loadingOverlay = document.querySelector('.loading-overlay');
+            const loadingText = document.querySelector('.loading-text');
+
+            // Update loading text for AI search
+            loadingText.textContent = 'AI is analyzing your symptoms...';
+
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.style.opacity = '0';
+
+            // Trigger a reflow
+            void loadingOverlay.offsetWidth;
+
+            // Start fading in
+            loadingOverlay.style.opacity = '1';
+        });
+
         // Handle specialty autocomplete
         const specialtyInput = document.getElementById('specialtyInput');
         const specialtySuggestions = document.getElementById('specialtySuggestions');
@@ -1629,6 +2787,78 @@ $conn->close();
                 });
             });
         }
+
+        // AI search input enhancements
+        const aiSymptomInput = document.getElementById('aiSymptomInput');
+        const placeholderExamples = [
+            'chest pain with shortness of breath',
+            'severe headache and dizziness',
+            'dolor en el pecho (Spanish)',
+            'mal de tête (French)',
+            'Bauchschmerzen (German)',
+            'كحة مستمرة (Arabic)',
+            'пульсирующая головная боль (Russian)',
+            '喉咙痛 (Chinese)',
+            'मसल्स दर्द (Hindi)',
+            'dor nas articulações (Portuguese)'
+        ];
+
+        let currentExample = 0;
+        let placeholderInterval;
+
+        // Start with default placeholder
+        aiSymptomInput.placeholder = "Describe your symptoms in any language";
+
+        // Focus event - change placeholder to rotating examples when focusing on input
+        aiSymptomInput.addEventListener('focus', function() {
+            if (this.value === '') {
+                startPlaceholderRotation();
+            }
+        });
+
+        // Blur event - stop rotation when leaving input
+        aiSymptomInput.addEventListener('blur', function() {
+            stopPlaceholderRotation();
+            if (this.value === '') {
+                this.placeholder = "Describe your symptoms in any language";
+            }
+        });
+
+        // Input event - stop rotation when typing
+        aiSymptomInput.addEventListener('input', function() {
+            stopPlaceholderRotation();
+        });
+
+        function startPlaceholderRotation() {
+            if (placeholderInterval) return;
+
+            placeholderInterval = setInterval(() => {
+                aiSymptomInput.placeholder = placeholderExamples[currentExample];
+                currentExample = (currentExample + 1) % placeholderExamples.length;
+            }, 2000);
+
+            // Set first example immediately
+            aiSymptomInput.placeholder = placeholderExamples[currentExample];
+            currentExample = (currentExample + 1) % placeholderExamples.length;
+        }
+
+        function stopPlaceholderRotation() {
+            if (placeholderInterval) {
+                clearInterval(placeholderInterval);
+                placeholderInterval = null;
+            }
+        }
+
+        // Enhance AI doctor cards with animation
+        const aiDoctorCards = document.querySelectorAll('.ai-doctor-card');
+        if (aiDoctorCards.length) {
+            aiDoctorCards.forEach((card, index) => {
+                card.style.animationDelay = `${0.1 * index}s`;
+            });
+        }
+
+        // Handle back to top button
+        const backToTop = document.getElementById('backToTop');
     </script>
 </body>
 
