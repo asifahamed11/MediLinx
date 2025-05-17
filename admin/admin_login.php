@@ -2,11 +2,9 @@
 session_start();
 require_once 'config.php';
 
-// Check if admin is already logged in
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
-    header('Location: admin.php');
-    exit;
-}
+// Redirect all requests to main login page
+header('Location: ../login.php');
+exit;
 
 $error = '';
 

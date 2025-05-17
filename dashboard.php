@@ -8,6 +8,30 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Check if user needs to verify email
+if (isset($_SESSION['needs_verification']) && $_SESSION['needs_verification'] === true) {
+    header("Location: verify_pin.php");
+    exit;
+}
+
+// Double check if email is verified in database
+$conn = connectDB();
+$user_id = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT email_verified_at FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($row = $result->fetch_assoc()) {
+    if ($row['email_verified_at'] === NULL) {
+        $_SESSION['needs_verification'] = true;
+        header("Location: verify_pin.php");
+        exit;
+    }
+}
+$stmt->close();
+$conn->close();
+
 // Helper function to sanitize input
 function sanitizeInput($input)
 {

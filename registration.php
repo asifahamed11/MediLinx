@@ -325,6 +325,22 @@ try {
         // Commit the transaction only if everything was successful
         $conn->commit();
 
+        // Set session variables for verification
+        $_SESSION['user_id'] = ($role === 'doctor') ? $doctor_id : $user_id;
+        $_SESSION['role'] = $role;
+        $_SESSION['username'] = $username;
+        $_SESSION['email'] = $email;
+        $_SESSION['verification_email'] = $email;
+        $_SESSION['needs_verification'] = true;
+
+        // Set role specific session data
+        if ($role === 'doctor') {
+            $_SESSION['doctor_id'] = $doctor_id;
+            $_SESSION['specialty'] = $specialty;
+        } else if ($role === 'patient') {
+            $_SESSION['patient_id'] = $user_id;
+        }
+
         // Redirect to verification page
         header("Location: verify_pin.php");
         exit;
