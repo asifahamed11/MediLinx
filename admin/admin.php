@@ -33,6 +33,20 @@ if (isset($_POST['delete_post']) && isset($_POST['post_id'])) {
     exit;
 }
 
+if (isset($_POST['delete_review']) && isset($_POST['review_id'])) {
+    $review_id = intval($_POST['review_id']);
+    mysqli_query($conn, "DELETE FROM reviews WHERE id = $review_id");
+    header('Location: admin.php?tab=reviews&deleted=1');
+    exit;
+}
+
+if (isset($_POST['delete_time_slot']) && isset($_POST['time_slot_id'])) {
+    $time_slot_id = intval($_POST['time_slot_id']);
+    mysqli_query($conn, "DELETE FROM time_slots WHERE id = $time_slot_id");
+    header('Location: admin.php?tab=time_slots&deleted=1');
+    exit;
+}
+
 // Get active tab
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
 
@@ -61,8 +75,8 @@ function getAppointments($conn)
     $query = "SELECT a.*, u1.username as patient_name, u2.username as doctor_name, t.start_time, t.end_time, t.location 
               FROM appointments a
               JOIN users u1 ON a.patient_id = u1.id
-              JOIN users u2 ON (SELECT doctor_id FROM time_slots WHERE id = a.slot_id) = u2.id
               JOIN time_slots t ON a.slot_id = t.id
+              JOIN users u2 ON t.doctor_id = u2.id
               ORDER BY a.created_at DESC";
     return mysqli_query($conn, $query);
 }
@@ -80,7 +94,9 @@ function getPosts($conn)
 // Function to get reviews
 function getReviews($conn)
 {
-    $query = "SELECT r.*, u1.username as doctor_name, u2.username as patient_name 
+    $query = "SELECT r.*, 
+              u1.username as doctor_name,
+              u2.username as patient_name
               FROM reviews r
               JOIN users u1 ON r.doctor_id = u1.id
               JOIN users u2 ON r.patient_id = u2.id
@@ -1036,16 +1052,17 @@ function getReviews($conn)
                 </thead>
                 <tbody>
                     <?php
-                    $query = "SELECT a.*, u.username as patient_name, ts.start_time, ts.end_time, ts.location, ts.doctor_id,
-                              (SELECT username FROM users WHERE id = ts.doctor_id) as doctor_name
+                    $query = "SELECT a.*, u.username as patient_name, ts.start_time, ts.end_time, ts.location,
+                              u2.username as doctor_name
                               FROM appointments a
                               JOIN users u ON a.patient_id = u.id
-                              JOIN time_slots ts ON a.slot_id = ts.id";
+                              JOIN time_slots ts ON a.slot_id = ts.id
+                              JOIN users u2 ON ts.doctor_id = u2.id";
 
                     if (isset($_GET['search']) && !empty($_GET['search'])) {
                         $search_term = mysqli_real_escape_string($conn, $_GET['search']);
                         $query .= " WHERE u.username LIKE '%$search_term%' OR 
-                                   (SELECT username FROM users WHERE id = ts.doctor_id) LIKE '%$search_term%' OR
+                                   u2.username LIKE '%$search_term%' OR
                                    a.reason LIKE '%$search_term%'";
                     }
 
@@ -1120,10 +1137,11 @@ function getReviews($conn)
                         echo "<td>" . htmlspecialchars($slot['location']) . "</td>";
                         echo "<td>" . ucfirst($slot['status']) . "</td>";
                         echo "<td>
+                                <a href='view_time_slot.php?id=" . $slot['id'] . "' class='btn btn-view'>View</a>
                                 <a href='edit_time_slot.php?id=" . $slot['id'] . "' class='btn btn-edit'>Edit</a>
                                 <form method='POST' style='display:inline;' onsubmit='return confirm(\"Are you sure you want to delete this time slot?\");'>
-                                    <input type='hidden' name='slot_id' value='" . $slot['id'] . "'>
-                                    <button type='submit' name='delete_slot' class='btn btn-delete'>Delete</button>
+                                    <input type='hidden' name='time_slot_id' value='" . $slot['id'] . "'>
+                                    <button type='submit' name='delete_time_slot' class='btn btn-delete'>Delete</button>
                                 </form>
                             </td>";
                         echo "</tr>";
@@ -1214,15 +1232,17 @@ function getReviews($conn)
                 <tbody>
                     <?php
                     $query = "SELECT r.*, 
-                              (SELECT username FROM users WHERE id = r.doctor_id) as doctor_name,
-                              (SELECT username FROM users WHERE id = r.patient_id) as patient_name
-                              FROM reviews r";
+                              u1.username as doctor_name,
+                              u2.username as patient_name
+                              FROM reviews r
+                              JOIN users u1 ON r.doctor_id = u1.id
+                              JOIN users u2 ON r.patient_id = u2.id";
 
                     if (isset($_GET['search']) && !empty($_GET['search'])) {
                         $search_term = mysqli_real_escape_string($conn, $_GET['search']);
                         $query .= " WHERE r.comment LIKE '%$search_term%' OR 
-                                   (SELECT username FROM users WHERE id = r.doctor_id) LIKE '%$search_term%' OR
-                                   (SELECT username FROM users WHERE id = r.patient_id) LIKE '%$search_term%'";
+                                   u1.username LIKE '%$search_term%' OR
+                                   u2.username LIKE '%$search_term%'";
                     }
 
                     $reviews = mysqli_query($conn, $query);

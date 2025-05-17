@@ -22,39 +22,53 @@ $doctors = mysqli_fetch_all($doctors_result, MYSQLI_ASSOC);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Basic validation
-        if (empty($_POST['doctor_id']) || empty($_POST['start_time']) || empty($_POST['end_time'])) {
-            throw new Exception("Doctor, start time and end time are required");
-        }
-
-        // Validate start time is before end time
-        $start_time = new DateTime($_POST['start_time']);
-        $end_time = new DateTime($_POST['end_time']);
-
-        if ($start_time >= $end_time) {
-            throw new Exception("End time must be after start time");
+        if (empty($_POST['doctor_id']) || empty($_POST['title']) || empty($_POST['content'])) {
+            throw new Exception("Doctor, title and content are required");
         }
 
         // Start transaction
         $conn->begin_transaction();
 
-        // Insert time slot
-        $insert_query = "INSERT INTO time_slots (doctor_id, start_time, end_time, location, status) 
-                         VALUES (?, ?, ?, ?, 'available')";
+        // Handle image upload if provided
+        $image_path = null;
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+            $target_dir = "../uploads/posts/";
+
+            // Create directory if it doesn't exist
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+
+            $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $file_name = time() . "_" . uniqid() . "_post." . $file_extension;
+            $target_file = $target_dir . $file_name;
+
+            // Move uploaded file
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+                $image_path = "uploads/posts/" . $file_name;
+            } else {
+                throw new Exception("Failed to upload image");
+            }
+        }
+
+        // Insert post
+        $insert_query = "INSERT INTO posts (doctor_id, title, content, image, created_at, updated_at) 
+                         VALUES (?, ?, ?, ?, NOW(), NOW())";
 
         $insert_stmt = $conn->prepare($insert_query);
         $insert_stmt->bind_param(
             'isss',
             $_POST['doctor_id'],
-            $_POST['start_time'],
-            $_POST['end_time'],
-            $_POST['location']
+            $_POST['title'],
+            $_POST['content'],
+            $image_path
         );
 
         $insert_stmt->execute();
 
         // Commit transaction
         $conn->commit();
-        $success_message = "Time slot added successfully!";
+        $success_message = "Post added successfully!";
     } catch (Exception $e) {
         // Rollback on error
         if ($conn->connect_errno === 0) {
@@ -71,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Time Slot - Medilinx Admin</title>
+    <title>Add Post - Medilinx Admin</title>
     <style>
         * {
             margin: 0;
@@ -139,7 +153,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         input[type="text"],
-        input[type="datetime-local"],
         select,
         textarea {
             width: 100%;
@@ -147,6 +160,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+        }
+
+        textarea {
+            height: 200px;
+            resize: vertical;
         }
 
         .btn {
@@ -174,8 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <div class="container">
-        <a href="admin.php?tab=time_slots" class="back-link">&larr; Back to Time Slots</a>
-        <h1>Add New Time Slot</h1>
+        <a href="admin.php?tab=posts" class="back-link">&larr; Back to Posts</a>
+        <h1>Add New Post</h1>
 
         <?php if (!empty($success_message)): ?>
             <div class="alert alert-success"><?php echo $success_message; ?></div>
@@ -185,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="alert alert-danger"><?php echo $error_message; ?></div>
         <?php endif; ?>
 
-        <form action="" method="post">
+        <form action="" method="post" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="doctor_id">Doctor</label>
                 <select id="doctor_id" name="doctor_id" required>
@@ -199,23 +217,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="form-group">
-                <label for="start_time">Start Time</label>
-                <input type="datetime-local" id="start_time" name="start_time" required>
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" required>
             </div>
 
             <div class="form-group">
-                <label for="end_time">End Time</label>
-                <input type="datetime-local" id="end_time" name="end_time" required>
+                <label for="content">Content</label>
+                <textarea id="content" name="content" required></textarea>
             </div>
 
             <div class="form-group">
-                <label for="location">Location</label>
-                <input type="text" id="location" name="location" placeholder="e.g. Main Clinic Room 3">
+                <label for="image">Image (Optional)</label>
+                <input type="file" id="image" name="image" accept="image/*">
             </div>
 
             <div style="margin-top: 20px;">
-                <button type="submit" class="btn btn-primary">Add Time Slot</button>
-                <a href="admin.php?tab=time_slots" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Post</button>
+                <a href="admin.php?tab=posts" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
