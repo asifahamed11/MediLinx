@@ -18,8 +18,14 @@ $user_id = $_SESSION['user_id'];
 
 // Handle filters
 $doctor_id = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : null;
-$date_from = isset($_GET['date_from']) ? $_GET['date_from'] : date('Y-m-d');
+$today = date('Y-m-d');
+$date_from = isset($_GET['date_from']) ? $_GET['date_from'] : $today;
 $date_to = isset($_GET['date_to']) ? $_GET['date_to'] : date('Y-m-d', strtotime('+7 days'));
+
+// Ensure date_from is not in the past
+if ($date_from < $today) {
+    $date_from = $today;
+}
 
 // Get all doctors for filter dropdown
 $doctors_query = "SELECT id, username, specialty FROM users WHERE role = 'doctor'";
@@ -35,7 +41,8 @@ $query = "SELECT ts.*, u.username as doctor_name, u.specialty,
           FROM time_slots ts
           JOIN users u ON ts.doctor_id = u.id
           WHERE ts.status = 'available' 
-          AND ts.start_time BETWEEN ? AND ? ";
+          AND ts.start_time BETWEEN ? AND ?
+          AND ts.start_time > NOW() ";  // Use NOW() to include time, not just date
 
 $params = [$date_from . ' 00:00:00', $date_to . ' 23:59:59'];
 $types = "ss";
@@ -378,6 +385,12 @@ $conn->close();
                 grid-template-columns: 1fr;
             }
         }
+
+        .past {
+            background-color: #f0f0f0;
+            border-color: #e0e0e0;
+            opacity: 0.7;
+        }
     </style>
 </head>
 
@@ -416,11 +429,11 @@ $conn->close();
                 </div>
                 <div class="form-group">
                     <label for="date_from">From Date</label>
-                    <input type="date" name="date_from" id="date_from" value="<?php echo $date_from; ?>">
+                    <input type="date" name="date_from" id="date_from" value="<?php echo $date_from; ?>" min="<?php echo $today; ?>">
                 </div>
                 <div class="form-group">
                     <label for="date_to">To Date</label>
-                    <input type="date" name="date_to" id="date_to" value="<?php echo $date_to; ?>">
+                    <input type="date" name="date_to" id="date_to" value="<?php echo $date_to; ?>" min="<?php echo $today; ?>">
                 </div>
                 <div class="form-group">
                     <button type="submit"><i class="fas fa-filter"></i> Filter</button>
@@ -446,9 +459,11 @@ $conn->close();
                                 <?php
                                 $is_booked = in_array($slot['id'], $booked_slots);
                                 $is_full = isset($slot['capacity']) && $slot['booked_count'] >= $slot['capacity'];
-                                $disabled = $is_booked || $is_full;
+                                $slot_time = strtotime($slot['start_time']);
+                                $is_past = $slot_time < time();
+                                $disabled = $is_booked || $is_full || $is_past;
                                 ?>
-                                <div class="slot-card <?php echo $is_booked ? 'booked' : ''; ?>">
+                                <div class="slot-card <?php echo $is_booked ? 'booked' : ($is_past ? 'past' : ''); ?>">
                                     <div class="slot-time">
                                         <i class="far fa-clock"></i>
                                         <?php echo date('g:i A', strtotime($slot['start_time'])); ?> -
@@ -471,6 +486,10 @@ $conn->close();
                                     <?php elseif ($is_full): ?>
                                         <button class="book-btn" disabled>
                                             <i class="fas fa-ban"></i> Fully Booked
+                                        </button>
+                                    <?php elseif ($is_past): ?>
+                                        <button class="book-btn" disabled>
+                                            <i class="fas fa-clock"></i> Past Date
                                         </button>
                                     <?php else: ?>
                                         <button class="book-btn" onclick="openBookingModal(<?php echo $slot['id']; ?>, '<?php echo htmlspecialchars($slot['doctor_name']); ?>', '<?php echo date('l, F j, Y g:i A', strtotime($slot['start_time'])); ?>')">
@@ -540,6 +559,26 @@ $conn->close();
                 closeBookingModal();
             }
         }
+
+        // Ensure date inputs have proper minimum values
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateFrom = document.getElementById('date_from');
+            const dateTo = document.getElementById('date_to');
+
+            // Set min attribute for date inputs
+            dateFrom.min = today;
+            dateTo.min = today;
+
+            // Enforce min date if user has selected a past date
+            if (dateFrom.value < today) {
+                dateFrom.value = today;
+            }
+
+            if (dateTo.value < today) {
+                dateTo.value = today;
+            }
+        });
     </script>
 </body>
 

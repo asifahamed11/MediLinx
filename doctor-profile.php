@@ -984,6 +984,7 @@ $conn->close();
                         WHERE ts.doctor_id = ? 
                         AND ts.start_time BETWEEN ? AND ? 
                         AND ts.status = 'available'
+                        AND ts.start_time > NOW()
                         AND (ts.capacity IS NULL OR ts.booked_count < ts.capacity)
                         AND NOT EXISTS (
                             SELECT 1 FROM appointments a 
@@ -1005,6 +1006,7 @@ $conn->close();
                         WHERE doctor_id = ? 
                         AND start_time BETWEEN ? AND ? 
                         AND status = 'available'
+                        AND start_time > NOW()
                         AND (capacity IS NULL OR booked_count < capacity)
                         ORDER BY start_time ASC
                     ");
@@ -1134,11 +1136,15 @@ $conn->close();
                         modalTitle.textContent = 'Appointments for ' + dateString;
                         modalBody.innerHTML = '';
 
-                        // Filter slots to only show those with available capacity
+                        // Get current time to filter past slots
+                        const currentTime = new Date();
+
+                        // Filter slots to only show those with available capacity and in the future
                         const availableSlots = slotsByDay[day] ? slotsByDay[day].filter(slot => {
                             const capacity = slot.capacity || 20;
                             const booked = slot.booked_count || 0;
-                            return booked < capacity;
+                            const slotTime = new Date(slot.start_time);
+                            return booked < capacity && slotTime > currentTime;
                         }) : [];
 
                         if (availableSlots.length > 0) {
@@ -1160,6 +1166,10 @@ $conn->close();
                                 const booked = slot.booked_count || 0;
                                 const spacesLeft = capacity - booked;
 
+                                // Check if the slot is in the past
+                                const slotTime = new Date(slot.start_time);
+                                const isPast = slotTime <= currentTime;
+
                                 slotElement.innerHTML = `
                                     <div>
                                         <div class="modal-slot-time">${startTime} - ${endTime}</div>
@@ -1172,7 +1182,9 @@ $conn->close();
                                     `<form method="POST" action="book_appointment.php">
                                         <input type="hidden" name="slot_id" value="${slot.id}">
                                         <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                                        ${spacesLeft > 0 ? '<button type="submit" class="modal-book-btn">Book</button>' : '<span class="full-slot">Full</span>'}
+                                        ${isPast ? '<span class="full-slot">Past Time</span>' : 
+                                          (spacesLeft > 0 ? '<button type="submit" class="modal-book-btn">Book</button>' : 
+                                          '<span class="full-slot">Full</span>')}
                                     </form>` : 
                                     '<div class="slot-info"><span class="view-only">View Only</span></div>'}
                                 `;
@@ -1198,6 +1210,61 @@ $conn->close();
                             closeDayModal();
                         }
                     }
+
+                    // Filter events display in the calendar to hide past events
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const currentTime = new Date();
+                        const dayElements = document.querySelectorAll('.calendar-day');
+
+                        dayElements.forEach(dayElement => {
+                            if (!dayElement.classList.contains('empty-day')) {
+                                const dayNumber = parseInt(dayElement.querySelector('.day-number').textContent);
+
+                                // Only process days with events
+                                if (slotsByDay[dayNumber]) {
+                                    // Filter to only future slots
+                                    const futureSlots = slotsByDay[dayNumber].filter(slot => {
+                                        return new Date(slot.start_time) > currentTime;
+                                    });
+
+                                    // Update day class based on future slots
+                                    if (futureSlots.length === 0) {
+                                        dayElement.classList.remove('has-events');
+                                        // Clear any event indicators
+                                        const eventsDiv = dayElement.querySelector('.day-events');
+                                        if (eventsDiv) {
+                                            eventsDiv.innerHTML = '';
+                                        }
+                                    } else {
+                                        // Update the displayed events if needed
+                                        const eventsDiv = dayElement.querySelector('.day-events');
+                                        if (eventsDiv) {
+                                            eventsDiv.innerHTML = '';
+                                            futureSlots.slice(0, 2).forEach(slot => {
+                                                const eventDiv = document.createElement('div');
+                                                eventDiv.className = 'event';
+                                                eventDiv.textContent = new Date(slot.start_time).toLocaleTimeString([], {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                });
+                                                eventsDiv.appendChild(eventDiv);
+                                            });
+
+                                            if (futureSlots.length > 2) {
+                                                const moreDiv = document.createElement('div');
+                                                moreDiv.className = 'event';
+                                                moreDiv.textContent = `+${futureSlots.length - 2} more`;
+                                                eventsDiv.appendChild(moreDiv);
+                                            }
+                                        }
+                                    }
+
+                                    // Update slotsByDay object with filtered slots
+                                    slotsByDay[dayNumber] = futureSlots;
+                                }
+                            }
+                        });
+                    });
                 </script>
             </div>
         </div>

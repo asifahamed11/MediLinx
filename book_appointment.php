@@ -63,6 +63,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Check if appointment time is in the past
+        $current_time = time();
+        $appointment_time = strtotime($slot['start_time']);
+
+        if ($appointment_time < $current_time) {
+            $conn->rollback();
+            $_SESSION['error'] = "Cannot book appointments for past dates and times";
+            header("Location: calendar_booking.php");
+            exit;
+        }
+
         // Check if slot is at capacity
         if (isset($slot['capacity']) && $slot['current_bookings'] >= $slot['capacity']) {
             $conn->rollback();
