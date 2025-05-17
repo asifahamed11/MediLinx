@@ -8,6 +8,5 @@ $_SESSION = array();
 session_destroy();
 
 // Redirect to login page
-header('Location: admin_login.php');
+header('Location: /medilinx/login.php');
 exit;
-?>

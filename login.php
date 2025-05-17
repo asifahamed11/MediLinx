@@ -4,6 +4,7 @@ require_once 'config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,8 +114,8 @@ require_once 'config.php';
             outline: none;
         }
 
-        input:focus ~ label,
-        input:valid ~ label {
+        input:focus~label,
+        input:valid~label {
             top: 0;
             transform: translateY(-50%) scale(0.9);
             color: var(--primary);
@@ -175,9 +176,19 @@ require_once 'config.php';
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
         }
 
         @media (max-width: 480px) {
@@ -185,17 +196,18 @@ require_once 'config.php';
                 padding: 2rem;
                 width: 95%;
             }
-            
+
             h2 {
                 font-size: 2rem;
             }
-            
+
             .btn {
                 width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Welcome Back</h2>
@@ -203,7 +215,7 @@ require_once 'config.php';
             <div class="error"><?= $_SESSION['error'] ?></div>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
-        
+
         <form action="process_login.php" method="post">
             <div class="form-group">
                 <input type="email" id="email" name="email" required>
@@ -213,11 +225,12 @@ require_once 'config.php';
                 <input type="password" id="password" name="password" required>
                 <label for="password">Password</label>
             </div>
-            <button type="submit" class="btn">Log In</button>
+            <button type="submit" class="btn">Login</button>
         </form>
         <div class="register-link">
             <a href="index.php">Need an account? Sign up</a>
         </div>
     </div>
 </body>
+
 </html>

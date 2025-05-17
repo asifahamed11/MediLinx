@@ -53,7 +53,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (password_verify($password, $user['password'])) {
-            // Store essential information in session
+            // Check if this is an admin user
+            if ($user['role'] === 'admin' && $email === 'admin@medilinx.com') {
+                // Set admin session variables
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_username'] = $user['username'];
+                $_SESSION['admin_id'] = $user['id'];
+
+                // Redirect to admin panel
+                header("Location: admin/admin.php");
+                exit;
+            }
+
+            // For non-admin users, proceed as usual
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $user['username'];
