@@ -301,16 +301,15 @@ try {
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com'; // SMTP server
+        $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
 
-        // Use environment variables or config file for credentials
-        // For demonstration, using the original credentials but this is NOT secure
-        $mail->Username   = 'asifahamedstudent@gmail.com'; // BETTER: getenv('SMTP_USERNAME');
-        $mail->Password   = 'nsxj nitr rumm xrei'; // BETTER: getenv('SMTP_PASSWORD');
+        // Use SMTP credentials from config.php
+        $mail->Username   = SMTP_USERNAME;
+        $mail->Password   = SMTP_PASSWORD;
 
         $mail->SMTPSecure = 'ssl'; // or 'tls'
-        $mail->Port       = 465; // or 587 for TLS
+        $mail->Port       = SMTP_PORT;
 
         // Recipients
         $mail->setFrom('no-reply@medilinx.com', 'MediLinx');
