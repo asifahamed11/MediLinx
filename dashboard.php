@@ -3100,7 +3100,7 @@ $conn->close();
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <div>
                                     <strong>This may be a medical emergency.</strong>
-                                    <p>If you're experiencing a life-threatening condition, please call emergency services (911) or go to your nearest emergency room immediately.</p>
+                                    <p>If you're experiencing a life-threatening condition, please call emergency services (999) or go to your nearest emergency room immediately.</p>
                                 </div>
                             </div>
                         <?php elseif ($ai_search_results['urgency'] == 'urgent'): ?>
