@@ -101,7 +101,7 @@ function getLanguageName($languageCode)
 function getAIRecommendedDoctors($symptom, $conn)
 {
     // Define the API key - we'll use the same key from health_tips.php
-    $GEMINI_API_KEY = 'AIzaSyA-SczyTDGunUSkDCQL_6kDsSGV1JNvWrY';
+    $GEMINI_API_KEY = '**************';//GEMINI API KEY
 
     // Log the start of the search process
     error_log("AI Doctor Search started for symptom: $symptom");
