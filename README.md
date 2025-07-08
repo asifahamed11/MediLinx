@@ -1,7 +1,7 @@
 # MediLinx: Healthcare Management System
 
 <div align="center">
-  <img src="screenshots/medilinx-logo.png" alt="MediLinx Logo" width="200"/>
+  <img src="logo.png" alt="MediLinx Logo" width="200"/>
   <br>
   <p><i>Connecting Patients and Doctors Seamlessly</i></p>
 </div>
@@ -126,12 +126,18 @@ mysql -u username -p database_name < medilinx.sql
 3. Configure database connection
 
    - Edit `config.php` with your database credentials
+   - Configure your SMTP Gmail settings in `config.php` for email notifications
 
-4. Set up a web server (Apache/Nginx) with PHP support
+4. Set up API keys
+
+   - Add your Gemini API key in `dashboard.php` for the doctor recommendation system
+   - Add your Gemini API key in `health_tips.php` for AI-generated health advice
+
+5. Set up a web server (Apache/Nginx) with PHP support
 
    - Ensure PHP 8.2+ is installed with required extensions
 
-5. Access the application
+6. Access the application
    - Navigate to the URL where you've hosted the application
 
 ## Future Enhancements
