@@ -1,6 +1,6 @@
 <?php
 session_start();
-const API_KEY = 'AIzaSyA-SczyTDGunUSkDCQL_6kDsSGV1JNvWrY';
+const API_KEY = '**************'; // GEMINI API KEY
 const CACHE_LIFETIME = 3; // 3s cache lifetime for tips
 
 function generate_health_tips()
