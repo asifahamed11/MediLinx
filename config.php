@@ -29,8 +29,8 @@ define('DB_NAME', 'medilinx');
 
 // SMTP Configuration
 define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_USERNAME', 'medilinxx@gmail.com');
-define('SMTP_PASSWORD', 'nzxf ckbm eswr oegw');
+define('SMTP_USERNAME', '****@gmail.com'); // your SMTP_USERNAME gmail
+define('SMTP_PASSWORD', '**** **** **** ****'); // your SMTP_PASSWORD 
 define('SMTP_PORT', 465);
 
 date_default_timezone_set('UTC');
