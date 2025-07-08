@@ -8,7 +8,7 @@
 
 ## Overview
 
-MediLinx is a comprehensive healthcare management system developed as a 6th semester software development project. The system connects patients with healthcare providers, simplifies appointment scheduling, and provides personalized health information through an intuitive web interface.
+MediLinx is a comprehensive healthcare management system developed as my 6th-semester software development project. The system connects patients with healthcare providers, simplifies appointment scheduling, and provides personalized health information through an intuitive web interface.
 
 Built with PHP and MySQL, MediLinx implements modern security practices and features an AI-powered recommendation system to match patients with suitable doctors based on their symptoms and medical needs.
 
@@ -59,7 +59,7 @@ MediLinx follows a traditional PHP web application architecture with the followi
 
 ### Database Schema
 
-The database consists of multiple interconnected tables including:
+The database consists of multiple interconnected tables, including:
 
 - `users` - Stores user accounts with role-based information
 - `appointments` - Tracks scheduled meetings between doctors and patients
@@ -71,9 +71,9 @@ The database consists of multiple interconnected tables including:
 
 ## Screenshots
 
-### Landing Page
+### Front Page
 
-![Landing Page](screenshots/landing.png)
+![Front Page](screenshots/front.png)
 
 ### Patient Dashboard
 
@@ -105,12 +105,16 @@ MediLinx incorporates several security measures:
 - **Input Sanitization** - Protection against SQL injection and XSS attacks
 - **Transaction-based Operations** - Ensures data integrity for critical operations
 
+## Live Demo
+
+Experience MediLinx in action: [http://medilinx.rf.gd/?i=1](http://medilinx.rf.gd/?i=1)
+
 ## Installation
 
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/medilinx.git
+git clone https://github.com/asifahamed11/MediLinx.git
 ```
 
 2. Import the database
@@ -138,12 +142,6 @@ mysql -u username -p database_name < medilinx.sql
 - Advanced analytics for healthcare providers
 - Integration with wearable health devices
 
-## Contributors
-
-- [Developer Name 1](https://github.com/username1) - Backend Development
-- [Developer Name 2](https://github.com/username2) - Frontend Design
-- [Developer Name 3](https://github.com/username3) - Database Architecture
-- [Developer Name 4](https://github.com/username4) - AI Implementation
 
 ## License
 
